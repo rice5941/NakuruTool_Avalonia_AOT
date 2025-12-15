@@ -1,0 +1,22 @@
+﻿{
+  "App": {
+    "Name": "NakuruTool -Osu! CollectionManager-"
+  },
+  "Menu": {
+    "Main": "メイン",
+    "MapList": "譜面一覧",
+    "ImportExport": "インポート/エクスポート",
+    "Systems": "システム",
+    "Settings": "設定",
+    "Licenses": "ライセンス"
+  },
+  "Settings": {
+    "Language": "言語",
+    "Theme": "テーマ",
+    "OsuFolderPath": "osu!フォルダパス",
+    "ChooseOsuPath": "osu!.exeを選択",
+    "PleaseChooseOsuPath": "osu!.exeを選択してください。",
+    "ErrorOsuPathGetFailed": "ローカルパスを取得できませんでした。",
+    "ErrorOsuPathEmpty": "フォルダパスが空です。"
+  }
+}

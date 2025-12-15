@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:Settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="NakuruTool_Avalonia_AOT.Features.Settings.SettingsPage"
+             x:DataType="Settings:SettingsViewModel">
+
+    <WrapPanel ItemSpacing="16">
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.Language'}">
+				<StackPanel Spacing="12">
+					<ComboBox Width="120" ItemsSource="{Binding LanguageKeys}" SelectedItem="{Binding SelectedLanguageKey}"/>
+				</StackPanel>
+        </HeaderedContentControl>
+		
+        <HeaderedContentControl HorizontalAlignment="Left"
+            Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.OsuFolderPath'}">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+				<TextBox 
+					ToolTip.Tip="{Binding OsuPathErrorMessage}"
+					ToolTip.ServiceEnabled="{Binding HasOsuPathError}"
+					Text="{Binding SelectedFolderPath}"
+					IsReadOnly="True"
+					MinWidth="200"
+					TextWrapping="Wrap">
+					<TextBox.InnerRightContent>
+						<mi:MaterialIcon
+							Foreground="{StaticResource SemiRed7}"
+							Kind="ErrorOutline" Height="24" Width="24"
+							IsVisible="{Binding HasOsuPathError}"
+							VerticalAlignment="Center">
+						</mi:MaterialIcon>
+					</TextBox.InnerRightContent>
+				</TextBox>
+                <Button Background="{StaticResource SemiBlue7}" BorderBrush="{StaticResource SemiBlue7}" Name="SelectFileButton" Click="SelectFileButton_Click" Theme="{StaticResource SolidButton}">
+                    <ContentControl>
+						<StackPanel Orientation="Horizontal" Spacing="4">
+							<mi:MaterialIcon Kind="Terminal" VerticalAlignment="Center"/>
+							<TextBlock Text="{translate:Translate 'Settings.ChooseOsuPath'}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</ContentControl>
+				</Button>
+            </StackPanel>
+        </HeaderedContentControl>
+		
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.Theme'}">
+		        <Button Command="{Binding ToggleThemeCommand}" HorizontalAlignment="Left">
+					<mi:MaterialIcon Kind="SunMoonStars" VerticalAlignment="Center"/>
+				</Button>
+            </HeaderedContentControl>
+
+    </WrapPanel>
+</UserControl>

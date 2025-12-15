@@ -1,0 +1,20 @@
+﻿using NakuruTool_Avalonia_AOT.Features.MainWindow;
+using NakuruTool_Avalonia_AOT.Features.Settings;
+using Pure.DI;
+using static Pure.DI.Lifetime;
+
+namespace NakuruTool_Avalonia_AOT;
+partial class Composition
+{
+    private static void Setup() => DI.Setup("Composition")
+        // ViewModelの登録（通常はSingletonかScoped）
+        .Bind<SettingsViewModel>().As(Singleton).To<SettingsViewModel>()
+        .Bind<MainWindowViewModel>().As(Singleton).To<MainWindowViewModel>()
+
+        // サービスの登録
+        .Bind<ISettingsService>().As(Singleton).To<SettingsService>()
+
+        // Root（エントリーポイント）の定義
+        // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします
+        .Root<MainWindowView>("MainWindow");
+}

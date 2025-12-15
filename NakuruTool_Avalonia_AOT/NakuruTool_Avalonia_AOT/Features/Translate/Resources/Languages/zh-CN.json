@@ -1,0 +1,22 @@
+﻿{
+  "App": {
+    "Name": "NakuruTool -Osu! 收藏管理器-"
+  },
+  "Menu": {
+    "Main": "主页",
+    "MapList": "谱面列表",
+    "ImportExport": "导入/导出",
+    "Systems": "系统",
+    "Settings": "设置",
+    "Licenses": "许可证"
+  },
+  "Settings": {
+    "Language": "语言",
+    "Theme": "主题",
+    "OsuFolderPath": "osu!文件夹路径",
+    "ChooseOsuPath": "选择osu!.exe",
+    "PleaseChooseOsuPath": "请选择osu!.exe文件。",
+    "ErrorOsuPathGetFailed": "无法获取本地路径。",
+    "ErrorOsuPathEmpty": "文件夹路径为空。"
+  }
+}

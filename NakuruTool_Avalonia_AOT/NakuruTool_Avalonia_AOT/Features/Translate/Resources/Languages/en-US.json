@@ -1,0 +1,22 @@
+﻿{
+  "App": {
+    "Name": "NakuruTool -Osu! CollectionManager-"
+  },
+  "Menu": {
+    "Main": "Main",
+    "MapList": "Map List",
+    "ImportExport": "Import/Export",
+    "Systems": "Systems",
+    "Settings": "Settings",
+    "Licenses": "Licenses"
+  },
+  "Settings": {
+    "Language": "Language",
+    "Theme": "Theme",
+    "OsuFolderPath": "osu! Folder Path",
+    "ChooseOsuPath": "Choose osu!.exe",
+    "PleaseChooseOsuPath": "Please select osu!.exe file.",
+    "ErrorOsuPathGetFailed": "Failed to get local path.",
+    "ErrorOsuPathEmpty": "Folder path is empty."
+  }
+}

@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mainWindow="using:NakuruTool_Avalonia_AOT.Features.MainWindow"
         xmlns:pages="using:NakuruTool_Avalonia_AOT.Features.Settings"
+        xmlns:osuDatabase="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
         xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -45,86 +46,100 @@
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto, *">
-        <!-- ヘッダーバー -->
-        <Border Grid.Row="0" Margin="8" Padding="8" Theme="{DynamicResource CardBorder}">
-            <StackPanel Orientation="Horizontal">
-				<StackPanel Orientation="Horizontal" Spacing="8">
-                    <ToggleButton Name="ExpandButton" Padding="4">
-                        <mi:MaterialIcon Width="20" Height="20"/>
-                    </ToggleButton>
-                    <TextBlock VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
-                               Text="{translate:Translate 'App.Name'}"/>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
+    <!-- Panelでオーバーレイを重ねる -->
+    <Panel>
         <!-- メインコンテンツ -->
-        <TabControl
-            Name="MainTab"
-            Grid.Row="1"
-            Margin="8,0"
-            Padding="20,0,0,0"
-            TabStripPlacement="Left"
-            Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
-            Theme="{DynamicResource ScrollLineTabControl}">
-            <TabControl.Styles>
-                <Style Selector=".Dismiss /template/ ScrollViewer#PART_ScrollViewer">
-                    <Setter Property="IsVisible" Value="False"/>
-                </Style>
-                <Style Selector="ScrollViewer#PART_ScrollViewer">
-					<Setter Property="MinWidth" Value="230"/>
-                </Style>
-            </TabControl.Styles>
-
-            <!-- メイン -->
-            <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Main'}" />
-            
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Theme="{StaticResource PageStackPanel}">
-                        <mi:MaterialIcon Kind="Search" Width="20" Height="20"/>
-                        <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
+        <Grid RowDefinitions="Auto, *">
+            <!-- ヘッダーバー -->
+            <Border Grid.Row="0" Margin="8" Padding="8" Theme="{DynamicResource CardBorder}">
+                <StackPanel Orientation="Horizontal">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+                        <ToggleButton Name="ExpandButton" Padding="4">
+                            <mi:MaterialIcon Width="20" Height="20"/>
+                        </ToggleButton>
+                        <TextBlock VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
+                                   Text="{translate:Translate 'App.Name'}"/>
                     </StackPanel>
-                </TabItem.Header>
-                <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
-            </TabItem>
-            
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Theme="{StaticResource PageStackPanel}">
-                        <mi:MaterialIcon Kind="ImportExport" Width="20" Height="20"/>
-                        <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
-                    </StackPanel>
-                </TabItem.Header>
-                <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
-            </TabItem>
+                </StackPanel>
+            </Border>
 
-            <!-- システム -->
-            <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Systems'}" />
+            <!-- メインコンテンツ -->
+            <TabControl
+                Name="MainTab"
+                Grid.Row="1"
+                Margin="8,0"
+                Padding="20,0,0,0"
+                TabStripPlacement="Left"
+                Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
+                Theme="{DynamicResource ScrollLineTabControl}">
+                <TabControl.Styles>
+                    <Style Selector=".Dismiss /template/ ScrollViewer#PART_ScrollViewer">
+                        <Setter Property="IsVisible" Value="False"/>
+                    </Style>
+                    <Style Selector="ScrollViewer#PART_ScrollViewer">
+						<Setter Property="MinWidth" Value="230"/>
+                    </Style>
+                </TabControl.Styles>
 
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Theme="{StaticResource PageStackPanel}">
-                        <mi:MaterialIcon Kind="Cog" Width="20" Height="20"/>
-                        <TextBlock Text="{translate:Translate 'Menu.Settings'}" Theme="{StaticResource PageTextBlock}"/>
-                    </StackPanel>
-                </TabItem.Header>
-                <pages:SettingsPage DataContext="{Binding SettingsViewModel}"/>
-            </TabItem>
+                <!-- メイン -->
+                <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Main'}" />
+                
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Theme="{StaticResource PageStackPanel}">
+                            <mi:MaterialIcon Kind="Search" Width="20" Height="20"/>
+                            <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
+                </TabItem>
+                
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Theme="{StaticResource PageStackPanel}">
+                            <mi:MaterialIcon Kind="ImportExport" Width="20" Height="20"/>
+                            <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
+                </TabItem>
 
-            
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Theme="{StaticResource PageStackPanel}">
-                        <mi:MaterialIcon Kind="License" Width="20" Height="20"/>
-                        <TextBlock Text="{translate:Translate 'Menu.Licenses'}" Theme="{StaticResource PageTextBlock}"/>
-                    </StackPanel>
-                </TabItem.Header>
-                <!-- <pages:LicensesPage DataContext="{Binding LicensesViewModel}"/> -->
-            </TabItem>
+                <!-- システム -->
+                <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Systems'}" />
 
-        </TabControl>
-    </Grid>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Theme="{StaticResource PageStackPanel}">
+                            <mi:MaterialIcon Kind="Cog" Width="20" Height="20"/>
+                            <TextBlock Text="{translate:Translate 'Menu.Settings'}" Theme="{StaticResource PageTextBlock}"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <pages:SettingsPage DataContext="{Binding SettingsViewModel}"/>
+                </TabItem>
+
+                
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Theme="{StaticResource PageStackPanel}">
+                            <mi:MaterialIcon Kind="License" Width="20" Height="20"/>
+                            <TextBlock Text="{translate:Translate 'Menu.Licenses'}" Theme="{StaticResource PageTextBlock}"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <!-- <pages:LicensesPage DataContext="{Binding LicensesViewModel}"/> -->
+                </TabItem>
+
+            </TabControl>
+        </Grid>
+
+        <!-- オーバーレイ（半透明背景） -->
+        <Border IsVisible="{Binding IsLoadingOverlayVisible}" Background="#80000000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <!-- オーバーレイコンテンツ（中央配置） -->
+            <Border Theme="{DynamicResource CardBorder}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="400" MaxWidth="600" Padding="16">
+                <osuDatabase:DatabaseLoadingView DataContext="{Binding DatabaseLoadingViewModel}" />
+            </Border>
+        </Border>
+    </Panel>
 
 </Window>

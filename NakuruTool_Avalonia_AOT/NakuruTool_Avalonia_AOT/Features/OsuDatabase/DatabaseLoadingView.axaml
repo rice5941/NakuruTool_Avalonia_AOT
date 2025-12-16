@@ -1,0 +1,40 @@
+<UserControl 
+    x:Class="NakuruTool_Avalonia_AOT.Features.OsuDatabase.DatabaseLoadingView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:suki="https://github.com/kikipoulet/SukiUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+    xmlns:osuDatabase="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:DataType="osuDatabase:DatabaseLoadingViewModel"
+    mc:Ignorable="d">
+
+	<HeaderedContentControl
+        Theme="{StaticResource GroupBox}"
+        Header="{translate:Translate 'Loading.Start'}">
+		<StackPanel Spacing="12">
+			<StackPanel>
+				<TextBlock Text="{translate:Translate 'Loading.CollectionDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
+				<ProgressBar Value="{Binding CollectionDbProgress}" Foreground="DeepSkyBlue" ShowProgressText="True"/>
+				<TextBlock Text="{Binding CollectionDbMessage}"/>
+			</StackPanel>
+			<StackPanel>
+				<TextBlock Text="{translate:Translate 'Loading.OsuDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
+				<ProgressBar Value="{Binding OsuDbProgress}" Foreground="SpringGreen" ShowProgressText="True"/>
+				<TextBlock Text="{Binding OsuDbMessage}"/>
+			</StackPanel>
+			<StackPanel>
+				<TextBlock Text="{translate:Translate 'Loading.ScoresDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
+				<ProgressBar Value="{Binding ScoresDbProgress}" Foreground="Orange" ShowProgressText="True"/>
+				<TextBlock Text="{Binding ScoresDbMessage}"/>
+			</StackPanel>
+
+			<StackPanel IsVisible="{Binding HasError}">
+				<TextBlock Text="{Binding ErrorMessage}"/>
+			</StackPanel>
+		</StackPanel>
+    </HeaderedContentControl>
+</UserControl>

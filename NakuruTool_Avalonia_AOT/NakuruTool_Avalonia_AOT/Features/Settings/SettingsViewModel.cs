@@ -1,16 +1,27 @@
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Styling;
-using Semi.Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
+using Semi.Avalonia;
+using System;
+using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.Settings;
 
-public partial class SettingsViewModel : ViewModelBase
+public interface ISettingsViewModel : IDisposable
+{
+    IAvaloniaReadOnlyList<string> LanguageKeys { get; }
+    string SelectedLanguageKey { get; }
+    string SelectedFolderPath { get; }
+    string OsuPathErrorMessage { get; }
+    bool HasOsuPathError { get; }
+}
+
+public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
 {
     public IAvaloniaReadOnlyList<string> LanguageKeys { get; } = new AvaloniaList<string>(LanguageService.Instance.AvailableLanguages);
 

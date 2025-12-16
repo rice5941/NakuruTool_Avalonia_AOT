@@ -12,5 +12,13 @@ public partial class MainWindowView : Window
     public MainWindowView(MainWindowViewModel viewModel) : this()
     {
         DataContext = viewModel;
+        
+        // ウィンドウが開いたときにデータベース読み込みを開始
+        /*
+        Opened += async (_, _) =>
+        {
+            await viewModel.StartLoadingAsync();
+        };
+        */
     }
 }

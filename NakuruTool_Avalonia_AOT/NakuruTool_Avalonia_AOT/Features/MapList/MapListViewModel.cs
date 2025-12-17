@@ -66,12 +66,12 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private void PreviousPage() => CurrentPage--;
     private bool CanGoToPreviousPage() => CurrentPage > 1;
     
-    private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Count;
+    private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
     private void UpdateFilteredPages() => FilteredPages = (FilteredCount + SHOW_MAPS - 1) / SHOW_MAPS;
     
     private void UpdateFilteredBeatmapsArray()
     {
-        var allBeatmaps = _databaseService.Beatmaps.Values.AsValueEnumerable();
+        var allBeatmaps = _databaseService.Beatmaps.AsValueEnumerable();
         _filteredBeatmapsArray = allBeatmaps
             .Where(x => x.KeyCount == 7)
             .ToArray();

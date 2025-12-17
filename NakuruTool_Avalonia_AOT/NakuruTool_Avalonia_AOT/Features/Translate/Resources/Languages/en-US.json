@@ -60,6 +60,7 @@
     "OsuVersion": "osu!.db version: {0}",
     "BeatmapCount": "Number of beatmaps: {0}",
     "BeatmapProcessing": "Processing beatmaps... ({0}/{1})",
+    "OsuSorting": "Sorting beatmaps...",
     "OsuCompleted": "osu!.db loading completed",
     "OsuError": "osu!.db loading error: {0}",
     "FolderNotFound": "osu! folder not found: {0}",

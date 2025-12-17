@@ -108,7 +108,7 @@ public partial class DatabaseLoadingViewModel : ViewModelBase, IDatabaseLoadingV
 
             // 統計情報を表示
             var collectionCount = _databaseService.OsuCollections?.Count ?? 0;
-            var beatmapCount = _databaseService.Beatmaps?.Count ?? 0;
+            var beatmapCount = _databaseService.Beatmaps.Length;
         }
         catch (Exception ex)
         {

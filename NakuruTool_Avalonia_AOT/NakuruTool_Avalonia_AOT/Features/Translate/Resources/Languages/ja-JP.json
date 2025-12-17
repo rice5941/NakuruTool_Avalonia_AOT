@@ -60,6 +60,7 @@
     "OsuVersion": "osu!.db バージョン: {0}",
     "BeatmapCount": "ビートマップ数: {0}",
     "BeatmapProcessing": "ビートマップ処理中... ({0}/{1})",
+    "OsuSorting": "ビートマップをソート中...",
     "OsuCompleted": "osu!.db読み込み完了",
     "OsuError": "osu!.db読み込みエラー: {0}",
     "FolderNotFound": "osu!フォルダが見つかりません: {0}",

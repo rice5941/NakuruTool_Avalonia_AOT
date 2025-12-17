@@ -60,6 +60,7 @@
     "OsuVersion": "osu!.db 版本：{0}",
     "BeatmapCount": "谱面数量：{0}",
     "BeatmapProcessing": "正在处理谱面... ({0}/{1})",
+    "OsuSorting": "正在排序谱面...",
     "OsuCompleted": "osu!.db读取完成",
     "OsuError": "osu!.db读取错误：{0}",
     "FolderNotFound": "未找到osu!文件夹：{0}",

@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using ZLinq;
@@ -39,6 +40,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         
         private List<OsuCollection> _osuCollections = new();
         private Beatmap[] _beatmaps = Array.Empty<Beatmap>();
+        private Dictionary<string, int>? _beatmapIndex;
         private readonly object _lockObject = new object();
 
         // R3 Subjectによる進捗通知
@@ -90,6 +92,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             // 結果を取得
             _osuCollections = await collectionTask;
             _beatmaps = await osuDbTask;
+            _beatmapIndex = BuildBeatmapIndex(_beatmaps);
             var scoresDb = await scoresTask;
 
             // データベース読み込み完了後、スコアデータを適用
@@ -359,25 +362,20 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 var md5Hash = scoreEntry.Item1;
                 var scoreList = scoreEntry.Item2;
 
-                if (scoreList != null && scoreList.Count > 0)
+                if (scoreList != null && scoreList.Count > 0 && TryGetBeatmapIndex(md5Hash, out var index))
                 {
-                    // 二分探索で対応するBeatmapを検索
-                    var index = BinarySearchByMd5(md5Hash);
-                    if (index >= 0)
-                    {
-                        var beatmap = _beatmaps[index];
-                        
-                        int bestScore = scoreList.AsValueEnumerable().Max(s => s.ReplayScore);
-                        double bestAccuracy = scoreList.AsValueEnumerable().Max(s => CalculateAccuracy(s));
-                        int playCount = scoreList.Count;
+                    var beatmap = _beatmaps[index];
+                    
+                    int bestScore = scoreList.AsValueEnumerable().Max(s => s.ReplayScore);
+                    double bestAccuracy = scoreList.AsValueEnumerable().Max(s => CalculateAccuracy(s));
+                    int playCount = scoreList.Count;
 
-                        _beatmaps[index] = beatmap with
-                        {
-                            BestScore = bestScore,
-                            BestAccuracy = bestAccuracy,
-                            PlayCount = playCount
-                        };
-                    }
+                    _beatmaps[index] = beatmap with
+                    {
+                        BestScore = bestScore,
+                        BestAccuracy = bestAccuracy,
+                        PlayCount = playCount
+                    };
                 }
 
                 processedScores++;
@@ -390,6 +388,54 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             }
 
             OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresCompleted"), totalScores), 100);
+        }
+
+        /// <summary>
+        /// Beatmap配列に対するMD5→インデックス辞書を構築
+        /// </summary>
+        private Dictionary<string, int> BuildBeatmapIndex(Beatmap[] beatmaps)
+        {
+            if (beatmaps == null || beatmaps.Length == 0)
+            {
+                return new Dictionary<string, int>(0, StringComparer.Ordinal);
+            }
+
+            var index = new Dictionary<string, int>(beatmaps.Length, StringComparer.Ordinal);
+            for (int i = 0; i < beatmaps.Length; i++)
+            {
+                var md5 = beatmaps[i].MD5Hash;
+                if (string.IsNullOrEmpty(md5))
+                {
+                    continue;
+                }
+
+                if (index.ContainsKey(md5) == false)
+                {
+                    index[md5] = i;
+                }
+            }
+
+            return index;
+        }
+
+        /// <summary>
+        /// MD5ハッシュでインデックスを取得（辞書優先、無い場合は二分探索）
+        /// </summary>
+        private bool TryGetBeatmapIndex(string md5Hash, out int index)
+        {
+            index = -1;
+            if (string.IsNullOrEmpty(md5Hash) || _beatmaps == null || _beatmaps.Length == 0)
+            {
+                return false;
+            }
+
+            if (_beatmapIndex != null && _beatmapIndex.TryGetValue(md5Hash, out index))
+            {
+                return true;
+            }
+
+            index = BinarySearchByMd5(md5Hash);
+            return index >= 0;
         }
 
         /// <summary>
@@ -669,6 +715,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             {
                 _osuCollections?.Clear();
                 _beatmaps = Array.Empty<Beatmap>();
+                _beatmapIndex = null;
             }
 
             await LoadDatabasesAsync();

@@ -253,7 +253,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                     var beatmapDict = osuDatabase.Beatmaps.AsValueEnumerable()
                         .Where(dbBeatmap => 
                         {
-                            // 進捗を更新（100件ごと）
+                            // 進捗を更新（1000件ごと）
                             var current = System.Threading.Interlocked.Increment(ref processedCount);
                             if (current % 1000 == 0 || current == totalBeatmaps)
                             {
@@ -485,15 +485,13 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 Creator = dbBeatmap.Creator ?? string.Empty,
                 BPM = CalculateBPM(dbBeatmap),
                 Difficulty = GetManiaStarRating(dbBeatmap),
-                CircleSize = dbBeatmap.CircleSize,
                 BeatmapSetId = dbBeatmap.BeatmapSetId,
                 BeatmapId = dbBeatmap.BeatmapId,
-                GameMode = (int)dbBeatmap.Ruleset,
                 Status = ConvertRankedStatus(dbBeatmap.RankedStatus),
                 IsPlayed = dbBeatmap.IsUnplayed == false,
                 LastPlayed = dbBeatmap.LastPlayed == DateTime.MinValue ? null : dbBeatmap.LastPlayed,
                 LastModifiedTime = dbBeatmap.LastModifiedTime == DateTime.MinValue ? null : dbBeatmap.LastModifiedTime,
-                Exists = dbBeatmap.FolderName != null,
+                FolderName = dbBeatmap.FolderName,
                 Grade = GetGradeString(dbBeatmap),
                 KeyCount = keyCount,
                 LongNoteRate = CalculateLongNoteRate(dbBeatmap),

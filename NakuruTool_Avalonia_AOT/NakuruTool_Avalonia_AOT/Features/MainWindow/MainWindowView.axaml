@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mainWindow="using:NakuruTool_Avalonia_AOT.Features.MainWindow"
-        xmlns:pages="using:NakuruTool_Avalonia_AOT.Features.Settings"
+        xmlns:mapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
+        xmlns:settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
         xmlns:osuDatabase="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
         xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -91,7 +92,7 @@
                             <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
                         </StackPanel>
                     </TabItem.Header>
-                    <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
+                    <mapList:MapListViewPage DataContext="{Binding MapListViewModel}"/>
                 </TabItem>
                 
                 <TabItem>
@@ -114,7 +115,7 @@
                             <TextBlock Text="{translate:Translate 'Menu.Settings'}" Theme="{StaticResource PageTextBlock}"/>
                         </StackPanel>
                     </TabItem.Header>
-                    <pages:SettingsPage DataContext="{Binding SettingsViewModel}"/>
+                    <settings:SettingsPage DataContext="{Binding SettingsViewModel}"/>
                 </TabItem>
 
                 

@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListViewPage"
+             x:DataType="MapList:MapListViewModel">
+
+    <UserControl.Resources>
+        <converters:NullableDateTimeConverter x:Key="NullableDateTimeConverter"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- ヘッダー: 総件数表示 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8">
+            <TextBlock Text="{translate:Translate 'MapList.TotalCount'}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TotalCount}" VerticalAlignment="Center" FontWeight="Bold"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding ShowBeatmaps}"
+                  IsReadOnly="True"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="False"
+                  GridLinesVisibility="All">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Title'}" Binding="{Binding Title}" Width="500"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Artist'}" Binding="{Binding Artist}" Width="300"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Version'}" Binding="{Binding Version}" Width="300"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Creator'}" Binding="{Binding Creator}" Width="100"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.KeyCount'}" Binding="{Binding KeyCount}" Width="60"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Difficulty'}" Binding="{Binding Difficulty, StringFormat={}{0:F2}}" Width="80"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.BPM'}" Binding="{Binding BPM, StringFormat={}{0:F0}}" Width="80"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.LongNoteRate'}" Binding="{Binding LongNoteRate, StringFormat={}{0:P1}}" Width="80"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Status'}" Binding="{Binding Status}" Width="120"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.Grade'}" Binding="{Binding Grade}" Width="80"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.PlayCount'}" Binding="{Binding PlayCount}" Width="120"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.BestScore'}" Binding="{Binding BestScore, StringFormat={}{0:N0}}" Width="120"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.BestAccuracy'}" Binding="{Binding BestAccuracy, StringFormat={}{0:F2}%}" Width="120"/>
+                <DataGridCheckBoxColumn Header="{translate:Translate 'MapList.IsPlayed'}" Binding="{Binding IsPlayed}" Width="100"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.LastPlayed'}" Binding="{Binding LastPlayed, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd HH:mm'}" Width="150"/>
+                <DataGridTextColumn Header="{translate:Translate 'MapList.LastModifiedTime'}" Binding="{Binding LastModifiedTime, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd HH:mm'}" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <!-- ページネーション -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16" Margin="8">
+            <Button Command="{Binding PreviousPageCommand}" Theme="{StaticResource SolidButton}">
+                <mi:MaterialIcon Kind="ChevronLeft" VerticalAlignment="Center"/>
+            </Button>
+            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="{Binding CurrentPage}" FontWeight="Bold"/>
+                <TextBlock Text="/"/>
+                <TextBlock Text="{Binding FilteredPages}"/>
+            </StackPanel>
+            <Button Command="{Binding NextPageCommand}" Theme="{StaticResource SolidButton}">
+                <mi:MaterialIcon Kind="ChevronRight" VerticalAlignment="Center"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

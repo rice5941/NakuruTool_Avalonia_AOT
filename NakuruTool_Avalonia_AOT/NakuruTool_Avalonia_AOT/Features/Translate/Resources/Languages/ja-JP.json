@@ -19,6 +19,28 @@
     "ErrorOsuPathGetFailed": "ローカルパスを取得できませんでした。",
     "ErrorOsuPathEmpty": "フォルダパスが空です。"
   },
+  "MapList": {
+    "TotalCount": "map数",
+    "Title": "曲名",
+    "Artist": "アーティスト",
+    "Version": "難易度",
+    "Creator": "作成者",
+    "KeyCount": "キー数",
+    "Difficulty": "難易度値",
+    "BPM": "BPM",
+    "Status": "ステータス",
+    "Grade": "ランク",
+    "PlayCount": "プレイ回数",
+    "MD5Hash": "MD5ハッシュ",
+    "LongNoteRate": "LN率",
+    "IsPlayed": "プレイ済み",
+    "LastPlayed": "最終プレイ",
+    "LastModifiedTime": "最終更新",
+    "BeatmapSetId": "BeatmapSet ID",
+    "BeatmapId": "Beatmap ID",
+    "BestScore": "スコア",
+    "BestAccuracy": "Acc."
+  },
   "Loading": {
     "Start": "dbファイル読み込み",
     "Completed": "読み込み完了",

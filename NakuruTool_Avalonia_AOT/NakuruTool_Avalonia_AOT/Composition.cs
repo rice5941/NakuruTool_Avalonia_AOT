@@ -1,4 +1,5 @@
 ﻿using NakuruTool_Avalonia_AOT.Features.MainWindow;
+using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using Pure.DI;
@@ -12,6 +13,7 @@ partial class Composition
         .Bind<MainWindowViewModel>().As(Singleton).To<MainWindowViewModel>()
         .Bind<ISettingsViewModel>().As(Singleton).To<SettingsViewModel>()
         .Bind<IDatabaseLoadingViewModel>().As(Singleton).To<DatabaseLoadingViewModel>()
+        .Bind<IMapListViewModel>().As(Singleton).To<MapListViewModel>()
 
         // サービスの登録
         .Bind<ISettingsService>().As(Singleton).To<SettingsService>()

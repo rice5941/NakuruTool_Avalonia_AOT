@@ -33,11 +33,9 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public bool IsPlayed { get; init; }
         public DateTime? LastPlayed { get; init; }
         public DateTime? LastModifiedTime { get; init; }
-        public bool Exists { get; init; }
+        public required string FolderName { get; init; }
         public int BeatmapSetId { get; init; }
         public int BeatmapId { get; init; }
-        public int GameMode { get; init; }
-        public float CircleSize { get; init; }
         public int BestScore { get; init; }
         public double BestAccuracy { get; init; }
         public int PlayCount { get; init; }

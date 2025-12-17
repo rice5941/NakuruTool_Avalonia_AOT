@@ -19,6 +19,28 @@
     "ErrorOsuPathGetFailed": "Failed to get local path.",
     "ErrorOsuPathEmpty": "Folder path is empty."
   },
+  "MapList": {
+    "TotalCount": "Total Count",
+    "Title": "Title",
+    "Artist": "Artist",
+    "Version": "Version",
+    "Creator": "Creator",
+    "KeyCount": "Keys",
+    "Difficulty": "Difficulty",
+    "BPM": "BPM",
+    "Status": "Status",
+    "Grade": "Grade",
+    "PlayCount": "Play Count",
+    "MD5Hash": "MD5 Hash",
+    "LongNoteRate": "LN Rate",
+    "IsPlayed": "Played",
+    "LastPlayed": "Last Played",
+    "LastModifiedTime": "Last Modified",
+    "BeatmapSetId": "BeatmapSet ID",
+    "BeatmapId": "Beatmap ID",
+    "BestScore": "Best Score",
+    "BestAccuracy": "Best Accuracy"
+  },
   "Loading": {
     "Start": "Loading db file",
     "Completed": "Loading completed",

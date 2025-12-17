@@ -19,6 +19,28 @@
     "ErrorOsuPathGetFailed": "无法获取本地路径。",
     "ErrorOsuPathEmpty": "文件夹路径为空。"
   },
+  "MapList": {
+    "TotalCount": "总数",
+    "Title": "曲名",
+    "Artist": "艺术家",
+    "Version": "难度",
+    "Creator": "创作者",
+    "KeyCount": "键数",
+    "Difficulty": "难度值",
+    "BPM": "BPM",
+    "Status": "状态",
+    "Grade": "等级",
+    "PlayCount": "游玩次数",
+    "MD5Hash": "MD5哈希",
+    "LongNoteRate": "长条率",
+    "IsPlayed": "已游玩",
+    "LastPlayed": "最后游玩",
+    "LastModifiedTime": "最后修改",
+    "BeatmapSetId": "BeatmapSet ID",
+    "BeatmapId": "Beatmap ID",
+    "BestScore": "最高分数",
+    "BestAccuracy": "最高精度"
+  },
   "Loading": {
     "Start": "读取数据库文件",
     "Completed": "读取完成",

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
@@ -10,16 +11,19 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public ISettingsViewModel SettingsViewModel { get; }
     public IDatabaseLoadingViewModel DatabaseLoadingViewModel { get; }
+    public IMapListViewModel MapListViewModel { get; }
 
     [ObservableProperty]
     private bool _isLoadingOverlayVisible = true;
 
-    public MainWindowViewModel(ISettingsViewModel settingsViewModel, IDatabaseLoadingViewModel databaseLoadingViewModel)
+    public MainWindowViewModel(
+        ISettingsViewModel settingsViewModel, 
+        IDatabaseLoadingViewModel databaseLoadingViewModel, 
+        IMapListViewModel mapListViewModel)
     {
         SettingsViewModel = settingsViewModel;
         DatabaseLoadingViewModel = databaseLoadingViewModel;
-
-        Task.Run(() => StartLoadingAsync());
+        MapListViewModel = mapListViewModel;
     }
 
     /// <summary>
@@ -30,6 +34,9 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLoadingOverlayVisible = true;
 
         await DatabaseLoadingViewModel.InitialLoadAsync();
+
+        // データベース読み込み完了後にMapListViewModelを初期化
+        MapListViewModel.Initialize();
 
         //await Task.Delay(350);
 

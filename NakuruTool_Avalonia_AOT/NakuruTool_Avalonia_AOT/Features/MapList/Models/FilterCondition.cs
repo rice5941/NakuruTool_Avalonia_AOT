@@ -155,6 +155,11 @@ public static class FilterTargetInfo
 /// </summary>
 public partial class FilterCondition : ObservableObject
 {
+    /// <summary>
+    /// 各フィルタ条件の一意のID（RadioButtonのGroupName用）
+    /// </summary>
+    public string Id { get; } = Guid.NewGuid().ToString();
+
     [ObservableProperty]
     private FilterTarget _target = FilterTarget.KeyCount;
 

@@ -12,6 +12,9 @@
 	<PublishAot>true</PublishAot>
     <InvariantGlobalization>false</InvariantGlobalization>
     <StripSymbols>true</StripSymbols>-->
+	<PublishAot>true</PublishAot>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
   <!-- AOT警告を抑制 -->

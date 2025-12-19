@@ -10,6 +10,7 @@ using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using R3;
 using Xunit;
 
 namespace NakuruTool_Avalonia_AOT.Tests;
@@ -36,12 +37,14 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseLoadingViewModel = new MockDatabaseLoadingViewModel();
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
+        var mockMapListPageViewModel = new MockMapListPageViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
-            mockMapListViewModel);
+            mockMapListViewModel,
+            mockMapListPageViewModel);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -100,12 +103,14 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseLoadingViewModel = new MockDatabaseLoadingViewModel();
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
+        var mockMapListPageViewModel = new MockMapListPageViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
-            mockMapListViewModel);
+            mockMapListViewModel,
+            mockMapListPageViewModel);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -181,12 +186,14 @@ public class MainWindowViewScreenshotTests
             ScoresDbMessage = "scores.db を読み込み中..."
         };
         var mockMapListViewModel = new MockMapListViewModel();
+        var mockMapListPageViewModel = new MockMapListPageViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
-            mockMapListViewModel);
+            mockMapListViewModel,
+            mockMapListPageViewModel);
 
         // 読み込みオーバーレイを表示する
         mainWindowViewModel.IsLoadingOverlayVisible = true;
@@ -236,12 +243,14 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseLoadingViewModel = new MockDatabaseLoadingViewModel();
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
+        var mockMapListPageViewModel = new MockMapListPageViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
-            mockMapListViewModel);
+            mockMapListViewModel,
+            mockMapListPageViewModel);
 
         mainWindowViewModel.IsLoadingOverlayVisible = false;
 
@@ -289,15 +298,15 @@ public class MainWindowViewScreenshotTests
     }
 
     /// <summary>
-    /// MapListViewPageのDataGridにデータを設定するヘルパーメソッド
+    /// MapListViewのDataGridにデータを設定するヘルパーメソッド
     /// </summary>
     private static void SetupMapListDataGrid(Window window, MockMapListViewModel mockViewModel)
     {
-        // MapListViewPageを探す
-        var mapListPage = window.FindDescendantOfType<MapListViewPage>();
-        if (mapListPage != null)
+        // MapListViewを探す
+        var mapListView = window.FindDescendantOfType<MapListView>();
+        if (mapListView != null)
         {
-            var dataGrid = mapListPage.FindControl<DataGrid>("MapListDataGrid");
+            var dataGrid = mapListView.FindControl<DataGrid>("MapListDataGrid");
             if (dataGrid != null && dataGrid.ItemsSource == null)
             {
                 dataGrid.ItemsSource = mockViewModel.ShowBeatmaps;
@@ -464,6 +473,30 @@ public class MockDatabaseLoadingViewModel : IDatabaseLoadingViewModel
 
     public Task InitialLoadAsync() => Task.CompletedTask;
 
+    public void Dispose() { }
+}
+
+/// <summary>
+/// テスト用のモックMapListPageViewModel
+/// </summary>
+public class MockMapListPageViewModel : MapListPageViewModel
+{
+    public MockMapListPageViewModel() : base(new MockDatabaseService())
+    {
+    }
+}
+
+/// <summary>
+/// テスト用のモックDatabaseService
+/// </summary>
+public class MockDatabaseService : IDatabaseService
+{
+    public Beatmap[] Beatmaps { get; } = Array.Empty<Beatmap>();
+    public IReadOnlyList<OsuCollection> OsuCollections { get; } = Array.Empty<OsuCollection>();
+    public Observable<DatabaseLoadProgress> CollectionDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
+    public Observable<DatabaseLoadProgress> OsuDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
+    public Observable<DatabaseLoadProgress> ScoresDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
+    public Task LoadDatabasesAsync() => Task.CompletedTask;
     public void Dispose() { }
 }
 

@@ -1,0 +1,215 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
+             xmlns:models="using:NakuruTool_Avalonia_AOT.Features.MapList.Models"
+             xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="600"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapFilterView"
+             x:DataType="MapList:MapFilterViewModel">
+
+    <UserControl.Styles>
+        <!-- フィルタ条件カードのスタイル -->
+        <Style Selector="Border.filter-card">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey1}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
+            <Setter Property="BorderThickness" Value="0,1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        
+        <Style Selector="TextBlock.filter-label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey6}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        
+        <Style Selector="ComboBox.filter-combobox">
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        
+        <Style Selector="TextBox.filter-input">
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{DynamicResource SemiGrey0}" 
+            BorderBrush="{DynamicResource SemiGrey3}" 
+            BorderThickness="1" CornerRadius="4"
+            Padding="0,0,0,8">
+		<Grid RowDefinitions="Auto,*,Auto">
+        <!-- ヘッダー -->
+        <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}" 
+                BorderBrush="{DynamicResource SemiGrey3}" 
+                BorderThickness="0,0,0,1" 
+                Padding="12,8"
+                Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <mi:MaterialIcon Kind="Filter" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                <TextBlock Text="{translate:Translate 'MapFilter.Title'}" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+            </StackPanel>
+        </Border>
+
+        <!-- フィルタ条件リスト -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Conditions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:FilterCondition">
+                        <Border Classes="filter-card">
+                            <Grid RowDefinitions="Auto,Auto,Auto">
+                                <!-- フィルタ対象選択 -->
+                                <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                                    <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Target'}"/>
+                                    <Grid Grid.ColumnDefinitions="*,8,auto">
+										<ComboBox Grid.Column="0" Classes="filter-combobox"
+                                                  ItemsSource="{x:Static MapList:MapFilterViewModel.FilterTargets}"
+                                                  SelectedItem="{Binding Target}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={x:Static converters:FilterTargetToStringConverter.Instance}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    
+                                        <!-- 削除ボタン -->
+                                        <Button Grid.Column="2"
+                                                Width="32" Height="32"
+                                                Command="{Binding $parent[ItemsControl].((MapList:MapFilterViewModel)DataContext).RemoveConditionCommand}"
+                                                CommandParameter="{Binding}">
+                                            <mi:MaterialIcon Kind="Close" Width="24" Height="24"/>
+                                        </Button>
+                                    </Grid>
+
+                                </StackPanel>
+
+                                <!-- 比較条件選択 -->
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                    <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ComparisonType'}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="24">
+                                        <RadioButton Content="=" 
+                                                     IsChecked="{Binding ComparisonType, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static models:ComparisonType.Equals}}"
+                                                     IsEnabled="{Binding SupportsEquals}"
+                                                     GroupName="{Binding GetHashCode}"/>
+                                        <RadioButton Content="~" 
+                                                     IsChecked="{Binding ComparisonType, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static models:ComparisonType.Range}}"
+                                                     IsEnabled="{Binding SupportsRange}"
+                                                     GroupName="{Binding GetHashCode}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- 値入力エリア -->
+                                <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+                                    
+                                    <!-- 等価比較時の値入力 -->
+                                    <StackPanel IsVisible="{Binding !IsRangeComparison}" Margin="0,0,0,8">
+                                        <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Value'}"/>
+                                        
+                                        <!-- 文字列入力 -->
+                                        <TextBox Classes="filter-input"
+                                                 Text="{Binding Value}"
+                                                 IsVisible="{Binding IsStringType}"
+                                                 Watermark="{translate:Translate 'MapFilter.EnterText'}"/>
+                                        
+                                        <!-- 数値入力 -->
+                                        <TextBox Classes="filter-input"
+                                                 Text="{Binding Value}"
+                                                 IsVisible="{Binding IsNumericType}"
+                                                 Watermark="{translate:Translate 'MapFilter.EnterNumber'}"/>
+                                        
+                                        <!-- 日付入力 -->
+                                        <CalendarDatePicker SelectedDate="{Binding DateValue, Mode=TwoWay}"
+                                                            IsVisible="{Binding IsDateType}"
+                                                            HorizontalAlignment="Stretch"/>
+                                        
+                                        <!-- Bool選択 -->
+                                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBoolType}">
+                                            <RadioButton Content="{translate:Translate 'MapFilter.Yes'}" 
+                                                         IsChecked="{Binding BoolValue}"/>
+                                            <RadioButton Content="{translate:Translate 'MapFilter.No'}" 
+                                                         IsChecked="{Binding !BoolValue}"/>
+                                        </StackPanel>
+                                        
+                                        <!-- Status選択 -->
+                                        <ComboBox Classes="filter-combobox"
+                                                  ItemsSource="{x:Static MapList:MapFilterViewModel.StatusOptions}"
+                                                  SelectedItem="{Binding StatusValue}"
+                                                  IsVisible="{Binding IsEnumType}"/>
+                                    </StackPanel>
+
+                                    <!-- 範囲比較時の入力（横並び） -->
+                                    <Grid IsVisible="{Binding IsRangeComparison}" 
+                                          ColumnDefinitions="*,8,*" 
+                                          Margin="0,0,0,8">
+                                        
+                                        <!-- 最小値 -->
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMin'}"/>
+                                            
+                                            <!-- 数値最小値 -->
+                                            <TextBox Classes="filter-input"
+                                                     Text="{Binding Value}"
+                                                     IsVisible="{Binding IsNumericType}"
+                                                     Watermark="{translate:Translate 'MapFilter.EnterMinNumber'}"/>
+                                            
+                                            <!-- 日付最小値 -->
+                                            <CalendarDatePicker SelectedDate="{Binding DateValue, Mode=TwoWay}"
+                                                                IsVisible="{Binding IsDateType}"
+                                                                HorizontalAlignment="Stretch"/>
+                                        </StackPanel>
+                                        
+                                        <!-- 最大値 -->
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMax'}"/>
+                                            
+                                            <!-- 数値最大値 -->
+                                            <TextBox Classes="filter-input"
+                                                     Text="{Binding ValueMax}"
+                                                     IsVisible="{Binding IsNumericType}"
+                                                     Watermark="{translate:Translate 'MapFilter.EnterMaxNumber'}"/>
+                                            
+                                            <!-- 日付最大値 -->
+                                            <CalendarDatePicker SelectedDate="{Binding DateValueMax, Mode=TwoWay}"
+                                                                IsVisible="{Binding IsDateType}"
+                                                                HorizontalAlignment="Stretch"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- フッター: 条件追加/クリアボタン -->
+        <StackPanel Grid.Row="2" Spacing="8">
+            <Button Command="{Binding AddConditionCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
+                    <TextBlock Text="{translate:Translate 'MapFilter.AddCondition'}"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding ClearConditionsCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Classes="Tertiary">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <mi:MaterialIcon Kind="DeleteSweep" Width="16" Height="16"/>
+                    <TextBlock Text="{translate:Translate 'MapFilter.ClearConditions'}"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+    </Border>
+    
+    
+</UserControl>

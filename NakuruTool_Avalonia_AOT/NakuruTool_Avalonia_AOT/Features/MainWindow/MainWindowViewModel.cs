@@ -12,6 +12,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ISettingsViewModel SettingsViewModel { get; }
     public IDatabaseLoadingViewModel DatabaseLoadingViewModel { get; }
     public IMapListViewModel MapListViewModel { get; }
+    public MapListPageViewModel MapListPageViewModel { get; }
 
     [ObservableProperty]
     private bool _isLoadingOverlayVisible = true;
@@ -19,11 +20,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         ISettingsViewModel settingsViewModel, 
         IDatabaseLoadingViewModel databaseLoadingViewModel, 
-        IMapListViewModel mapListViewModel)
+        IMapListViewModel mapListViewModel,
+        MapListPageViewModel mapListPageViewModel)
     {
         SettingsViewModel = settingsViewModel;
         DatabaseLoadingViewModel = databaseLoadingViewModel;
         MapListViewModel = mapListViewModel;
+        MapListPageViewModel = mapListPageViewModel;
     }
 
     /// <summary>
@@ -35,8 +38,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         await DatabaseLoadingViewModel.InitialLoadAsync();
 
-        // データベース読み込み完了後にMapListViewModelを初期化
-        MapListViewModel.Initialize();
+        // データベース読み込み完了後にMapListPageViewModelを初期化
+        MapListPageViewModel.Initialize();
 
         //await Task.Delay(350);
 

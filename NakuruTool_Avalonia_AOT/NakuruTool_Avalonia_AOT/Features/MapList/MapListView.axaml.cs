@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
 
-public partial class MapListViewPage : UserControl
+public partial class MapListView : UserControl
 {
-    public MapListViewPage()
+    public MapListView()
     {
         InitializeComponent();
     }

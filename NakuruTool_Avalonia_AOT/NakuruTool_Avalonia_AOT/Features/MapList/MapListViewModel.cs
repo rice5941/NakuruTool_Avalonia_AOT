@@ -1,6 +1,7 @@
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
@@ -18,6 +19,7 @@ public interface IMapListViewModel: IDisposable
     int FilteredPages { get; }
     int FilteredCount { get; }
     void Initialize();
+    void ApplyFilter();
 }
 
 /// <summary>
@@ -40,16 +42,24 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private int _pageSize = DefaultPageSize;
 
     private IDatabaseService _databaseService;
+    private MapFilterViewModel _filterViewModel;
+
     private const int DefaultPageSize = 20;
     
     // フィルタ結果をキャッシュ
     private Beatmap[] _filteredBeatmapsArray = Array.Empty<Beatmap>();
     private AvaloniaList<Beatmap> _showBeatmapsList = new();
 
-    public MapListViewModel(IDatabaseService databaseService)
+    public MapListViewModel(IDatabaseService databaseService, MapFilterViewModel filterViewModel)
     {
         _databaseService = databaseService;
+        _filterViewModel = filterViewModel;
+
         _showBeatmaps = _showBeatmapsList;
+
+        _filterViewModel.FilterChanged
+            .Subscribe(_ => ApplyFilter())
+            .AddTo(Disposables);
     }
 
     public void Initialize()
@@ -60,44 +70,29 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         UpdateShowBeatmaps();
     }
 
-    [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
-    private void NextPage() => CurrentPage++;
-    private bool CanGoToNextPage() => CurrentPage < FilteredPages;
-
-    [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
-    private void PreviousPage() => CurrentPage--;
-    private bool CanGoToPreviousPage() => CurrentPage > 1;
-
-    [RelayCommand]
-    private void LoadPage(int pageNumber)
-    {
-        var maxPage = Math.Max(1, FilteredPages);
-        var next = Math.Clamp(pageNumber, 1, maxPage);
-        CurrentPage = next;
-    }
-    
     private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
     private void UpdateFilteredPages()
     {
         var size = Math.Max(1, PageSize);
         FilteredPages = Math.Max(1, (FilteredCount + size - 1) / size);
-        if (CurrentPage > FilteredPages)
-        {
-            CurrentPage = FilteredPages;
-        }
-        else if (CurrentPage < 1)
-        {
-            CurrentPage = 1;
-        }
     }
     
     private void UpdateFilteredBeatmapsArray()
     {
         var allBeatmaps = _databaseService.Beatmaps.AsValueEnumerable();
+        
         _filteredBeatmapsArray = allBeatmaps
-            .Where(x => x.KeyCount == 7)
+            .Where(x => _filterViewModel.Matches(x))
             .ToArray();
+
         FilteredCount = _filteredBeatmapsArray.Length;
+    }
+
+    public void ApplyFilter()
+    {
+        UpdateFilteredBeatmapsArray();
+        UpdateFilteredPages();
+        UpdateShowBeatmaps();
     }
     
     private void UpdateShowBeatmaps()
@@ -122,20 +117,13 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     partial void OnCurrentPageChanged(int value)
     {
         UpdateShowBeatmaps();
-        NextPageCommand.NotifyCanExecuteChanged();
-        PreviousPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnFilteredCountChanged(int value) => UpdateFilteredPages();
+    partial void OnFilteredPagesChanged(int value) => CurrentPage = 1;
 
     partial void OnPageSizeChanged(int value)
     {
-        if (value <= 0)
-        {
-            PageSize = DefaultPageSize;
-            return;
-        }
-
         UpdateFilteredPages();
         UpdateShowBeatmaps();
     }

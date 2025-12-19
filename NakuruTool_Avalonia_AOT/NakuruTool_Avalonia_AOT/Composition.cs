@@ -14,6 +14,7 @@ partial class Composition
         .Bind<ISettingsViewModel>().As(Singleton).To<SettingsViewModel>()
         .Bind<IDatabaseLoadingViewModel>().As(Singleton).To<DatabaseLoadingViewModel>()
         .Bind<IMapListViewModel>().As(Singleton).To<MapListViewModel>()
+        .Bind<MapListPageViewModel>().As(Singleton).To<MapListPageViewModel>()
 
         // サービスの登録
         .Bind<ISettingsService>().As(Singleton).To<SettingsService>()

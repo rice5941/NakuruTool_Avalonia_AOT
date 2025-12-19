@@ -92,7 +92,7 @@
                             <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
                         </StackPanel>
                     </TabItem.Header>
-                    <mapList:MapListViewPage DataContext="{Binding MapListViewModel}"/>
+                    <mapList:MapListPageView DataContext="{Binding MapListPageViewModel}"/>
                 </TabItem>
                 
                 <TabItem>

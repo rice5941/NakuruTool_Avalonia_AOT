@@ -131,6 +131,7 @@
             </Border>
 
             <DataGrid Grid.Row="1" 
+                      x:Name="MapListDataGrid"
                       ItemsSource="{Binding ShowBeatmaps}"
                       IsReadOnly="True"
                       CanUserReorderColumns="True"

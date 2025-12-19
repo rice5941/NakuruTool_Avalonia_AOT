@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT.csproj" />
+  <Project Path="NakuruTool_Avalonia_AOT.Tests/NakuruTool_Avalonia_AOT.Tests.csproj" />
 </Solution>

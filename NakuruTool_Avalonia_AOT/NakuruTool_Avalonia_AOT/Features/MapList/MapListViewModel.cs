@@ -36,9 +36,11 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private int _filteredPages = 0;
     [ObservableProperty]
     private int _filteredCount = 0;
+    [ObservableProperty]
+    private int _pageSize = DefaultPageSize;
 
     private IDatabaseService _databaseService;
-    private const int SHOW_MAPS = 40;
+    private const int DefaultPageSize = 20;
     
     // フィルタ結果をキャッシュ
     private Beatmap[] _filteredBeatmapsArray = Array.Empty<Beatmap>();
@@ -65,9 +67,29 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
     private void PreviousPage() => CurrentPage--;
     private bool CanGoToPreviousPage() => CurrentPage > 1;
+
+    [RelayCommand]
+    private void LoadPage(int pageNumber)
+    {
+        var maxPage = Math.Max(1, FilteredPages);
+        var next = Math.Clamp(pageNumber, 1, maxPage);
+        CurrentPage = next;
+    }
     
     private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
-    private void UpdateFilteredPages() => FilteredPages = (FilteredCount + SHOW_MAPS - 1) / SHOW_MAPS;
+    private void UpdateFilteredPages()
+    {
+        var size = Math.Max(1, PageSize);
+        FilteredPages = Math.Max(1, (FilteredCount + size - 1) / size);
+        if (CurrentPage > FilteredPages)
+        {
+            CurrentPage = FilteredPages;
+        }
+        else if (CurrentPage < 1)
+        {
+            CurrentPage = 1;
+        }
+    }
     
     private void UpdateFilteredBeatmapsArray()
     {
@@ -80,8 +102,10 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     
     private void UpdateShowBeatmaps()
     {
-        var skip = (CurrentPage - 1) * SHOW_MAPS;
-        var take = Math.Min(SHOW_MAPS, _filteredBeatmapsArray.Length - skip);
+        var size = Math.Max(1, PageSize);
+        var skip = (CurrentPage - 1) * size;
+        var remaining = Math.Max(0, _filteredBeatmapsArray.Length - skip);
+        var take = Math.Min(size, remaining);
 
         _showBeatmapsList.Clear();
         
@@ -103,4 +127,16 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     }
 
     partial void OnFilteredCountChanged(int value) => UpdateFilteredPages();
+
+    partial void OnPageSizeChanged(int value)
+    {
+        if (value <= 0)
+        {
+            PageSize = DefaultPageSize;
+            return;
+        }
+
+        UpdateFilteredPages();
+        UpdateShowBeatmaps();
+    }
 }

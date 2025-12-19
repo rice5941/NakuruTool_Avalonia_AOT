@@ -18,7 +18,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters
                 return dateTime.ToString(format, culture);
             }
 
-            return string.Empty;
+            return "-";
         }
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

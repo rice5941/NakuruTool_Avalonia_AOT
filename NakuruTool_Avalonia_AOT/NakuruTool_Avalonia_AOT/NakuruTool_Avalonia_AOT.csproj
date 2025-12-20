@@ -3,26 +3,35 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    
-    <!-- NativeAOT Settings -->
-    <!--
-	<PublishAot>true</PublishAot>
-    <InvariantGlobalization>false</InvariantGlobalization>
-    <StripSymbols>true</StripSymbols>-->
-	<PublishAot>true</PublishAot>
-    <InvariantGlobalization>false</InvariantGlobalization>
-    <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
-  <!-- AOT警告を抑制 -->
-  <!-- 
-  <PropertyGroup>
-	  <NoWarn>$(NoWarn);IL2104;IL3053</NoWarn>
+  <!-- NativeAOT Settings (Release構成でのみ有効) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <StripSymbols>true</StripSymbols>
+    
+    <!-- 最適化設定 -->
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    
+    <!-- スタートアップ最適化 -->
+    <TieredCompilation>false</TieredCompilation>
+    <TieredCompilationQuickJit>false</TieredCompilationQuickJit>
+    
+    <!-- ランタイム最適化 -->
+    <EventSourceSupport>false</EventSourceSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <IlcTrimMetadata>true</IlcTrimMetadata>
+	<!-- AOT警告を抑制 -->
+	<!-- 
+	<NoWarn>$(NoWarn);IL2104;IL3053</NoWarn>
+	-->
   </PropertyGroup>
-  -->
 	
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

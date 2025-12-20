@@ -126,12 +126,10 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                     var backupPath = Path.Combine(backupFolder, $"collection_startup_{timestamp}.db");
 
                     File.Copy(collectionDbPath, backupPath, true);
-
-                    Console.WriteLine($"起動時バックアップを作成しました: {backupPath}");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"バックアップ作成エラー: {ex.Message}");
+                    // バックアップ失敗は無視
                 }
             });
         }
@@ -201,7 +199,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         }
 
         /// <summary>
-        /// osu!.dbファイルを読み込む（カスタムパーサー使用: HDD最適化 + 並列変換）
+        /// osu!.dbファイルを読み込む（チャンク処理版: LOH回避 + 並列変換）
         /// </summary>
         private async Task<Beatmap[]> ReadOsuDbAsync(string filePath)
         {
@@ -217,14 +215,8 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 {
                     using var parser = new OsuDbParser();
 
-                    // シングルスレッドで一括読み込み + オフセットスキャン（HDD最適化）
-                    var rawDataArray = parser.ReadAndScan(filePath, (message, progress) =>
-                    {
-                        OnOsuDbProgressChanged(message, progress);
-                    });
-
-                    // 並列でBeatmapインスタンスに変換
-                    var beatmapArray = parser.ConvertToBeamapsParallel(rawDataArray, (message, progress) =>
+                    // チャンク単位で読み込み + 並列変換（LOH回避版）
+                    var beatmapArray = parser.ReadAndProcessChunked(filePath, (message, progress) =>
                     {
                         OnOsuDbProgressChanged(message, progress);
                     });
@@ -296,7 +288,6 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 {
                     if (File.Exists(filePath) == false)
                     {
-                        Console.WriteLine("scores.dbファイルが見つかりません: " + filePath);
                         return null;
                     }
 
@@ -306,7 +297,6 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                     
                     if (scoresDb == null || scoresDb.Scores == null)
                     {
-                        Console.WriteLine("scores.dbの読み込みに失敗しました");
                         return null;
                     }
 
@@ -314,9 +304,8 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
 
                     return scoresDb;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"scores.db読み込みエラー: {ex.Message}");
                     return null;
                 }
             });
@@ -407,35 +396,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 return true;
             }
 
-            index = BinarySearchByMd5(md5Hash);
             return index >= 0;
-        }
-
-        /// <summary>
-        /// MD5ハッシュで二分探索を行い、該当するインデックスを返す
-        /// </summary>
-        private int BinarySearchByMd5(string md5Hash)
-        {
-            if (string.IsNullOrEmpty(md5Hash) || _beatmaps == null || _beatmaps.Length == 0)
-                return -1;
-
-            int left = 0;
-            int right = _beatmaps.Length - 1;
-
-            while (left <= right)
-            {
-                int mid = left + (right - left) / 2;
-                int comparison = string.CompareOrdinal(_beatmaps[mid].MD5Hash, md5Hash);
-
-                if (comparison == 0)
-                    return mid;
-                else if (comparison < 0)
-                    left = mid + 1;
-                else
-                    right = mid - 1;
-            }
-
-            return -1;
         }
 
         /// <summary>

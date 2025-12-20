@@ -12,13 +12,14 @@ namespace NakuruTool_Avalonia_AOT
         {
             AvaloniaXamlLoader.Load(this);
             
+            var languageService = LanguageService.Instance;
             // 初期言語をSemiThemeに反映
-            UpdateSemiThemeLocale(LanguageService.Instance.CurrentLanguage);
+            UpdateSemiThemeLocale(languageService.CurrentLanguage);
             
             // 言語変更イベントをサブスクライブ
-            LanguageService.Instance.LanguageChanged += (_, _) =>
+            languageService.LanguageChanged += (_, _) =>
             {
-                UpdateSemiThemeLocale(LanguageService.Instance.CurrentLanguage);
+                UpdateSemiThemeLocale(languageService.CurrentLanguage);
             };
         }
         

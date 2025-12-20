@@ -98,7 +98,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             else if (scoresDb == null)
             {
                 // scores.dbが無い場合は、その旨を通知
-                OnScoresDbProgressChanged("スコアデータベースが見つかりませんでした（スキップ）", 100);
+                OnScoresDbProgressChanged(LanguageService.Instance.GetString("Loading.ScoresNotFound"), 100);
             }
         }
 

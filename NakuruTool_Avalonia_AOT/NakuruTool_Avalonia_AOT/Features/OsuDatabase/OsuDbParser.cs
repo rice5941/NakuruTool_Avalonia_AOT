@@ -177,7 +177,7 @@ public sealed class OsuDbParser : IDisposable
             }
         }
 
-        progressCallback?.Invoke(LanguageService.Instance.GetString("Loading.BeatmapProcessing"), 50);
+        progressCallback?.Invoke(string.Format(LanguageService.Instance.GetString("Loading.BeatmapProcessing"), actualCount, BeatmapCount), 50);
 
         // 並列でインスタンス展開
         var results = new Beatmap?[actualCount];
@@ -194,7 +194,7 @@ public sealed class OsuDbParser : IDisposable
             });
         }
 
-        progressCallback?.Invoke(LanguageService.Instance.GetString("Loading.BeatmapProcessing"), 80);
+        progressCallback?.Invoke(string.Format(LanguageService.Instance.GetString("Loading.BeatmapProcessing"), actualCount, actualCount), 80);
 
         // 結果を収集（有効なビートマップのみ）
         var resultArray = new Beatmap[actualCount];

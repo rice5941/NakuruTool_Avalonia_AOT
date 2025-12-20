@@ -48,8 +48,6 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="HotAvalonia" Version="3.0.2" />
-    <PackageReference Include="Irihi.Ursa" Version="1.14.0" />
-    <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.14.0" />
     <PackageReference Include="krrcream.OsuParsers" Version="1.8.3.8" />
     <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
     <PackageReference Include="Pure.DI" Version="2.2.15">

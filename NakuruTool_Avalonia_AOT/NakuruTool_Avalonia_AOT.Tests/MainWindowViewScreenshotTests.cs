@@ -487,6 +487,84 @@ public class MockMapListPageViewModel : MapListPageViewModel
 }
 
 /// <summary>
+/// テスト用のモックMapListViewModel
+/// </summary>
+public class MockMapListViewModel : IMapListViewModel
+{
+    private readonly AvaloniaList<Beatmap> _showBeatmapsList = [];
+    private List<Beatmap> _allBeatmaps = [];
+    private int _pageSize = 20;
+    private int _currentPage = 1;
+
+    public IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps => _showBeatmapsList;
+    public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
+    public int TotalCount { get; private set; }
+    public int CurrentPage 
+    { 
+        get => _currentPage;
+        set
+        {
+            _currentPage = value;
+            UpdateShowBeatmaps();
+        }
+    }
+    public int FilteredPages { get; private set; } = 1;
+    public int FilteredCount { get; private set; }
+    public int PageSize 
+    { 
+        get => _pageSize;
+        set
+        {
+            _pageSize = value;
+            UpdateFilteredPages();
+            UpdateShowBeatmaps();
+        }
+    }
+
+    public void Initialize()
+    {
+        // モックでは何もしない
+    }
+
+    public void ApplyFilter()
+    {
+        // モックでは何もしない
+    }
+
+    public void SetTestData(List<Beatmap> beatmaps)
+    {
+        _allBeatmaps = beatmaps;
+        TotalCount = beatmaps.Count;
+        FilteredCount = beatmaps.Count;
+        UpdateFilteredPages();
+        UpdateShowBeatmaps();
+    }
+
+    private void UpdateFilteredPages()
+    {
+        var size = Math.Max(1, _pageSize);
+        FilteredPages = Math.Max(1, (FilteredCount + size - 1) / size);
+    }
+
+    private void UpdateShowBeatmaps()
+    {
+        _showBeatmapsList.Clear();
+        var size = Math.Max(1, _pageSize);
+        var skip = (_currentPage - 1) * size;
+        var pageBeatmaps = _allBeatmaps.Skip(skip).Take(size);
+        foreach (var beatmap in pageBeatmaps)
+        {
+            _showBeatmapsList.Add(beatmap);
+        }
+    }
+
+    public void Dispose()
+    {
+        // モックでは何もしない
+    }
+}
+
+/// <summary>
 /// テスト用のモックDatabaseService
 /// </summary>
 public class MockDatabaseService : IDatabaseService

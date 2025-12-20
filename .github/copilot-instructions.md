@@ -3,7 +3,6 @@
 - .NET 10
 - R3
 - semi.Avalonia
-- Irihi.Ursa
 - Pure.DI
 - CommunityToolkit.Mvvm
 - NativeAOT

@@ -10,7 +10,6 @@
     <Application.Styles>
         <semi:SemiTheme Locale="ja-JP" />
         <semi:DataGridSemiTheme />
-        <u-semi:SemiTheme Locale="zh-CN" />
         <Mi:MaterialIconStyles />
         <Style Selector="Window">
             <Setter Property="FontFamily" 

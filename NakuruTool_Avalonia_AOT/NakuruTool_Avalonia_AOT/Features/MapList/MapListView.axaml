@@ -7,7 +7,6 @@
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
              xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
-             xmlns:u="https://irihi.tech/ursa"
              x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListView"
              x:DataType="MapList:MapListViewModel">
 
@@ -23,7 +22,6 @@
         <converters:EmptyStringConverter x:Key="EmptyStringConverter"/>
         <converters:ScoreConverter x:Key="ScoreConverter"/>
         <converters:AccuracyConverter x:Key="AccuracyConverter"/>
-        
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -312,13 +310,27 @@
                 BorderThickness="1,0,1,1"
                 CornerRadius="0,0,4,4"
                 Padding="12">
-            <u:Pagination
-                HorizontalAlignment="Center"
-                PageSizeOptions="10, 20, 50, 100"
-                PageSize="{Binding PageSize, Mode=TwoWay}"
-                CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
-                ShowPageSizeSelector="True"
-                TotalCount="{Binding FilteredCount}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                    <Button Command="{Binding PreviousPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronLeft" Height="32" Width="32"/>
+                    </Button>
+                    <Border Background="{DynamicResource SemiGrey2}" 
+                            CornerRadius="6" 
+                            Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentPage}" 
+                                       FontWeight="Bold" 
+                                       FontSize="16"
+                                       Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="/" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding FilteredPages}" FontSize="16" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Button Command="{Binding NextPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronRight" Height="32" Width="32"/>
+                    </Button>
+                    <ComboBox Width="80" ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize, Mode=TwoWay}" TextElement.FontSize="16" TextElement.FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
         </Border>
     </Grid>
     

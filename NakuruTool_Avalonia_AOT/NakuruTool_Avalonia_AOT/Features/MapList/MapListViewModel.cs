@@ -18,6 +18,8 @@ public interface IMapListViewModel: IDisposable
     int CurrentPage { get; }
     int FilteredPages { get; }
     int FilteredCount { get; }
+    int PageSize { get; }
+    IAvaloniaReadOnlyList<int> PageSizes { get; }
     void Initialize();
     void ApplyFilter();
 }
@@ -40,6 +42,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private int _filteredCount = 0;
     [ObservableProperty]
     private int _pageSize = DefaultPageSize;
+
+    public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
     private IDatabaseService _databaseService;
     private MapFilterViewModel _filterViewModel;
@@ -70,7 +74,16 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         UpdateShowBeatmaps();
     }
 
+    [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
+    private void NextPage() => CurrentPage++;
+    private bool CanGoToNextPage() => CurrentPage < FilteredPages;
+
+    [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
+    private void PreviousPage() => CurrentPage--;
+    private bool CanGoToPreviousPage() => CurrentPage > 1;
+
     private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
+
     private void UpdateFilteredPages()
     {
         var size = Math.Max(1, PageSize);

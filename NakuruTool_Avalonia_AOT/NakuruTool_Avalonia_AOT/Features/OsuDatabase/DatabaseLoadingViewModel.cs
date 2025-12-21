@@ -30,25 +30,32 @@ public partial class DatabaseLoadingViewModel : ViewModelBase, IDatabaseLoadingV
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
-    private bool _isLoading = false;
+    public partial bool IsLoading { get; set; } = false;
+    
     [ObservableProperty]
-    private bool _hasError = false;
+    public partial bool HasError { get; set; } = false;
+    
     [ObservableProperty]
-    private string _errorMessage = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     // 各DBファイル個別の進捗管理
     [ObservableProperty]
-    private int _collectionDbProgress = 0;
+    public partial int CollectionDbProgress { get; set; } = 0;
+    
     [ObservableProperty]
-    private string _collectionDbMessage = "";
+    public partial string CollectionDbMessage { get; set; } = "";
+    
     [ObservableProperty]
-    private int _osuDbProgress = 0;
+    public partial int OsuDbProgress { get; set; } = 0;
+    
     [ObservableProperty]
-    private string _osuDbMessage = "";
+    public partial string OsuDbMessage { get; set; } = "";
+    
     [ObservableProperty]
-    private int _scoresDbProgress = 0;
+    public partial int ScoresDbProgress { get; set; } = 0;
+    
     [ObservableProperty]
-    private string _scoresDbMessage = "";
+    public partial string ScoresDbMessage { get; set; } = "";
 
     public DatabaseLoadingViewModel(IDatabaseService databaseService, ISettingsService settingsService)
     {

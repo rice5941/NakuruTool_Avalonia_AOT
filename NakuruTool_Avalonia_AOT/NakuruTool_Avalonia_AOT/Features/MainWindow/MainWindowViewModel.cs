@@ -17,7 +17,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ILicensesViewModel LicensesViewModel { get; }
 
     [ObservableProperty]
-    private bool _isLoadingOverlayVisible = true;
+    public partial bool IsLoadingOverlayVisible { get; set; } = true;
 
     public MainWindowViewModel(
         ISettingsViewModel settingsViewModel, 

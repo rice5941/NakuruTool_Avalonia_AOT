@@ -30,18 +30,22 @@ public interface IMapListViewModel: IDisposable
 public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 {
     [ObservableProperty]
-    private IAvaloniaReadOnlyList<Beatmap> _showBeatmaps = new AvaloniaList<Beatmap>();
+    public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; } = new AvaloniaList<Beatmap>();
 
     [ObservableProperty]
-    private int _totalCount = 0;
+    public partial int TotalCount { get; set; } = 0;
+    
     [ObservableProperty]
-    private int _currentPage = 1;
+    public partial int CurrentPage { get; set; } = 1;
+    
     [ObservableProperty]
-    private int _filteredPages = 0;
+    public partial int FilteredPages { get; set; } = 0;
+    
     [ObservableProperty]
-    private int _filteredCount = 0;
+    public partial int FilteredCount { get; set; } = 0;
+    
     [ObservableProperty]
-    private int _pageSize = DefaultPageSize;
+    public partial int PageSize { get; set; } = DefaultPageSize;
 
     public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
@@ -51,7 +55,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private const int DefaultPageSize = 20;
 
     [ObservableProperty]
-    private Beatmap[] _filteredBeatmapsArray = Array.Empty<Beatmap>();
+    public partial Beatmap[] FilteredBeatmapsArray { get; set; } = Array.Empty<Beatmap>();
+    
     private AvaloniaList<Beatmap> _showBeatmapsList = new();
 
     public MapListViewModel(IDatabaseService databaseService, MapFilterViewModel filterViewModel)
@@ -59,7 +64,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;
 
-        _showBeatmaps = _showBeatmapsList;
+        ShowBeatmaps = _showBeatmapsList;
 
         _filterViewModel.FilterChanged
             .Subscribe(_ => ApplyFilter())

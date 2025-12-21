@@ -18,7 +18,7 @@ public partial class MapFilterViewModel : ViewModelBase
     private const int MaxConditions = 8;
 
     [ObservableProperty]
-    private AvaloniaList<FilterCondition> _conditions = new();
+    public partial AvaloniaList<FilterCondition> Conditions { get; set; } = new();
 
     private bool CanAddCondition => Conditions.Count < MaxConditions;
 

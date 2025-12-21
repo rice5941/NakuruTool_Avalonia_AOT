@@ -26,45 +26,51 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
     public IAvaloniaReadOnlyList<string> LanguageKeys { get; } = new AvaloniaList<string>(LanguageService.Instance.AvailableLanguages);
 
     [ObservableProperty]
-    private string _selectedLanguageKey;
+    public partial string SelectedLanguageKey { get; set; }
+
+    partial void OnSelectedLanguageKeyChanged(string value)
+    {
+        if (string.IsNullOrEmpty(value) == false && _isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
 
     [ObservableProperty]
-    private string _selectedFolderPath;
+    public partial string SelectedFolderPath { get; set; }
+
+    partial void OnSelectedFolderPathChanged(string value)
+    {
+        if (_isInitialized)
+        {
+            if (string.IsNullOrEmpty(value) == false)
+            {
+                UpdateSettingData();
+            }
+            UpdateOsuPathErrorMessage();
+        }
+    }
 
     [ObservableProperty]
-    private string _osuPathErrorMessage = string.Empty;
+    public partial string OsuPathErrorMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _hasOsuPathError = false;
+    public partial bool HasOsuPathError { get; set; } = false;
 
     private readonly ISettingsService _settingsService;
+    private bool _isInitialized = false;
 
     public SettingsViewModel(ISettingsService settingsService)
     {
         _settingsService = settingsService;
 
         var settingsData = settingsService.SettingsData;
-        _selectedLanguageKey = settingsData.LanguageKey;
-        _selectedFolderPath = settingsData.OsuFolderPath;
+        SelectedLanguageKey = settingsData.LanguageKey;
+        SelectedFolderPath = settingsData.OsuFolderPath;
 
         UpdateOsuPathErrorMessage();
-    }
 
-    partial void OnSelectedFolderPathChanged(string value)
-    {
-        if (string.IsNullOrEmpty(value) == false)
-        {
-            UpdateSettingData();
-        }
-        UpdateOsuPathErrorMessage();
-    }
-
-    partial void OnSelectedLanguageKeyChanged(string value)
-    {
-        if (string.IsNullOrEmpty(value) == false)
-        {
-            UpdateSettingData();
-        }
+        _isInitialized = true;
     }
 
     private void UpdateSettingData()

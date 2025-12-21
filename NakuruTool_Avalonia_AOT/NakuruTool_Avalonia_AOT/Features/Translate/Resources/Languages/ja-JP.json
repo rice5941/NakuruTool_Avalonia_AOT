@@ -76,6 +76,13 @@
     "Yes": "はい",
     "No": "いいえ"
   },
+  "Collection": {
+    "GenerateCollection": "コレクション生成",
+    "EnterCollectionName": "コレクション名を入力してください",
+    "GenerationSuccess": "'{0}' を作成（{1}曲）",
+    "GenerationFailed": "コレクションの作成に失敗しました",
+    "NoFilteredMaps": "絞り込まれた譜面がありません"
+  },
   "Loading": {
     "Start": "dbファイル読み込み",
     "Completed": "読み込み完了",
@@ -107,5 +114,14 @@
     "ScoresApplying": "スコアデータをbeatmapに適用中... ({0}/{1})",
     "ScoresCompleted": "スコアデータの適用完了 ({0}個のbeatmap)",
     "InvalidStringPrefix": "無効な文字列プレフィックス: 0x{0:X2}"
+  },
+  "Generation": {
+    "Error": "エラー",
+    "Error.OsuFolderNotSet": "osu!フォルダパスが設定されていません",
+    "Error.CollectionDbNotFound": "collection.dbが見つかりません",
+    "ReadingExistingCollections": "既存のコレクションを読み込み中...",
+    "CreatingCollection": "新しいコレクションを作成中...",
+    "WritingToDb": "collection.dbに書き込み中...",
+    "Completed": "コレクションの作成が完了しました"
   }
 }

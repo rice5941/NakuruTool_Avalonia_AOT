@@ -1,7 +1,6 @@
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
@@ -22,6 +21,7 @@ public interface IMapListViewModel: IDisposable
     IAvaloniaReadOnlyList<int> PageSizes { get; }
     void Initialize();
     void ApplyFilter();
+    Beatmap[] FilteredBeatmapsArray { get; }
 }
 
 /// <summary>
@@ -49,8 +49,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private MapFilterViewModel _filterViewModel;
 
     private const int DefaultPageSize = 20;
-    
-    // フィルタ結果をキャッシュ
+
+    [ObservableProperty]
     private Beatmap[] _filteredBeatmapsArray = Array.Empty<Beatmap>();
     private AvaloniaList<Beatmap> _showBeatmapsList = new();
 
@@ -94,11 +94,11 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     {
         var allBeatmaps = _databaseService.Beatmaps.AsValueEnumerable();
         
-        _filteredBeatmapsArray = allBeatmaps
+        FilteredBeatmapsArray = allBeatmaps
             .Where(x => _filterViewModel.Matches(x))
             .ToArray();
 
-        FilteredCount = _filteredBeatmapsArray.Length;
+        FilteredCount = FilteredBeatmapsArray.Length;
     }
 
     public void ApplyFilter()
@@ -112,14 +112,14 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     {
         var size = Math.Max(1, PageSize);
         var skip = (CurrentPage - 1) * size;
-        var remaining = Math.Max(0, _filteredBeatmapsArray.Length - skip);
+        var remaining = Math.Max(0, FilteredBeatmapsArray.Length - skip);
         var take = Math.Min(size, remaining);
 
         _showBeatmapsList.Clear();
         
         if (take > 0)
         {
-            var span = _filteredBeatmapsArray.AsSpan(skip, take);
+            var span = FilteredBeatmapsArray.AsSpan(skip, take);
             foreach (var beatmap in span)
             {
                 _showBeatmapsList.Add(beatmap);

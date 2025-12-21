@@ -76,6 +76,13 @@
     "Yes": "Yes",
     "No": "No"
   },
+  "Collection": {
+    "GenerateCollection": "Generate Collection",
+    "EnterCollectionName": "Enter collection name",
+    "GenerationSuccess": "Created '{0}' ({1} maps)",
+    "GenerationFailed": "Failed to create collection",
+    "NoFilteredMaps": "No filtered maps"
+  },
   "Loading": {
     "Start": "Loading db files",
     "Completed": "Loading completed",
@@ -107,5 +114,14 @@
     "ScoresApplying": "Applying score data to beatmaps... ({0}/{1})",
     "ScoresCompleted": "Score data applied ({0} beatmaps)",
     "InvalidStringPrefix": "Invalid string prefix: 0x{0:X2}"
+  },
+  "Generation": {
+    "Error": "Error",
+    "Error.OsuFolderNotSet": "osu! folder path not set",
+    "Error.CollectionDbNotFound": "collection.db not found",
+    "ReadingExistingCollections": "Reading existing collections...",
+    "CreatingCollection": "Creating new collection...",
+    "WritingToDb": "Writing to collection.db...",
+    "Completed": "Collection generation completed"
   }
 }

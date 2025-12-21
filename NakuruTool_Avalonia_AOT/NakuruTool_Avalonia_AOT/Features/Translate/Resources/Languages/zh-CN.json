@@ -76,6 +76,13 @@
     "Yes": "是",
     "No": "否"
   },
+  "Collection": {
+    "GenerateCollection": "生成收藏夹",
+    "EnterCollectionName": "请输入收藏夹名称",
+    "GenerationSuccess": "已创建 '{0}' ({1} 首曲目)",
+    "GenerationFailed": "收藏夹创建失败",
+    "NoFilteredMaps": "没有筛选出的谱面"
+  },
   "Loading": {
     "Start": "正在读取 db 文件",
     "Completed": "读取完成",
@@ -107,5 +114,14 @@
     "ScoresApplying": "正在将分数数据应用到谱面... ({0}/{1})",
     "ScoresCompleted": "分数数据应用完成 ({0} 个谱面)",
     "InvalidStringPrefix": "无效的字符串前缀: 0x{0:X2}"
+  },
+  "Generation": {
+    "Error": "错误",
+    "Error.OsuFolderNotSet": "osu! 文件夹路径未设置",
+    "Error.CollectionDbNotFound": "未找到 collection.db",
+    "ReadingExistingCollections": "正在读取现有收藏夹...",
+    "CreatingCollection": "正在创建新收藏夹...",
+    "WritingToDb": "正在写入 collection.db...",
+    "Completed": "收藏夹创建完成"
   }
 }

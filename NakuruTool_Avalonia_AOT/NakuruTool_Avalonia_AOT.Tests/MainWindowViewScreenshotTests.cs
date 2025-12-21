@@ -481,11 +481,11 @@ public class MockDatabaseLoadingViewModel : IDatabaseLoadingViewModel
 /// </summary>
 public class MockMapListPageViewModel : MapListPageViewModel
 {
-    public MockMapListPageViewModel() : base(new MockDatabaseService())
+    public MockMapListPageViewModel() : base(new MockDatabaseService(), new MockGenerateCollectionService())
     {
     }
 }
-
+        
 /// <summary>
 /// テスト用のモックMapListViewModel
 /// </summary>
@@ -520,7 +520,7 @@ public class MockMapListViewModel : IMapListViewModel
             UpdateShowBeatmaps();
         }
     }
-
+    public Beatmap[] FilteredBeatmapsArray { get; private set; } = Array.Empty<Beatmap>();
     public void Initialize()
     {
         // モックでは何もしない
@@ -570,7 +570,7 @@ public class MockMapListViewModel : IMapListViewModel
 public class MockDatabaseService : IDatabaseService
 {
     public Beatmap[] Beatmaps { get; } = Array.Empty<Beatmap>();
-    public IReadOnlyList<OsuCollection> OsuCollections { get; } = Array.Empty<OsuCollection>();
+    public List<OsuCollection> OsuCollections { get; } = new List<OsuCollection>();
     public Observable<DatabaseLoadProgress> CollectionDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Observable<DatabaseLoadProgress> OsuDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Observable<DatabaseLoadProgress> ScoresDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
@@ -578,6 +578,15 @@ public class MockDatabaseService : IDatabaseService
     public void Dispose() { }
 }
 
+/// <summary>
+/// テスト用のモックGenerateCollectionService
+/// </summary>
+public class MockGenerateCollectionService : IGenerateCollectionService
+{
+    public Observable<GenerationProgress> GenerationProgressObservable { get; } = Observable.Empty<GenerationProgress>();
+    public Task<bool> GenerateCollection(string collectionName, Beatmap[] beatmaps) => Task.FromResult(true);
+    public void Dispose() { }
+}
 /// <summary>
 /// ビジュアルツリーの子孫を検索する拡張メソッド
 /// </summary>

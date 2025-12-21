@@ -18,7 +18,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         Observable<DatabaseLoadProgress> CollectionDbProgress { get; }
         Observable<DatabaseLoadProgress> OsuDbProgress { get; }
         Observable<DatabaseLoadProgress> ScoresDbProgress { get; }
-        IReadOnlyList<OsuCollection> OsuCollections { get; }
+        List<OsuCollection> OsuCollections { get; }
         Beatmap[] Beatmaps { get; }
         Task LoadDatabasesAsync();
     }
@@ -46,7 +46,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public Observable<DatabaseLoadProgress> OsuDbProgress => _osuDbProgress;
         public Observable<DatabaseLoadProgress> ScoresDbProgress => _scoresDbProgress;
 
-        public IReadOnlyList<OsuCollection> OsuCollections => _osuCollections.AsReadOnly();
+        public List<OsuCollection> OsuCollections => _osuCollections;
         public Beatmap[] Beatmaps => _beatmaps;
 
         public DatabaseService(ISettingsService settingsService)

@@ -19,17 +19,17 @@
 			<StackPanel>
 				<TextBlock Text="{translate:Translate 'Loading.CollectionDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
 				<ProgressBar Value="{Binding CollectionDbProgress}" Foreground="DeepSkyBlue" ShowProgressText="True"/>
-				<TextBlock Text="{Binding CollectionDbMessage}"/>
+				<!-- <TextBlock Text="{Binding CollectionDbMessage}"/> -->
 			</StackPanel>
 			<StackPanel>
 				<TextBlock Text="{translate:Translate 'Loading.OsuDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
 				<ProgressBar Value="{Binding OsuDbProgress}" Foreground="SpringGreen" ShowProgressText="True"/>
-				<TextBlock Text="{Binding OsuDbMessage}"/>
+				<!-- <TextBlock Text="{Binding OsuDbMessage}"/> -->
 			</StackPanel>
 			<StackPanel>
 				<TextBlock Text="{translate:Translate 'Loading.ScoresDb'}" FontWeight="DemiBold" VerticalAlignment="Center"/>
 				<ProgressBar Value="{Binding ScoresDbProgress}" Foreground="Orange" ShowProgressText="True"/>
-				<TextBlock Text="{Binding ScoresDbMessage}"/>
+				<!-- <TextBlock Text="{Binding ScoresDbMessage}"/> -->
 			</StackPanel>
 
 			<StackPanel IsVisible="{Binding HasError}">

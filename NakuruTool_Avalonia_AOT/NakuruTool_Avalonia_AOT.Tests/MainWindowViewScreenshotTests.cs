@@ -6,6 +6,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
@@ -38,13 +39,15 @@ public class MainWindowViewScreenshotTests
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
+        var mockLicensesViewModel = new MockLicensesViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
-            mockMapListPageViewModel);
+            mockMapListPageViewModel,
+            mockLicensesViewModel);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -104,13 +107,15 @@ public class MainWindowViewScreenshotTests
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
+        var mockLicensesViewModel = new MockLicensesViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
-            mockMapListPageViewModel);
+            mockMapListPageViewModel,
+            mockLicensesViewModel);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -187,13 +192,15 @@ public class MainWindowViewScreenshotTests
         };
         var mockMapListViewModel = new MockMapListViewModel();
         var mockMapListPageViewModel = new MockMapListPageViewModel();
+        var mockLicensesViewModel = new MockLicensesViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
-            mockMapListPageViewModel);
+            mockMapListPageViewModel,
+            mockLicensesViewModel);
 
         // 読み込みオーバーレイを表示する
         mainWindowViewModel.IsLoadingOverlayVisible = true;
@@ -244,13 +251,15 @@ public class MainWindowViewScreenshotTests
         var mockMapListViewModel = new MockMapListViewModel();
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
+        var mockLicensesViewModel = new MockLicensesViewModel();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
             mockSettingsViewModel,
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
-            mockMapListPageViewModel);
+            mockMapListPageViewModel,
+            mockLicensesViewModel);
 
         mainWindowViewModel.IsLoadingOverlayVisible = false;
 
@@ -587,6 +596,17 @@ public class MockGenerateCollectionService : IGenerateCollectionService
     public Task<bool> GenerateCollection(string collectionName, Beatmap[] beatmaps) => Task.FromResult(true);
     public void Dispose() { }
 }
+
+/// <summary>
+/// テスト用のモックLicensesViewModel
+/// </summary>
+public class MockLicensesViewModel : ILicensesViewModel
+{
+    public IAvaloniaReadOnlyList<LicenseItem> Licenses { get; } = new AvaloniaList<LicenseItem>();
+
+    public void Dispose() { }
+}
+
 /// <summary>
 /// ビジュアルツリーの子孫を検索する拡張メソッド
 /// </summary>

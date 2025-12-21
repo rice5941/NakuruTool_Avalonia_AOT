@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
@@ -13,6 +14,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public IDatabaseLoadingViewModel DatabaseLoadingViewModel { get; }
     public IMapListViewModel MapListViewModel { get; }
     public MapListPageViewModel MapListPageViewModel { get; }
+    public ILicensesViewModel LicensesViewModel { get; }
 
     [ObservableProperty]
     private bool _isLoadingOverlayVisible = true;
@@ -21,12 +23,14 @@ public partial class MainWindowViewModel : ViewModelBase
         ISettingsViewModel settingsViewModel, 
         IDatabaseLoadingViewModel databaseLoadingViewModel, 
         IMapListViewModel mapListViewModel,
-        MapListPageViewModel mapListPageViewModel)
+        MapListPageViewModel mapListPageViewModel,
+        ILicensesViewModel licensesViewModel)
     {
         SettingsViewModel = settingsViewModel;
         DatabaseLoadingViewModel = databaseLoadingViewModel;
         MapListViewModel = mapListViewModel;
         MapListPageViewModel = mapListPageViewModel;
+        LicensesViewModel = licensesViewModel;
     }
 
     /// <summary>

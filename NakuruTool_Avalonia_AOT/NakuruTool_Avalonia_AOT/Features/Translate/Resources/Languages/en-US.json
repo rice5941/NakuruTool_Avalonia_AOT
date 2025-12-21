@@ -19,6 +19,11 @@
     "ErrorOsuPathGetFailed": "Could not get local path.",
     "ErrorOsuPathEmpty": "Folder path is empty."
   },
+  "Licenses": {
+    "Title": "Open Source Licenses",
+    "Description": "This application uses the following open source software.",
+    "LicenseType": "License"
+  },
   "MapList": {
     "TotalCount": "Maps",
     "FilteredCount": "Filtered",

@@ -19,6 +19,11 @@
     "ErrorOsuPathGetFailed": "ローカルパスを取得できませんでした。",
     "ErrorOsuPathEmpty": "フォルダパスが空です。"
   },
+  "Licenses": {
+    "Title": "オープンソースライセンス",
+    "Description": "このアプリケーションは以下のオープンソースソフトウェアを使用しています。",
+    "LicenseType": "ライセンス"
+  },
   "MapList": {
     "TotalCount": "map数",
     "FilteredCount": "絞込後",

@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:Licenses="using:NakuruTool_Avalonia_AOT.Features.Licenses"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="NakuruTool_Avalonia_AOT.Features.Licenses.LicensesPage"
+             x:DataType="Licenses:LicensesViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="16" Margin="16">
+            <TextBlock FontSize="24" FontWeight="Bold" 
+                       Text="{translate:Translate 'Licenses.Title'}"/>
+            
+            <TextBlock TextWrapping="Wrap" Opacity="0.7"
+                       Text="{translate:Translate 'Licenses.Description'}"/>
+
+            <ItemsControl ItemsSource="{Binding Licenses}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="Licenses:LicenseItem">
+                        <Border Theme="{StaticResource CardBorder}" 
+                                Padding="16" 
+                                Margin="0,8">
+                            <StackPanel Spacing="8">
+                                <!-- パッケージ名とバージョン -->
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="Package" 
+                                                     Width="24" Height="24"
+                                                     VerticalAlignment="Center"/>
+                                    <TextBlock FontSize="18" FontWeight="Bold" 
+                                               Text="{Binding PackageName}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock FontSize="14" Opacity="0.7"
+                                               Text="{Binding Version, StringFormat='v{0}'}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- ライセンス種別 -->
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="License" 
+                                                     Width="20" Height="20"
+                                                     VerticalAlignment="Center"
+                                                     Opacity="0.7"/>
+                                    <TextBlock Text="{translate:Translate 'Licenses.LicenseType'}"
+                                               Opacity="0.7"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LicenseType}"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- URL -->
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding Url, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <mi:MaterialIcon Kind="Link" 
+                                                     Width="20" Height="20"
+                                                     VerticalAlignment="Center"
+                                                     Opacity="0.7"/>
+                                    <TextBlock Text="{Binding Url}"
+                                               Foreground="{DynamicResource SemiBlue7}"
+                                               TextDecorations="Underline"
+                                               VerticalAlignment="Center"
+                                               Cursor="Hand"
+                                               PointerPressed="OnUrlClicked"/>
+                                </StackPanel>
+
+                                <!-- 著作権 -->
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding Copyright, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <mi:MaterialIcon Kind="Copyright" 
+                                                     Width="20" Height="20"
+                                                     VerticalAlignment="Center"
+                                                     Opacity="0.7"/>
+                                    <TextBlock Text="{Binding Copyright}"
+                                               FontSize="12"
+                                               Opacity="0.6"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

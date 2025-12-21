@@ -12,6 +12,7 @@ using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using R3;
+using System.ComponentModel;
 using Xunit;
 
 namespace NakuruTool_Avalonia_AOT.Tests;
@@ -40,6 +41,7 @@ public class MainWindowViewScreenshotTests
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
+        var mockSettingsService = new MockSettingsService();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -47,7 +49,8 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
-            mockLicensesViewModel);
+            mockLicensesViewModel,
+            mockSettingsService);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -108,6 +111,7 @@ public class MainWindowViewScreenshotTests
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
+        var mockSettingsService = new MockSettingsService();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -115,7 +119,8 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
-            mockLicensesViewModel);
+            mockLicensesViewModel,
+            mockSettingsService);
 
         // 読み込みオーバーレイを非表示にする
         mainWindowViewModel.IsLoadingOverlayVisible = false;
@@ -193,6 +198,7 @@ public class MainWindowViewScreenshotTests
         var mockMapListViewModel = new MockMapListViewModel();
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
+        var mockSettingsService = new MockSettingsService();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -200,7 +206,8 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
-            mockLicensesViewModel);
+            mockLicensesViewModel,
+            mockSettingsService);
 
         // 読み込みオーバーレイを表示する
         mainWindowViewModel.IsLoadingOverlayVisible = true;
@@ -252,6 +259,7 @@ public class MainWindowViewScreenshotTests
         mockMapListViewModel.SetTestData(CreateTestBeatmaps());
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
+        var mockSettingsService = new MockSettingsService();
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -259,7 +267,8 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
-            mockLicensesViewModel);
+            mockLicensesViewModel,
+            mockSettingsService);
 
         mainWindowViewModel.IsLoadingOverlayVisible = false;
 
@@ -605,6 +614,33 @@ public class MockLicensesViewModel : ILicensesViewModel
     public IAvaloniaReadOnlyList<LicenseItem> Licenses { get; } = new AvaloniaList<LicenseItem>();
 
     public void Dispose() { }
+}
+
+/// <summary>
+/// テスト用のモックSettingsService
+/// </summary>
+public class MockSettingsService : ISettingsService
+{
+    public ISettingsData SettingsData { get; } = new MockSettingsData();
+
+    public bool SaveSettings(SettingsData settings) => true;
+
+    public bool CheckSettingsPath() => true;
+
+    public string GetSettingsPath() => "mock/settings.json";
+
+    public void Dispose() { }
+}
+
+/// <summary>
+/// テスト用のモックSettingsData
+/// </summary>
+public class MockSettingsData : ISettingsData
+{
+    public string OsuFolderPath { get; set; } = @"C:\osu!";
+    public string LanguageKey { get; set; } = "ja-JP";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>

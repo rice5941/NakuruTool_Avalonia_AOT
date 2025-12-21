@@ -3,12 +3,11 @@ using Avalonia.Collections;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using Semi.Avalonia;
 using System;
-using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.Settings;
 
@@ -58,11 +57,13 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
     public partial bool HasOsuPathError { get; set; } = false;
 
     private readonly ISettingsService _settingsService;
+    private readonly IDatabaseService _databaseService;
     private bool _isInitialized = false;
 
-    public SettingsViewModel(ISettingsService settingsService)
+    public SettingsViewModel(ISettingsService settingsService, IDatabaseService databaseService)
     {
         _settingsService = settingsService;
+        _databaseService = databaseService;
 
         var settingsData = settingsService.SettingsData;
         SelectedLanguageKey = settingsData.LanguageKey;

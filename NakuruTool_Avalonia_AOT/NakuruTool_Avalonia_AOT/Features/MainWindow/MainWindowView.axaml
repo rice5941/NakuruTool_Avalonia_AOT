@@ -72,6 +72,7 @@
                 Margin="8,0"
                 Padding="20,0,0,0"
                 TabStripPlacement="Left"
+                SelectedIndex="{Binding SelectedTabIndex}"
                 Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
                 Theme="{DynamicResource ScrollLineTabControl}">
                 <TabControl.Styles>

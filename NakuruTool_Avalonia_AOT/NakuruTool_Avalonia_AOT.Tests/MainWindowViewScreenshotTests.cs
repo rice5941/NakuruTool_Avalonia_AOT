@@ -6,6 +6,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
@@ -635,12 +636,10 @@ public class MockSettingsService : ISettingsService
 /// <summary>
 /// テスト用のモックSettingsData
 /// </summary>
-public class MockSettingsData : ISettingsData
+public class MockSettingsData : ObservableObject, ISettingsData
 {
     public string OsuFolderPath { get; set; } = @"C:\osu!";
     public string LanguageKey { get; set; } = "ja-JP";
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>

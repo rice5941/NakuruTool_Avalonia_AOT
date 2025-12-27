@@ -25,7 +25,7 @@ public interface IMapListViewModel: IDisposable
 }
 
 /// <summary>
-/// データベース読み込み用のViewModel
+/// 譜面一覧のViewModel
 /// </summary>
 public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 {
@@ -135,6 +135,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     partial void OnCurrentPageChanged(int value)
     {
         UpdateShowBeatmaps();
+        NextPageCommand.NotifyCanExecuteChanged();
+        PreviousPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnFilteredCountChanged(int value) => UpdateFilteredPages();

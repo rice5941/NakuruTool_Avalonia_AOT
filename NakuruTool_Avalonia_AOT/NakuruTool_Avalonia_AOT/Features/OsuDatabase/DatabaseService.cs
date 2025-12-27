@@ -1,13 +1,10 @@
 using Avalonia.Threading;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Translate;
-using OsuParsers.Decoders;
-using OsuParsers.Enums;
 using R3;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using ZLinq;
 
@@ -147,54 +144,22 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                     return new List<OsuCollection>();
                 }
 
-                OnCollectionDbProgressChanged(LanguageService.Instance.GetString("Loading.CollectionLoading"), 0);
-                var collections = new List<OsuCollection>();
-
-                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                using (var reader = new BinaryReader(fileStream, Encoding.UTF8))
+                try
                 {
-                    var version = reader.ReadInt32();
-                    OnCollectionDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.CollectionVersion"), version), 10);
-
-                    var collectionCount = reader.ReadInt32();
-                    OnCollectionDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.CollectionCount"), collectionCount), 20);
-
-                    for (int i = 0; i < collectionCount; i++)
+                    using var parser = new CollectionDbParser();
+                    var collections = parser.ReadCollectionDb(filePath, (message, progress) =>
                     {
-                        var collection = new OsuCollection
-                        {
-                            Name = ReadOsuString(reader)
-                        };
-
-                        var beatmapCount = reader.ReadInt32();
-                        var md5Array = new string[beatmapCount];
-                        int validCount = 0;
-                        
-                        for (int j = 0; j < beatmapCount; j++)
-                        {
-                            var md5Hash = ReadOsuString(reader);
-                            if (!string.IsNullOrEmpty(md5Hash))
-                            {
-                                md5Array[validCount++] = md5Hash;
-                            }
-                        }
-
-                        if (validCount < beatmapCount)
-                        {
-                            Array.Resize(ref md5Array, validCount);
-                        }
-
-                        collection.BeatmapMd5s = md5Array;
-                        collections.Add(collection);
-                        
-                        var progress = 20 + (int)((double)i / collectionCount * 30);
-                        var message = string.Format(LanguageService.Instance.GetString("Loading.CollectionItemCompleted"), collection.Name, validCount);
                         OnCollectionDbProgressChanged(message, progress);
-                    }
-                }
+                    });
 
-                OnCollectionDbProgressChanged(LanguageService.Instance.GetString("Loading.CollectionCompleted"), 100);
-                return collections;
+                    return collections;
+                }
+                catch (Exception ex)
+                {
+                    var errorMessage = string.Format(LanguageService.Instance.GetString("Loading.CollectionError") ?? "Error loading collection.db: {0}", ex.Message);
+                    OnCollectionDbProgressChanged(errorMessage, 0);
+                    return new List<OsuCollection>();
+                }
             });
         }
 
@@ -215,7 +180,6 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 {
                     using var parser = new OsuDbParser();
 
-                    // チャンク単位で読み込み + 並列変換（LOH回避版）
                     var beatmapArray = parser.ReadAndProcessChunked(filePath, (message, progress) =>
                     {
                         OnOsuDbProgressChanged(message, progress);
@@ -232,55 +196,11 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             });
         }
 
-        /// <summary>
-        /// osu!形式の文字列を読み込む
-        /// </summary>
-        private string ReadOsuString(BinaryReader reader)
-        {
-            var prefix = reader.ReadByte();
-            
-            if (prefix == 0x00)
-            {
-                return string.Empty;
-            }
-            else if (prefix == 0x0b)
-            {
-                var length = ReadULEB128(reader);
-                var bytes = reader.ReadBytes((int)length);
-                return Encoding.UTF8.GetString(bytes);
-            }
-            else
-            {
-                throw new InvalidDataException(string.Format(LanguageService.Instance.GetString("Loading.InvalidStringPrefix"), prefix));
-            }
-        }
-
-        /// <summary>
-        /// ULEB128形式の整数を読み込む
-        /// </summary>
-        private uint ReadULEB128(BinaryReader reader)
-        {
-            uint result = 0;
-            int shift = 0;
-
-            while (true)
-            {
-                var b = reader.ReadByte();
-                result |= (uint)(b & 0x7F) << shift;
-
-                if ((b & 0x80) == 0)
-                    break;
-
-                shift += 7;
-            }
-
-            return result;
-        }
 
         /// <summary>
         /// scores.dbファイルを読み込んでScoresDatabaseオブジェクトを返す
         /// </summary>
-        private async Task<OsuParsers.Database.ScoresDatabase?> ReadScoresDbFileAsync(string filePath)
+        private async Task<ScoresDatabase?> ReadScoresDbFileAsync(string filePath)
         {
             return await Task.Run(() =>
             {
@@ -291,16 +211,16 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                         return null;
                     }
 
-                    OnScoresDbProgressChanged(LanguageService.Instance.GetString("Loading.ScoresLoading"), 0);
+                    using var parser = new ScoresDbParser();
+                    var scoresDb = parser.ReadScoresDb(filePath, (message, progress) =>
+                    {
+                        OnScoresDbProgressChanged(message, progress);
+                    });
 
-                    var scoresDb = DatabaseDecoder.DecodeScores(filePath);
-                    
                     if (scoresDb == null || scoresDb.Scores == null)
                     {
                         return null;
                     }
-
-                    OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresLoaded"), scoresDb.Scores.Count), 50);
 
                     return scoresDb;
                 }
@@ -314,7 +234,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         /// <summary>
         /// 読み込んだスコアデータをBeatmapに適用
         /// </summary>
-        private void ApplyScoresToBeatmaps(OsuParsers.Database.ScoresDatabase scoresDb)
+        private void ApplyScoresToBeatmaps(ScoresDatabase scoresDb)
         {
             if (scoresDb == null || scoresDb.Scores == null || _beatmaps == null || _beatmaps.Length == 0)
                 return;
@@ -326,13 +246,13 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
 
             foreach (var scoreEntry in scoresDb.Scores)
             {
-                var md5Hash = scoreEntry.Item1;
-                var scoreList = scoreEntry.Item2;
+                var md5Hash = scoreEntry.Key;
+                var scoreList = scoreEntry.Value;
 
                 if (scoreList != null && scoreList.Count > 0 && TryGetBeatmapIndex(md5Hash, out var index))
                 {
                     var beatmap = _beatmaps[index];
-                    
+
                     int bestScore = scoreList.AsValueEnumerable().Max(s => s.ReplayScore);
                     double bestAccuracy = scoreList.AsValueEnumerable().Max(s => CalculateAccuracy(s));
                     int playCount = scoreList.Count;
@@ -346,7 +266,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 }
 
                 processedScores++;
-                
+
                 if (processedScores % 1000 == 0 || processedScores == totalScores)
                 {
                     int progress = 50 + (int)((double)processedScores / totalScores * 50);
@@ -402,31 +322,32 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         /// <summary>
         /// スコアから精度を計算
         /// </summary>
-        private double CalculateAccuracy(OsuParsers.Database.Objects.Score score)
+        private double CalculateAccuracy(ScoreData score)
         {
-            if (score.Ruleset == Ruleset.Mania)
+            // Ruleset: 0 = osu!, 1 = Taiko, 2 = Catch, 3 = Mania
+            if (score.Ruleset == 3) // Mania
             {
-                var totalHits = score.Count300 + score.Count100 + score.Count50 + 
+                var totalHits = score.Count300 + score.Count100 + score.Count50 +
                                score.CountGeki + score.CountKatu + score.CountMiss;
-                
+
                 if (totalHits == 0) return 0;
 
                 var weightedScore = (score.Count300 + score.CountGeki) * 300.0 +
                                    score.CountKatu * 200.0 +
                                    score.Count100 * 100.0 +
                                    score.Count50 * 50.0;
-                
+
                 var maxScore = totalHits * 300.0;
-                
+
                 return maxScore > 0 ? weightedScore / maxScore * 100.0 : 0;
             }
-            
+
             var totalHitsOther = score.Count300 + score.Count100 + score.Count50 + score.CountMiss;
             if (totalHitsOther == 0) return 0;
-            
+
             var weightedScoreOther = score.Count300 * 300.0 + score.Count100 * 100.0 + score.Count50 * 50.0;
             var maxScoreOther = totalHitsOther * 300.0;
-            
+
             return maxScoreOther > 0 ? weightedScoreOther / maxScoreOther * 100.0 : 0;
         }
 

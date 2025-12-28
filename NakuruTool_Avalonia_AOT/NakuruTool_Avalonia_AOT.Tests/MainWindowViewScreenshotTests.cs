@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
+using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using R3;
@@ -496,11 +497,33 @@ public class MockDatabaseLoadingViewModel : IDatabaseLoadingViewModel
 }
 
 /// <summary>
+/// テスト用のモックFilterPresetService
+/// </summary>
+public class MockFilterPresetService : IFilterPresetService
+{
+    public AvaloniaList<FilterPreset> Presets { get; } = new();
+
+    public bool SavePreset(FilterPreset preset)
+    {
+        return true;
+    }
+
+    public void LoadPresets()
+    {
+    }
+
+    public bool DeletePreset(string presetName)
+    {
+        return true;
+    }
+}
+
+/// <summary>
 /// テスト用のモックMapListPageViewModel
 /// </summary>
 public class MockMapListPageViewModel : MapListPageViewModel
 {
-    public MockMapListPageViewModel() : base(new MockDatabaseService(), new MockGenerateCollectionService())
+    public MockMapListPageViewModel() : base(new MockDatabaseService(), new MockGenerateCollectionService(), new MockFilterPresetService())
     {
     }
 }

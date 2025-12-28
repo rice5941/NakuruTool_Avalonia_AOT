@@ -140,7 +140,12 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     }
 
     partial void OnFilteredCountChanged(int value) => UpdateFilteredPages();
-    partial void OnFilteredPagesChanged(int value) => CurrentPage = 1;
+    partial void OnFilteredPagesChanged(int value)
+    {
+        CurrentPage = 1;
+        NextPageCommand.NotifyCanExecuteChanged();
+        PreviousPageCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnPageSizeChanged(int value)
     {

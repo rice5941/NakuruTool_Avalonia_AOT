@@ -51,6 +51,8 @@
   },
   "MapFilter": {
     "Title": "フィルタ条件",
+    "Preset": "プリセット",
+    "PresetNone": "(なし)",
     "Target": "対象",
     "Target.KeyCount": "キー数",
     "Target.Status": "ステータス",

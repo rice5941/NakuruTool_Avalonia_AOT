@@ -22,6 +22,7 @@ partial class Composition
         .Bind<ISettingsService>().As(Singleton).To<SettingsService>()
         .Bind<IDatabaseService>().As(Singleton).To<DatabaseService>()
         .Bind<IGenerateCollectionService>().As(Singleton).To<GenerateCollectionService>()
+        .Bind<IFilterPresetService>().As(Singleton).To<FilterPresetService>()
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします

@@ -51,6 +51,8 @@
   },
   "MapFilter": {
     "Title": "筛选条件",
+    "Preset": "预设",
+    "PresetNone": "(无)",
     "Target": "对象",
     "Target.KeyCount": "键数",
     "Target.Status": "状态",

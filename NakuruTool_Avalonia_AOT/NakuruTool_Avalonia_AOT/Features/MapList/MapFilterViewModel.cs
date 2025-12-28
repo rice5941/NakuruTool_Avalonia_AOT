@@ -7,6 +7,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
+using System.Linq;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
 
@@ -35,8 +36,39 @@ public partial class MapFilterViewModel : ViewModelBase
     /// </summary>
     public Observable<Unit> FilterChanged => _filterChangedSubject;
 
-    public MapFilterViewModel()
+    private readonly IFilterPresetService _presetService;
+
+    [ObservableProperty]
+    public partial FilterPreset? SelectedPreset { get; set; }
+
+    partial void OnSelectedPresetChanged(FilterPreset? value)
     {
+        if (value != null)
+        {
+            LoadPreset(value);
+        }
+        else
+        {
+            // 「なし」を選択した場合は条件をクリア
+            Conditions.Clear();
+        }
+    }
+
+    /// <summary>
+    /// 利用可能なプリセット一覧（先頭に「未選択」を含む）
+    /// </summary>
+    public AvaloniaList<FilterPreset?> PresetsWithNone { get; } = new();
+
+    public MapFilterViewModel(IFilterPresetService presetService)
+    {
+        _presetService = presetService;
+
+        // プリセットリストの変更を監視して、PresetsWithNoneを更新
+        UpdatePresetsWithNone();
+        _presetService.Presets.ObserveCollectionChanged()
+            .Subscribe(_ => UpdatePresetsWithNone())
+            .AddTo(Disposables);
+
         // コレクション変更を監視
         Conditions.ObserveCollectionChanged()
             .Subscribe(_ =>
@@ -95,5 +127,58 @@ public partial class MapFilterViewModel : ViewModelBase
     private void NotifyFilterChanged()
     {
         _filterChangedSubject.OnNext(Unit.Default);
+    }
+
+    /// <summary>
+    /// プリセットから条件を読み込み
+    /// </summary>
+    private void LoadPreset(FilterPreset preset)
+    {
+        Conditions.Clear();
+
+        foreach (var conditionData in preset.Conditions)
+        {
+            var condition = conditionData.ToFilterCondition();
+            Conditions.Add(condition);
+        }
+    }
+
+    /// <summary>
+    /// 現在の絞り込み条件からFilterPresetを作成
+    /// </summary>
+    public FilterPreset CreatePreset(string presetName, string collectionName)
+    {
+        var conditionDataList = Conditions
+            .Select(FilterConditionData.FromFilterCondition)
+            .ToList();
+
+        return new FilterPreset
+        {
+            Name = presetName,
+            CollectionName = collectionName,
+            Conditions = conditionDataList
+        };
+    }
+
+    /// <summary>
+    /// プリセットを保存
+    /// </summary>
+    public bool SavePreset(FilterPreset preset)
+    {
+        return _presetService.SavePreset(preset);
+    }
+
+    /// <summary>
+    /// プリセット一覧を更新（先頭にnullを追加）
+    /// </summary>
+    private void UpdatePresetsWithNone()
+    {
+        PresetsWithNone.Clear();
+        PresetsWithNone.Add(null); // 未選択を表すnull
+
+        foreach (var preset in _presetService.Presets)
+        {
+            PresetsWithNone.Add(preset);
+        }
     }
 }

@@ -1,0 +1,104 @@
+using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
+
+namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
+
+/// <summary>
+/// フィルタプリセット（絞り込み条件とコレクション名のセット）
+/// </summary>
+public class FilterPreset
+{
+    /// <summary>
+    /// プリセット名（ファイル名としても使用）
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// コレクション名
+    /// </summary>
+    public string CollectionName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// フィルタ条件のリスト
+    /// </summary>
+    public List<FilterConditionData> Conditions { get; set; } = new();
+}
+
+/// <summary>
+/// シリアライズ可能なFilterConditionデータ
+/// </summary>
+public class FilterConditionData
+{
+    /// <summary>
+    /// フィルタ対象（文字列で保存）
+    /// </summary>
+    public string Target { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 比較タイプ（文字列で保存）
+    /// </summary>
+    public string ComparisonType { get; set; } = string.Empty;
+
+    public string Value { get; set; } = string.Empty;
+    public string ValueMax { get; set; } = string.Empty;
+
+    /// <summary>
+    /// ステータス値（文字列で保存）
+    /// </summary>
+    public string StatusValue { get; set; } = string.Empty;
+
+    public bool BoolValue { get; set; }
+
+    /// <summary>
+    /// FilterConditionからデータを作成
+    /// </summary>
+    public static FilterConditionData FromFilterCondition(FilterCondition condition)
+    {
+        return new FilterConditionData
+        {
+            Target = condition.Target.ToString(),
+            ComparisonType = condition.ComparisonType.ToString(),
+            Value = condition.Value,
+            ValueMax = condition.ValueMax,
+            StatusValue = condition.StatusValue.ToString(),
+            BoolValue = condition.BoolValue
+        };
+    }
+
+    /// <summary>
+    /// FilterConditionに変換
+    /// </summary>
+    public FilterCondition ToFilterCondition()
+    {
+        // 文字列からenumへ変換、失敗時はデフォルト値を使用
+        var target = Enum.TryParse<FilterTarget>(Target, out var t) ? t : FilterTarget.KeyCount;
+        var comparisonType = Enum.TryParse<ComparisonType>(ComparisonType, out var ct) ? ct : Models.ComparisonType.Equals;
+        var statusValue = Enum.TryParse<BeatmapStatus>(StatusValue, out var sv) ? sv : BeatmapStatus.None;
+
+        return new FilterCondition
+        {
+            Target = target,
+            ComparisonType = comparisonType,
+            Value = Value,
+            ValueMax = ValueMax,
+            StatusValue = statusValue,
+            BoolValue = BoolValue
+        };
+    }
+}
+
+/// <summary>
+/// NativeAOT対応のためのJSON Source Generatorコンテキスト
+/// </summary>
+[JsonSourceGenerationOptions(
+    WriteIndented = true,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(FilterPreset))]
+[JsonSerializable(typeof(List<FilterPreset>))]
+[JsonSerializable(typeof(FilterConditionData))]
+public partial class FilterPresetJsonContext : JsonSerializerContext
+{
+}

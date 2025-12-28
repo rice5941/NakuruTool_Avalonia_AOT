@@ -1,8 +1,6 @@
 using Avalonia.Threading;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Translate;
-using OsuParsers.Decoders;
-using OsuParsers.Enums;
 using R3;
 using System;
 using System.Collections.Generic;

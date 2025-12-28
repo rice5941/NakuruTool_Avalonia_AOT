@@ -67,14 +67,6 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             },
             new LicenseItem
             {
-                PackageName = "OsuParsers",
-                Version = "1.8.3.8",
-                LicenseType = "MIT",
-                Url = "https://github.com/krrcream/OsuParsers",
-                Copyright = "Copyright (c) krrcream"
-            },
-            new LicenseItem
-            {
                 PackageName = "ZLinq",
                 Version = "1.5.4",
                 LicenseType = "MIT",

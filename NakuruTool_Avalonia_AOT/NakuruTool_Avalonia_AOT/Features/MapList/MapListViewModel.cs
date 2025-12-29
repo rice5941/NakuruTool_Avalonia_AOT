@@ -1,7 +1,9 @@
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
@@ -19,6 +21,7 @@ public interface IMapListViewModel: IDisposable
     int FilteredCount { get; }
     int PageSize { get; }
     IAvaloniaReadOnlyList<int> PageSizes { get; }
+    Beatmap? SelectedBeatmap { get; set; }
     void Initialize();
     void ApplyFilter();
     Beatmap[] FilteredBeatmapsArray { get; }
@@ -47,6 +50,14 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     [ObservableProperty]
     public partial int PageSize { get; set; } = DefaultPageSize;
 
+    [ObservableProperty]
+    public partial Beatmap? SelectedBeatmap { get; set; }
+
+    /// <summary>
+    /// オーディオ再生コントロール用ViewModel
+    /// </summary>
+    public AudioPlayerViewModel AudioPlayer { get; }
+
     public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
     private IDatabaseService _databaseService;
@@ -56,18 +67,27 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     [ObservableProperty]
     public partial Beatmap[] FilteredBeatmapsArray { get; set; } = Array.Empty<Beatmap>();
-    
+
     private AvaloniaList<Beatmap> _showBeatmapsList = new();
 
-    public MapListViewModel(IDatabaseService databaseService, MapFilterViewModel filterViewModel)
+    public MapListViewModel(
+        IDatabaseService databaseService,
+        MapFilterViewModel filterViewModel,
+        AudioPlayerViewModel audioPlayerViewModel)
     {
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;
+        AudioPlayer = audioPlayerViewModel;
 
         ShowBeatmaps = _showBeatmapsList;
 
         _filterViewModel.FilterChanged
             .Subscribe(_ => ApplyFilter())
+            .AddTo(Disposables);
+
+        // 譜面選択時にオーディオを再生
+        this.ObserveProperty(nameof(SelectedBeatmap))
+            .Subscribe(_ => AudioPlayer.PlayBeatmapAudio(SelectedBeatmap))
             .AddTo(Disposables);
     }
 
@@ -151,5 +171,11 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     {
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+    }
+
+    public override void Dispose()
+    {
+        AudioPlayer.Dispose();
+        base.Dispose();
     }
 }

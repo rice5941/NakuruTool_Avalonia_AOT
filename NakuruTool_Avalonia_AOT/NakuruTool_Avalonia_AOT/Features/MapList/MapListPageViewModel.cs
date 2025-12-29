@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
@@ -43,12 +44,13 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     public MapListPageViewModel(
         IDatabaseService databaseService,
         IGenerateCollectionService generateCollectionService,
-        IFilterPresetService presetService)
+        IFilterPresetService presetService,
+        AudioPlayerViewModel audioPlayerViewModel)
     {
         _generateCollectionService = generateCollectionService;
 
         FilterViewModel = new MapFilterViewModel(presetService);
-        ListViewModel = new MapListViewModel(databaseService, FilterViewModel);
+        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel);
 
         // 進捗監視
         _generateCollectionService.GenerationProgressObservable

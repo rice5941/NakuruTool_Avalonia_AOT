@@ -404,7 +404,7 @@ public sealed class OsuDbParser : IDisposable
             ReadStringFromBuffer(buffer, ref pos); // titleUnicode (skip)
             string creator = ReadStringFromBuffer(buffer, ref pos);
             string difficulty = ReadStringFromBuffer(buffer, ref pos);
-            ReadStringFromBuffer(buffer, ref pos); // audioFileName (skip)
+            string audioFilename = ReadStringFromBuffer(buffer, ref pos);
             string md5Hash = ReadStringFromBuffer(buffer, ref pos);
             ReadStringFromBuffer(buffer, ref pos); // fileName (skip)
 
@@ -497,6 +497,7 @@ public sealed class OsuDbParser : IDisposable
                 LastPlayed = lastPlayed == DateTime.MinValue ? null : lastPlayed,
                 LastModifiedTime = lastModifiedTime == DateTime.MinValue ? null : lastModifiedTime,
                 FolderName = folderName,
+                AudioFilename = audioFilename,
                 Grade = ConvertGradeToString(maniaGrade),
                 KeyCount = keyCount,
                 LongNoteRate = longNoteRate,

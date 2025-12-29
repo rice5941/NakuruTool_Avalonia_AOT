@@ -7,6 +7,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
@@ -359,6 +360,7 @@ public class MainWindowViewScreenshotTests
                 LastPlayed = DateTime.Now.AddDays(-1),
                 LastModifiedTime = DateTime.Now.AddMonths(-1),
                 FolderName = "test_folder_1",
+                AudioFilename = "audio.mp3",
                 BeatmapSetId = 1001,
                 BeatmapId = 10001,
                 BestScore = 985000,
@@ -382,6 +384,7 @@ public class MainWindowViewScreenshotTests
                 LastPlayed = DateTime.Now.AddHours(-5),
                 LastModifiedTime = DateTime.Now.AddDays(-14),
                 FolderName = "test_folder_2",
+                AudioFilename = "audio.mp3",
                 BeatmapSetId = 1002,
                 BeatmapId = 10002,
                 BestScore = 970000,
@@ -405,6 +408,7 @@ public class MainWindowViewScreenshotTests
                 LastPlayed = null,
                 LastModifiedTime = DateTime.Now.AddDays(-10),
                 FolderName = "test_folder_3",
+                AudioFilename = "audio.mp3",
                 BeatmapSetId = 1003,
                 BeatmapId = 10003,
                 BestScore = 0,
@@ -428,6 +432,7 @@ public class MainWindowViewScreenshotTests
                 LastPlayed = DateTime.Now.AddMinutes(-30),
                 LastModifiedTime = DateTime.Now,
                 FolderName = "test_folder_4",
+                AudioFilename = "audio.mp3",
                 BeatmapSetId = 1004,
                 BeatmapId = 10004,
                 BestScore = 920000,
@@ -451,6 +456,7 @@ public class MainWindowViewScreenshotTests
                 LastPlayed = DateTime.Now,
                 LastModifiedTime = DateTime.Now.AddHours(-2),
                 FolderName = "test_folder_5",
+                AudioFilename = "audio.mp3",
                 BeatmapSetId = 1005,
                 BeatmapId = 10005,
                 BestScore = 999000,
@@ -523,7 +529,11 @@ public class MockFilterPresetService : IFilterPresetService
 /// </summary>
 public class MockMapListPageViewModel : MapListPageViewModel
 {
-    public MockMapListPageViewModel() : base(new MockDatabaseService(), new MockGenerateCollectionService(), new MockFilterPresetService())
+    public MockMapListPageViewModel() : base(
+        new MockDatabaseService(),
+        new MockGenerateCollectionService(),
+        new MockFilterPresetService(),
+        new MockAudioPlayerViewModel())
     {
     }
 }
@@ -552,8 +562,8 @@ public class MockMapListViewModel : IMapListViewModel
     }
     public int FilteredPages { get; private set; } = 1;
     public int FilteredCount { get; private set; }
-    public int PageSize 
-    { 
+    public int PageSize
+    {
         get => _pageSize;
         set
         {
@@ -563,6 +573,8 @@ public class MockMapListViewModel : IMapListViewModel
         }
     }
     public Beatmap[] FilteredBeatmapsArray { get; private set; } = Array.Empty<Beatmap>();
+    public Beatmap? SelectedBeatmap { get; set; }
+
     public void Initialize()
     {
         // モックでは何もしない
@@ -663,6 +675,39 @@ public class MockSettingsData : ObservableObject, ISettingsData
 {
     public string OsuFolderPath { get; set; } = @"C:\osu!";
     public string LanguageKey { get; set; } = "ja-JP";
+}
+
+/// <summary>
+/// テスト用のモックAudioPlayerViewModel
+/// </summary>
+public class MockAudioPlayerViewModel : AudioPlayerViewModel
+{
+    public MockAudioPlayerViewModel() : base(new MockAudioPlayerService(), new MockSettingsService())
+    {
+    }
+}
+
+/// <summary>
+/// テスト用のモックAudioPlayerService
+/// </summary>
+public class MockAudioPlayerService : IAudioPlayerService
+{
+    private readonly ReactiveProperty<AudioPlayerState> _stateChanged = new(AudioPlayerState.Stopped);
+    public Observable<AudioPlayerState> StateChanged => _stateChanged;
+    public AudioPlayerState CurrentState => _stateChanged.CurrentValue;
+    public int Volume { get; set; } = 50;
+    public void Play(string filePath) { _stateChanged.Value = AudioPlayerState.Playing; }
+    public void Pause() { _stateChanged.Value = AudioPlayerState.Paused; }
+    public void Resume() { _stateChanged.Value = AudioPlayerState.Playing; }
+    public void Stop() { _stateChanged.Value = AudioPlayerState.Stopped; }
+    public void TogglePlayPause()
+    {
+        if (CurrentState == AudioPlayerState.Playing)
+            Pause();
+        else
+            Resume();
+    }
+    public void Dispose() { _stateChanged.Dispose(); }
 }
 
 /// <summary>

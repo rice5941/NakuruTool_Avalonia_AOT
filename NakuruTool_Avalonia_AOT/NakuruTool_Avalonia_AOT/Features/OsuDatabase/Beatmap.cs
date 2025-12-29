@@ -34,6 +34,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public DateTime? LastPlayed { get; init; }
         public DateTime? LastModifiedTime { get; init; }
         public required string FolderName { get; init; }
+        public required string AudioFilename { get; init; }
         public int BeatmapSetId { get; init; }
         public int BeatmapId { get; init; }
         public int BestScore { get; init; }

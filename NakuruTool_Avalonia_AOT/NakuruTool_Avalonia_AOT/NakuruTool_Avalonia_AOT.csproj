@@ -59,6 +59,8 @@
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.1" />
     <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.3.7.1" />
     <PackageReference Include="ZLinq" Version="1.5.4" />
+    <PackageReference Include="LibVLCSharp" Version="3.9.5" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
   <ItemGroup>

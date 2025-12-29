@@ -1,0 +1,17 @@
+[package]
+name = "nakuru_audio"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "C FFI wrapper for rodio audio playback library"
+repository = "https://github.com/your-username/NakuruTool_Avalonia_AOT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rodio = "0.21"
+parking_lot = "0.12"
+
+[build-dependencies]
+csbindgen = "1.9"

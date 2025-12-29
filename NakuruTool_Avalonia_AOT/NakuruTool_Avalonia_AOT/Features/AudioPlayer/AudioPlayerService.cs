@@ -1,63 +1,50 @@
-using LibVLCSharp.Shared;
 using R3;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 
 /// <summary>
-/// LibVLCSharpを使用したオーディオ再生サービス
+/// rodio + csbindgenを使用したオーディオ再生サービス
 /// </summary>
-public sealed class AudioPlayerService : IAudioPlayerService
+public sealed unsafe class AudioPlayerService : IAudioPlayerService
 {
-    private readonly LibVLC _libVLC;
-    private readonly MediaPlayer _mediaPlayer;
-    private readonly ReactiveProperty<AudioPlayerState> _stateProperty;
+    private AudioPlayer* _playerHandle;
+    private readonly Subject<AudioPlayerState> _stateSubject = new();
+    private AudioPlayerState _currentState;
     private readonly CompositeDisposable _disposables = [];
-    private Media? _currentMedia;
     private bool _disposed;
 
-    public Observable<AudioPlayerState> StateChanged => _stateProperty;
-    public AudioPlayerState CurrentState => _stateProperty.Value;
+    public Observable<AudioPlayerState> StateChanged => _stateSubject;
+    public AudioPlayerState CurrentState => _currentState;
 
     public int Volume
     {
-        get => _mediaPlayer.Volume;
-        set => _mediaPlayer.Volume = Math.Clamp(value, 0, 100);
+        get => (int)(NativeMethods.nakuru_audio_get_volume(_playerHandle) * 100f);
+        set
+        {
+            var volumeF = value / 100f;
+            NativeMethods.nakuru_audio_set_volume(_playerHandle, volumeF);
+        }
     }
 
     public AudioPlayerService()
     {
-        Core.Initialize();
-        _libVLC = new LibVLC("--no-video");
-        _mediaPlayer = new MediaPlayer(_libVLC);
-        _stateProperty = new ReactiveProperty<AudioPlayerState>(AudioPlayerState.Stopped);
+        _playerHandle = NativeMethods.nakuru_audio_create();
+        if (_playerHandle == null)
+        {
+            throw new InvalidOperationException("Failed to create native audio player");
+        }
 
-        SetupEventHandlers();
+        _currentState = AudioPlayerState.Stopped;
     }
 
-    private void SetupEventHandlers()
+    private void SetState(AudioPlayerState newState)
     {
-        _mediaPlayer.Playing += OnPlaying;
-        _mediaPlayer.Paused += OnPaused;
-        _mediaPlayer.Stopped += OnStopped;
-        _mediaPlayer.EncounteredError += OnError;
-    }
-
-    private void OnPlaying(object? sender, EventArgs e)
-        => _stateProperty.Value = AudioPlayerState.Playing;
-
-    private void OnPaused(object? sender, EventArgs e)
-        => _stateProperty.Value = AudioPlayerState.Paused;
-
-    private void OnStopped(object? sender, EventArgs e)
-        => _stateProperty.Value = AudioPlayerState.Stopped;
-
-    private void OnError(object? sender, EventArgs e)
-    {
-        Debug.WriteLine("AudioPlayerService: 再生エラーが発生しました");
-        _stateProperty.Value = AudioPlayerState.Error;
+        _currentState = newState;
+        _stateSubject.OnNext(newState);
     }
 
     public void Play(string filePath)
@@ -65,42 +52,72 @@ public sealed class AudioPlayerService : IAudioPlayerService
         if (string.IsNullOrEmpty(filePath))
         {
             Debug.WriteLine("AudioPlayerService: ファイルパスが空です");
+            SetState(AudioPlayerState.Error);
             return;
         }
 
         if (!File.Exists(filePath))
         {
             Debug.WriteLine($"AudioPlayerService: ファイルが見つかりません: {filePath}");
+            SetState(AudioPlayerState.Error);
             return;
         }
 
-        Stop();
-
-        _currentMedia?.Dispose();
-        _currentMedia = new Media(_libVLC, new Uri(filePath));
-        _mediaPlayer.Media = _currentMedia;
-        _mediaPlayer.Play();
+        unsafe
+        {
+            var utf8Bytes = Encoding.UTF8.GetBytes(filePath);
+            fixed (byte* ptr = utf8Bytes)
+            {
+                int result = NativeMethods.nakuru_audio_play(_playerHandle, ptr, utf8Bytes.Length);
+                if (result != 0)
+                {
+                    SetState(AudioPlayerState.Error);
+                }
+                else
+                {
+                    SetState(AudioPlayerState.Playing);
+                }
+            }
+        }
     }
 
-    public void Pause() => _mediaPlayer.Pause();
+    public void Pause()
+    {
+        unsafe
+        {
+            NativeMethods.nakuru_audio_pause(_playerHandle);
+            SetState(AudioPlayerState.Paused);
+        }
+    }
 
     public void Resume()
     {
-        if (_stateProperty.Value == AudioPlayerState.Paused)
+        if (_currentState == AudioPlayerState.Paused)
         {
-            _mediaPlayer.Play();
+            unsafe
+            {
+                NativeMethods.nakuru_audio_resume(_playerHandle);
+                SetState(AudioPlayerState.Playing);
+            }
         }
     }
 
-    public void Stop() => _mediaPlayer.Stop();
+    public void Stop()
+    {
+        unsafe
+        {
+            NativeMethods.nakuru_audio_stop(_playerHandle);
+            SetState(AudioPlayerState.Stopped);
+        }
+    }
 
     public void TogglePlayPause()
     {
-        if (_stateProperty.Value == AudioPlayerState.Playing)
+        if (_currentState == AudioPlayerState.Playing)
         {
             Pause();
         }
-        else if (_stateProperty.Value == AudioPlayerState.Paused)
+        else if (_currentState == AudioPlayerState.Paused)
         {
             Resume();
         }
@@ -111,16 +128,16 @@ public sealed class AudioPlayerService : IAudioPlayerService
         if (_disposed) return;
         _disposed = true;
 
-        _mediaPlayer.Playing -= OnPlaying;
-        _mediaPlayer.Paused -= OnPaused;
-        _mediaPlayer.Stopped -= OnStopped;
-        _mediaPlayer.EncounteredError -= OnError;
+        unsafe
+        {
+            if (_playerHandle != null)
+            {
+                NativeMethods.nakuru_audio_destroy(_playerHandle);
+                _playerHandle = null;
+            }
+        }
 
         _disposables.Dispose();
-        _stateProperty.Dispose();
-        _mediaPlayer.Stop();
-        _currentMedia?.Dispose();
-        _mediaPlayer.Dispose();
-        _libVLC.Dispose();
+        _stateSubject.Dispose();
     }
 }

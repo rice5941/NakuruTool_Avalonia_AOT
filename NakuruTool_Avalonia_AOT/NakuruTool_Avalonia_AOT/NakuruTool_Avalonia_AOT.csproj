@@ -59,8 +59,6 @@
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.1" />
     <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.3.7.1" />
     <PackageReference Include="ZLinq" Version="1.5.4" />
-    <PackageReference Include="LibVLCSharp" Version="3.9.5" />
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,4 +66,36 @@
       <DependentUpon>MainWindowView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <!-- Rust build integration -->
+  <Target Name="BuildRustLibrary" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
+      <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
+      <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
+      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+    </PropertyGroup>
+
+    <!-- Build Rust library -->
+    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
+
+    <!-- Copy native library to output directory (Windows) -->
+    <Copy SourceFiles="$(NativeLibPath)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPath)')" />
+  </Target>
+
+  <!-- Copy native library to publish directory for NativeAOT -->
+  <Target Name="CopyNativeLibraryToPublish" BeforeTargets="ComputeResolvedFilesToPublishList">
+    <PropertyGroup>
+      <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
+      <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
+      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(NativeLibPath)" Condition="Exists('$(NativeLibPath)')">
+        <RelativePath>nakuru_audio.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 </Project>

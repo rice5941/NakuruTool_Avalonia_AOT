@@ -80,6 +80,38 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
                 LicenseType = "MIT",
                 Url = "https://github.com/Kir-Antipov/HotAvalonia",
                 Copyright = "Copyright (c) 2023 Kir_Antipov"
+            },
+            new LicenseItem
+            {
+                PackageName = "nakuru_audio",
+                Version = "0.1.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/your-username/NakuruTool_Avalonia_AOT/tree/main/native/nakuru_audio",
+                Copyright = "Copyright (c) 2025 NakuruTool Contributors"
+            },
+            new LicenseItem
+            {
+                PackageName = "rodio",
+                Version = "0.21.1",
+                LicenseType = "MIT OR Apache-2.0",
+                Url = "https://github.com/RustAudio/rodio",
+                Copyright = "Copyright (c) The Rodio contributors"
+            },
+            new LicenseItem
+            {
+                PackageName = "csbindgen",
+                Version = "1.9.7",
+                LicenseType = "MIT",
+                Url = "https://github.com/Cysharp/csbindgen",
+                Copyright = "Copyright (c) 2024 Cysharp, Inc."
+            },
+            new LicenseItem
+            {
+                PackageName = "parking_lot",
+                Version = "0.12.5",
+                LicenseType = "MIT OR Apache-2.0",
+                Url = "https://github.com/Amanieu/parking_lot",
+                Copyright = "Copyright (c) The parking_lot contributors"
             }
         };
 

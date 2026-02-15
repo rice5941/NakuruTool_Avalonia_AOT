@@ -1,0 +1,925 @@
+# Featureモジュール詳細
+
+本ドキュメントでは `Features/` 配下の各モジュールの責務・構成ファイル・依存関係・主要挙動を記述する。アーキテクチャ全体像は [ARCHITECTURE.md](ARCHITECTURE.md) を参照。
+
+---
+
+## 1. MainWindow
+
+### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `MainWindowViewModel.cs` | ViewModel | タブナビゲーション制御、読み込みオーバーレイ制御 |
+| `MainWindowView.axaml` | View | 左サイドバータブ＋オーバーレイのレイアウト定義 |
+| `MainWindowView.axaml.cs` | CodeBehind | ウィンドウのOpened イベントから `StartLoadingAsync` を呼び出し |
+
+### 責務
+
+- アプリケーションのルートウィンドウとして機能
+- 左サイドバーのタブナビゲーション（MapList, Import/Export, Settings, Licenses）
+- データベース読み込み中のオーバーレイ表示制御（`IsLoadingOverlayVisible`）
+- 読み込みエラー発生時の設定タブへの自動遷移
+
+### 依存モジュール
+
+- **OsuDatabase** — `IDatabaseLoadingViewModel` を通じてDB読み込み進捗を表示
+- **MapList** — `MapListPageViewModel` をMapListタブに配置
+- **Settings** — `ISettingsViewModel` を設定タブに配置、`ISettingsService` でフォルダパス変更を監視
+- **Licenses** — `ILicensesViewModel` をライセンスタブに配置
+- **Shared** — `ViewModelBase` を継承
+- **Translate** — `TranslateExtension` でUI文字列を多言語化
+
+### UI構成
+
+- **ヘッダーバー** — アプリ名表示、サイドバー折りたたみ用 `ToggleButton`
+- **左サイドバー** — `TabControl`（`TabStripPlacement="Left"`）によるページ切り替え。カテゴリラベル（メイン/システム）と各ページタブで構成
+- **オーバーレイ** — 半透明背景の `Border` + 中央配置のカード内に `DatabaseLoadingView` を表示
+
+### 主要挙動
+
+1. **起動時読み込み** — `Window.Opened` → `StartLoadingAsync()` → `DatabaseLoadingViewModel.InitialLoadAsync()` → `MapListPageViewModel.Initialize()` → オーバーレイ非表示
+2. **エラー時の設定タブ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合、`SelectedTabIndex` を設定タブ（インデックス 4）に切り替え
+3. **フォルダパス変更監視** — `ISettingsData.OsuFolderPath` をR3の `ObserveProperty` で監視し、変更時に `ReloadDatabaseAsync()` を実行
+
+### タブインデックス定数
+
+| 定数 | 値 | 対応タブ |
+|------|---|---------|
+| `TabIndexMapList` | 1 | 譜面一覧 |
+| `TabIndexSettings` | 4 | 設定 |
+
+---
+
+## 2. MapList
+
+### 概要
+
+譜面一覧の表示・フィルタリング・コレクション書き込みを担うモジュール。3つのViewModelと2つのModelクラス、1つのサービスクラスで構成される。
+
+### 2.1 MapListPageViewModel（統合コントローラ）
+
+#### 構成ファイル
+
+| ファイル | 種別 |
+|---------|------|
+| `MapListPageViewModel.cs` | ViewModel |
+| `MapListPageView.axaml` | View |
+| `MapListPageView.axaml.cs` | CodeBehind |
+
+#### 責務
+
+- `MapFilterViewModel` と `MapListViewModel` を統合し、MapListページ全体を制御
+- コレクション名の入力管理
+- `AddToCollectionAsync` によるcollection.db書き込みの起動
+- コレクション生成時のプリセット自動保存
+- 生成進捗の表示管理
+
+#### 依存モジュール
+
+- **OsuDatabase** — `IDatabaseService`, `IGenerateCollectionService`
+- **AudioPlayer** — `AudioPlayerViewModel`
+- **Shared** — `ViewModelBase`
+- **Translate** — コレクション生成結果メッセージの多言語化
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `FilterViewModel` | `MapFilterViewModel` | フィルタ条件管理 |
+| `ListViewModel` | `MapListViewModel` | 譜面一覧管理 |
+| `CollectionName` | `string` | 書き込み先コレクション名 |
+| `GenerationStatusMessage` | `string` | 生成進捗/結果メッセージ |
+| `GenerationProgressValue` | `int` | 生成進捗値（0–100） |
+| `IsGenerating` | `bool` | 生成中フラグ |
+
+#### 主要挙動
+
+1. **`Initialize()`** — `ListViewModel.Initialize()` を呼び出し、全譜面のフィルタ適用と表示を初期化
+2. **`AddToCollectionAsync()`** — `IGenerateCollectionService.GenerateCollection()` でcollection.dbに書き込み。成功時は `SavePresetIfNeeded()` でプリセットを自動保存
+3. **プリセット選択時のコレクション名反映** — `FilterViewModel.SelectedPreset` の変更をR3で監視し、`CollectionName` に反映
+4. **進捗監視** — `IGenerateCollectionService.GenerationProgressObservable` をR3で購読し、UI更新
+
+---
+
+### 2.2 MapListViewModel（譜面一覧）
+
+#### 構成ファイル
+
+| ファイル | 種別 |
+|---------|------|
+| `MapListViewModel.cs` | ViewModel |
+| `MapListView.axaml` | View |
+| `MapListView.axaml.cs` | CodeBehind |
+
+#### 責務
+
+- フィルタ済み譜面配列（`FilteredBeatmapsArray`）の管理
+- ページング処理（表示用部分配列 `ShowBeatmaps` の管理）
+- 譜面選択時のオーディオ自動再生
+
+#### データ構造
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `ShowBeatmaps` | `IAvaloniaReadOnlyList<Beatmap>` | 現在ページに表示中の譜面リスト |
+| `FilteredBeatmapsArray` | `Beatmap[]` | フィルタ適用後の全譜面配列 |
+| `TotalCount` | `int` | DB内の全譜面数 |
+| `FilteredCount` | `int` | フィルタ後の譜面数 |
+| `CurrentPage` | `int` | 現在ページ（1始まり） |
+| `FilteredPages` | `int` | フィルタ後の総ページ数 |
+| `PageSize` | `int` | 1ページあたりの表示件数（デフォルト: 20） |
+| `SelectedBeatmap` | `Beatmap?` | 選択中の譜面 |
+| `AudioPlayer` | `AudioPlayerViewModel` | オーディオ再生コントロール |
+
+#### ページング仕様
+
+- 選択可能なページサイズ: **10 / 20 / 50 / 100**（`PageSizes` プロパティ）
+- デフォルトページサイズ: **20**
+- ページ変更時は `UpdateShowBeatmaps()` で `FilteredBeatmapsArray` から `Span` でスライスした部分を `AvaloniaList` に転写
+
+#### フィルタ連携
+
+- `MapFilterViewModel.FilterChanged`（R3 `Observable<Unit>`）を購読
+- 発火時に `ApplyFilter()` → `UpdateFilteredBeatmapsArray()` + `UpdateFilteredPages()` + `UpdateShowBeatmaps()`
+- フィルタ実行はZLinqの `AsValueEnumerable().Where().ToArray()` で実施
+
+#### オーディオ連携
+
+- `SelectedBeatmap` プロパティの変更をR3の `ObserveProperty` で監視
+- 変更時に `AudioPlayer.PlayBeatmapAudio(SelectedBeatmap)` を呼び出し、自動的にプレビュー再生
+
+---
+
+### 2.3 MapFilterViewModel（フィルタ条件）
+
+#### 構成ファイル
+
+| ファイル | 種別 |
+|---------|------|
+| `MapFilterViewModel.cs` | ViewModel |
+| `MapFilterView.axaml` | View |
+| `MapFilterView.axaml.cs` | CodeBehind |
+
+#### 責務
+
+- フィルタ条件のCRUD管理（追加・削除・クリア）
+- 条件変更時の通知（R3 `Subject<Unit>`）
+- 譜面に対するフィルタマッチング判定
+- プリセットの読み込み・保存
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Conditions` | `AvaloniaList<FilterCondition>` | 現在のフィルタ条件リスト |
+| `FilterChanged` | `Observable<Unit>` | フィルタ条件変更通知 |
+| `SelectedPreset` | `FilterPreset?` | 選択中のプリセット |
+| `PresetsWithNone` | `AvaloniaList<FilterPreset?>` | プリセット一覧（先頭にnull=「なし」を含む） |
+
+#### 最大条件数
+
+- **8** 条件まで追加可能（`MaxConditions = 8`）
+
+#### R3による条件変更監視チェーン
+
+1. `Conditions.ObserveCollectionChanged()` → 条件の追加/削除を検知 → `NotifyFilterChanged()`
+2. `Conditions.ObserveElementPropertyChanged()` → 各条件のプロパティ変更を検知 → `NotifyFilterChanged()`
+3. `_presetService.Presets.ObserveCollectionChanged()` → プリセット一覧の変更を検知 → `UpdatePresetsWithNone()`
+
+#### マッチング
+
+- `Matches(Beatmap)` — 全条件がAND結合。条件が0件の場合は全譜面にマッチ
+- 各 `FilterCondition.Matches(Beatmap)` に委譲
+
+---
+
+### 2.4 Models
+
+#### FilterCondition
+
+フィルタの単一条件を表すクラス。`ObservableObject` を継承し、プロパティ変更を通知する。
+
+##### 比較タイプ（`ComparisonType` enum）
+
+| 値 | 概要 |
+|---|------|
+| `Equals` | 完全一致（文字列の場合は部分一致） |
+| `Range` | 範囲指定（最小値–最大値） |
+
+##### フィルタ対象（`FilterTarget` enum）
+
+| 値 | データ型 | Equals対応 | Range対応 | 概要 |
+|---|---------|-----------|----------|------|
+| `KeyCount` | 数値（int） | ✓ | ✓ | キー数 |
+| `Status` | Enum | ✓ | ✗ | ランクステータス |
+| `Title` | 文字列 | ✓ | ✗ | 曲名（部分一致） |
+| `Version` | 文字列 | ✓ | ✗ | 難易度名（部分一致） |
+| `Artist` | 文字列 | ✓ | ✗ | アーティスト名（部分一致） |
+| `Creator` | 文字列 | ✓ | ✗ | 譜面作成者（部分一致） |
+| `BPM` | 数値（double） | ✓ | ✓ | BPM |
+| `Difficulty` | 数値（double） | ✗ | ✓ | 難易度（StarRating） |
+| `LongNoteRate` | 数値（double） | ✗ | ✓ | LN率（入力は0–100、内部は0.0–1.0） |
+| `BestAccuracy` | 数値（double） | ✓ | ✓ | 最高精度 |
+| `BestScore` | 数値（int） | ✓ | ✓ | 最高スコア |
+| `IsPlayed` | Bool | ✓ | ✗ | プレイ済みか |
+| `LastPlayed` | 日付 | ✗ | ✓ | 最終プレイ日 |
+| `LastModifiedTime` | 日付 | ✗ | ✓ | 最終更新日 |
+| `PlayCount` | 数値（int） | ✓ | ✓ | プレイ回数 |
+
+##### `FilterTargetInfo` ヘルパークラス
+
+`FilterTarget` に対してデータ型や対応比較タイプを判定する静的メソッド群:
+
+- `SupportsRange(FilterTarget)` — 範囲指定をサポートするか
+- `SupportsEquals(FilterTarget)` — 等価比較をサポートするか
+- `IsDateType(FilterTarget)` — 日付型か
+- `IsNumericType(FilterTarget)` — 数値型か
+- `IsStringType(FilterTarget)` — 文字列型か
+- `IsBoolType(FilterTarget)` — Bool型か
+- `IsEnumType(FilterTarget)` — Enum型か
+
+##### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Id` | `string` | 一意のID（`Guid`、RadioButtonの `GroupName` 用） |
+| `Target` | `FilterTarget` | フィルタ対象 |
+| `ComparisonType` | `ComparisonType` | 比較タイプ |
+| `Value` | `string` | 等価比較値、または範囲の最小値 |
+| `ValueMax` | `string` | 範囲の最大値 |
+| `StatusValue` | `BeatmapStatus` | Status用の選択値 |
+| `BoolValue` | `bool` | IsPlayed用の選択値 |
+| `DateValue` / `DateValueMax` | `DateTime?` | 日付型の値（CalendarDatePicker連携用） |
+
+##### `Matches(Beatmap)` メソッド
+
+`Target` に応じて以下のマッチングメソッドに分岐:
+
+- `MatchesString` — 大文字小文字無視の `Contains` による部分一致
+- `MatchesNumeric` — int値の完全一致または範囲判定
+- `MatchesDouble` — double値の近似一致（誤差 < 0.001）または範囲判定
+- `MatchesLongNoteRate` — 入力値を100で割って内部値と比較
+- `MatchesDateTime` — 日付部分のみで一致または範囲判定
+
+#### FilterPreset
+
+フィルタプリセット（フィルタ条件のセット + コレクション名）を表すモデルクラス。
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Name` | `string` | プリセット名（ファイル名としても使用） |
+| `CollectionName` | `string` | コレクション名 |
+| `Conditions` | `List<FilterConditionData>` | フィルタ条件のシリアライズ用データリスト |
+
+#### FilterConditionData
+
+`FilterCondition` のシリアライズ用データクラス。Enum値は文字列で保存する。
+
+- `FromFilterCondition(FilterCondition)` — `FilterCondition` からデータを作成
+- `ToFilterCondition()` — `FilterCondition` に復元。Enumパース失敗時はデフォルト値を使用
+
+#### FilterPresetJsonContext
+
+NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `List<FilterPreset>`, `FilterConditionData` のシリアライズに対応。
+
+---
+
+### 2.5 FilterPresetService
+
+#### 構成ファイル
+
+| ファイル | 種別 |
+|---------|------|
+| `FilterPresetService.cs` | サービス |
+
+#### 責務
+
+- フィルタプリセットの永続化（JSON形式での保存・読み込み・削除）
+- プリセット一覧の管理
+
+#### インターフェース: `IFilterPresetService`
+
+| メソッド | 概要 |
+|---------|------|
+| `Presets` | 利用可能なプリセット一覧（`AvaloniaList<FilterPreset>`） |
+| `SavePreset(FilterPreset)` | プリセットをJSON保存。同名は上書き |
+| `DeletePreset(string)` | プリセットを削除 |
+| `LoadPresets()` | プリセットフォルダから全プリセットを読み込み |
+
+#### 保存先
+
+- `{AppDirectory}/presets/*.json`
+- ファイル名 = プリセット名（不正文字は `_` に置換）
+- シリアライズには `FilterPresetJsonContext` を使用
+
+#### 読み書き仕様
+
+- コンストラクタで `presets/` フォルダを確認・作成し、全プリセットを読み込み
+- `SavePreset` — 既存の同名プリセットはリスト内で置換、新規は追加
+- `LoadPresets` — フォルダ内の全 `.json` ファイルをデシリアライズ
+
+---
+
+## 3. OsuDatabase
+
+### 概要
+
+osu!のDBファイル（`osu!.db`, `collection.db`, `scores.db`）の読み込み・書き込み・データ管理を担うモジュール。高性能なバイナリパース（アンマネージドメモリ + 並列処理）を特徴とする。
+
+### 構成ファイル一覧
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `DatabaseService.cs` | サービス | 3DBの並列読み込み統合・スコアデータ適用 |
+| `DatabaseLoadingViewModel.cs` | ViewModel | 読み込み進捗UI管理 |
+| `DatabaseLoadingView.axaml` | View | 読み込み進捗の表示 |
+| `DatabaseLoadingView.axaml.cs` | CodeBehind | |
+| `OsuDbParser.cs` | パーサー | osu!.dbの高性能パース |
+| `CollectionDbParser.cs` | パーサー | collection.dbのパース |
+| `ScoresDbParser.cs` | パーサー | scores.dbのパース |
+| `GenerateCollectionService.cs` | サービス | collection.dbへの書き込み |
+| `BinaryReaderHelper.cs` | ヘルパー | バイナリ読み取り共通処理 |
+| `UnmanagedBuffer.cs` | メモリ管理 | アンマネージドバッファ管理 |
+| `Beatmap.cs` | モデル | 譜面データ（record型） |
+| `OsuCollection.cs` | モデル | コレクションデータ |
+| `ScoreData.cs` | モデル | スコアデータ |
+
+### 依存モジュール
+
+- **Settings** — `ISettingsService` からosu!フォルダパスを取得
+- **Translate** — 読み込み進捗メッセージの多言語化
+
+---
+
+### 3.1 DatabaseService
+
+#### インターフェース: `IDatabaseService`
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `CollectionDbProgress` | `Observable<DatabaseLoadProgress>` | collection.db読み込み進捗 |
+| `OsuDbProgress` | `Observable<DatabaseLoadProgress>` | osu!.db読み込み進捗 |
+| `ScoresDbProgress` | `Observable<DatabaseLoadProgress>` | scores.db読み込み進捗 |
+| `OsuCollections` | `List<OsuCollection>` | コレクション一覧 |
+| `Beatmaps` | `Beatmap[]` | 譜面配列 |
+| `LoadDatabasesAsync()` | `Task` | 3DBの並列読み込み |
+
+#### 3DBファイルの並列読み込みフロー
+
+1. osu!フォルダパスの検証
+2. `collection.db` のバックアップ作成（`backups/collection_startup_{timestamp}.db`）
+3. `Task.WhenAll` で3ファイルを並列読み込み:
+   - `ReadCollectionDbAsync` → `CollectionDbParser`
+   - `ReadOsuDbAsync` → `OsuDbParser`
+   - `ReadScoresDbFileAsync` → `ScoresDbParser`
+4. 読み込み完了後、`ApplyScoresToBeatmaps` でスコアデータをBeatmapに統合
+
+#### スコアデータ統合（MD5マッチング）
+
+- `BuildBeatmapIndex()` でMD5Hash→配列インデックスの辞書を構築
+- `ApplyScoresToBeatmaps()` でスコアDBの各エントリをMD5で照合
+- マッチしたBeatmapに `BestScore`, `BestAccuracy`, `PlayCount` を `with` 式で適用
+- 精度計算は `CalculateAccuracy()` で行い、Maniaモードとその他モードで計算式が異なる
+
+#### 進捗通知
+
+- 3系統のR3 `Subject<DatabaseLoadProgress>` で進捗を通知
+- `DatabaseLoadProgress` は `record(string Message, int Progress)` 型
+- UIスレッドへの配信は `Dispatcher.UIThread.Post()` で実施
+
+---
+
+### 3.2 パーサー群
+
+#### 共通特徴
+
+- **`UnmanagedBuffer`** — `NativeMemory.Alloc/Free` によるアンマネージドメモリ管理。LOH（Large Object Heap）回避。`IDisposable` で確実に解放
+- **`Span<byte>` ベースのパース** — ゼロコピーでバイナリデータにアクセス
+- **`BinaryReaderHelper`** — osu!形式の文字列読み込み（0x00=空文字列、0x0b=ULEB128長+UTF-8データ）と `DateTime` 読み込みの共通実装。全メソッドに `AggressiveInlining` を適用
+
+#### OsuDbParser
+
+osu!.dbファイルのパーサー。最も大規模なファイル（数百MB）を扱うため、高性能な実装となっている。
+
+##### パース手順
+
+1. **ファイル全体をアンマネージドバッファに一括読み込み**（1MBバッファ、`FileOptions.None`）
+2. **ヘッダー読み込み** — `OsuVersion`, `FolderCount`, `AccountUnlocked`, `UnlockDate`, `PlayerName`, `BeatmapCount`
+3. **シングルスレッドでオフセットスキャン** — 各譜面エントリの開始/終了オフセットを `RawBeatmapData` 構造体に記録。`TrySkipBeatmapEntry()` でバイナリデータを高速にスキップ
+4. **`Parallel.For` による並列インスタンス展開** — `ParseBeatmapFromBuffer()` でunsafeポインタから `Beatmap` レコードを生成。Maniaモード（Ruleset=3）の譜面のみを抽出
+5. **MD5Hashでソート → 隣接比較で重複排除** — `Span.Sort` + 線形スキャンで重複を除去
+
+##### Mania抽出
+
+- Rulesetフィールドの値が3（Mania）の譜面のみを `Beatmap` として返却
+- KeyCountはCS（Circle Size）値から取得
+
+#### CollectionDbParser
+
+collection.dbファイルのパーサー。
+
+- ファイル全体をアンマネージドバッファに一括読み込み
+- ヘッダー（バージョン + コレクション数）を読み取り
+- 各コレクション: 名前（osu!形式文字列） + MD5ハッシュ配列を読み込み
+- 結果を `List<OsuCollection>` として返却
+
+#### ScoresDbParser
+
+scores.dbファイルのパーサー。
+
+- ファイル全体をアンマネージドバッファに一括読み込み
+- ヘッダー（osuVersion + ビートマップ数）を読み取り
+- 各ビートマップ: MD5ハッシュ + スコアリストを読み込み
+- 各スコア: Ruleset, 各種ヒットカウント, スコア, コンボ, Mods, タイムスタンプ等を読み取り
+- 結果を `ScoresDatabase`（`Dictionary<string, List<ScoreData>>`）として返却
+
+---
+
+### 3.3 GenerateCollectionService
+
+#### インターフェース: `IGenerateCollectionService`
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `GenerationProgressObservable` | `Observable<GenerationProgress>` | 生成進捗通知 |
+| `GenerateCollection(string, Beatmap[])` | `Task<bool>` | コレクション生成・書き込み |
+
+#### 書き込みフォーマット仕様
+
+collection.dbのバイナリフォーマットに準拠して書き込み:
+
+1. バージョン情報（int32: `20210528`）
+2. コレクション数（int32）
+3. 各コレクション:
+   - コレクション名（osu!形式文字列: 0x0b + ULEB128長 + UTF-8バイト列）
+   - MD5ハッシュ数（int32）
+   - 各MD5ハッシュ（osu!形式文字列）
+
+#### 同名コレクション置換ロジック
+
+1. 既存コレクションリストから同名コレクションを `RemoveAll` で削除
+2. 新しいコレクションを作成してリストに追加
+3. リスト全体をcollection.dbに書き込み
+
+---
+
+### 3.4 データモデル
+
+#### Beatmap（sealed record型）
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `MD5Hash` | `string` (required) | 譜面のMD5ハッシュ |
+| `KeyCount` | `int` | キー数 |
+| `Status` | `BeatmapStatus` | ランクステータス |
+| `Title` | `string` (required) | 曲名 |
+| `Artist` | `string` (required) | アーティスト名 |
+| `Version` | `string` (required) | 難易度名 |
+| `Creator` | `string` (required) | 譜面作成者 |
+| `BPM` | `double` | BPM |
+| `Difficulty` | `double` | 難易度（StarRating） |
+| `LongNoteRate` | `double` | LN率（0.0–1.0） |
+| `IsPlayed` | `bool` | プレイ済みか |
+| `LastPlayed` | `DateTime?` | 最終プレイ日時 |
+| `LastModifiedTime` | `DateTime?` | 最終更新日時 |
+| `FolderName` | `string` (required) | 曲フォルダ名 |
+| `AudioFilename` | `string` (required) | オーディオファイル名 |
+| `BeatmapSetId` | `int` | ビートマップセットID |
+| `BeatmapId` | `int` | ビートマップID |
+| `BestScore` | `int` | 最高スコア（scores.dbから適用） |
+| `BestAccuracy` | `double` | 最高精度（scores.dbから適用） |
+| `PlayCount` | `int` | プレイ回数（scores.dbから適用） |
+| `Grade` | `string` (required) | グレード |
+
+#### BeatmapStatus（enum）
+
+| 値 |
+|---|
+| `None` |
+| `Ranked` |
+| `Loved` |
+| `Approved` |
+| `Qualified` |
+| `Pending` |
+
+#### OsuCollection
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Name` | `string` | コレクション名 |
+| `BeatmapMd5s` | `string[]` | 含まれる譜面のMD5ハッシュ配列 |
+
+#### ScoreData（record型）
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Ruleset` | `byte` | ルールセット（0=Standard, 1=Taiko, 2=Catch, 3=Mania） |
+| `OsuVersion` | `int` | osu!バージョン |
+| `BeatmapMD5Hash` | `string` | 譜面のMD5ハッシュ |
+| `PlayerName` | `string` | プレイヤー名 |
+| `ReplayMD5Hash` | `string` | リプレイのMD5ハッシュ |
+| `Count300` | `ushort` | 300判定数 |
+| `Count100` | `ushort` | 100判定数 |
+| `Count50` | `ushort` | 50判定数 |
+| `CountGeki` | `ushort` | 激判定数 |
+| `CountKatu` | `ushort` | 可判定数 |
+| `CountMiss` | `ushort` | ミス数 |
+| `ReplayScore` | `int` | スコア |
+| `Combo` | `ushort` | 最大コンボ |
+| `PerfectCombo` | `bool` | フルコンボか |
+| `Mods` | `int` | Modsビットフラグ |
+| `ScoreTimestamp` | `DateTime` | スコア記録日時 |
+| `ScoreId` | `long` | スコアID |
+
+#### ScoresDatabase
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `OsuVersion` | `int` | osu!バージョン |
+| `Scores` | `Dictionary<string, List<ScoreData>>` | MD5ハッシュをキーとしたスコア辞書 |
+
+#### DatabaseLoadingViewModel
+
+DB読み込み進捗表示専用のViewModel。
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `IsLoading` | `bool` | 読み込み中フラグ |
+| `HasError` | `bool` | エラー発生フラグ |
+| `ErrorMessage` | `string` | エラーメッセージ |
+| `CollectionDbProgress` / `CollectionDbMessage` | `int` / `string` | collection.db進捗 |
+| `OsuDbProgress` / `OsuDbMessage` | `int` / `string` | osu!.db進捗 |
+| `ScoresDbProgress` / `ScoresDbMessage` | `int` / `string` | scores.db進捗 |
+
+- `IDatabaseService` の3つの進捗Observableを購読し、各進捗プロパティを更新
+- `InitialLoadAsync()` が外部から呼ばれるエントリポイント
+
+---
+
+## 4. AudioPlayer
+
+### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `IAudioPlayerService.cs` | インターフェース | オーディオ再生サービスの契約定義 |
+| `AudioPlayerService.cs` | サービス | Rust FFIを介した再生実装 |
+| `AudioPlayerViewModel.cs` | ViewModel | 再生コントロールUI管理 |
+| `NativeMethods.g.cs` | 自動生成コード | csbindgenが生成したP/Invokeバインディング |
+
+### 概要
+
+- osu!の譜面オーディオファイルのプレビュー再生機能を提供するモジュール
+- Rustネイティブライブラリ（rodio）とC#をFFI（P/Invoke）で橋渡しし、低レベルなオーディオ再生を実現
+- 再生・一時停止・停止・音量制御の操作と、再生状態の変更通知をR3で管理
+
+### 依存モジュール
+
+- **Settings** — `ISettingsService` からosu!フォルダパスを取得（オーディオファイルパス構築用）
+- **OsuDatabase** — `Beatmap` 型を参照（`FolderName`, `AudioFilename`）
+- **Shared** — `ViewModelBase` を継承
+- **nakuru_audio**（Rustネイティブライブラリ） — `NativeMethods` 経由でFFI呼び出し
+
+### アーキテクチャ（C# ↔ Rust FFI）
+
+```
+AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMethods (P/Invoke) → nakuru_audio.dll (Rust/rodio)
+```
+
+### IAudioPlayerService
+
+オーディオ再生の抽象インターフェース。
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `StateChanged` | `Observable<AudioPlayerState>` | 再生状態変更通知 |
+| `CurrentState` | `AudioPlayerState` | 現在の再生状態 |
+| `Volume` | `int` | 音量（0–100） |
+| `Play(string)` | `void` | ファイルパス指定で再生 |
+| `Pause()` | `void` | 一時停止 |
+| `Resume()` | `void` | 再開 |
+| `Stop()` | `void` | 停止 |
+| `TogglePlayPause()` | `void` | 再生/一時停止トグル |
+
+### AudioPlayerState（enum）
+
+| 値 | 概要 |
+|---|------|
+| `Stopped` | 停止中 |
+| `Playing` | 再生中 |
+| `Paused` | 一時停止中 |
+| `Error` | エラー |
+
+### AudioPlayerService
+
+- `NativeMethods.nakuru_audio_create()` でネイティブプレイヤーを作成（`AudioPlayer*` ハンドル管理）
+- 音量はC#側で0–100 ↔ Rust側で0.0–1.0に変換
+- `Play()` ではファイルパスをUTF-8バイト列に変換し、fixedポインタでRustに渡す
+- R3 `Subject<AudioPlayerState>` で状態変更を通知
+- `Dispose()` で `nakuru_audio_destroy()` を呼びネイティブリソースを解放
+
+### AudioPlayerViewModel
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `IsPlaying` | `bool` | 再生中かどうか |
+| `Volume` | `int` | 音量（変更時にサービスに反映） |
+
+- `IAudioPlayerService.StateChanged` を購読し、`IsPlaying` を更新
+- `PlayBeatmapAudio(Beatmap?)` — osu!フォルダパス + `Songs/{FolderName}/{AudioFilename}` のパスを構築して再生
+- `TogglePlayPauseCommand`, `StopAudioCommand` コマンドを提供
+
+### nakuru_audio（Rust側）
+
+- **言語**: Rust
+- **主要クレート**: rodio（オーディオ再生）
+- **ビルド**: csbindgenでC#バインディングを自動生成
+- **公開API**: `nakuru_audio_create`, `nakuru_audio_destroy`, `nakuru_audio_play`, `nakuru_audio_pause`, `nakuru_audio_resume`, `nakuru_audio_stop`, `nakuru_audio_set_volume`, `nakuru_audio_get_volume`, `nakuru_audio_get_state`, `nakuru_audio_set_state_callback`
+
+---
+
+## 5. Settings
+
+### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `SettingsData.cs` | モデル | 設定データ + JSON Source Generator |
+| `SettingsService.cs` | サービス | 設定の永続化・読み込み |
+| `SettingsViewModel.cs` | ViewModel | 設定画面のUI管理 |
+| `SettingsPage.axaml` | View | 設定画面のレイアウト |
+| `SettingsPage.axaml.cs` | CodeBehind | |
+
+### 概要
+
+- アプリケーション設定（osu!フォルダパス、言語、テーマ）の管理と永続化を担うモジュール
+- 設定データをJSON形式で保存・読み込みし、NativeAOT対応のSource Generatorを使用
+- 設定変更をR3で監視し、言語切替やデータベース再読み込みなどの副作用を自動的にトリガー
+
+### 依存モジュール
+
+- **Translate** — `LanguageService` で言語切替を実行
+- **OsuDatabase** — `IDatabaseService` を参照（SettingsViewModelで使用）
+- **Shared** — `ViewModelBase` を継承
+
+### SettingsService
+
+#### インターフェース: `ISettingsService`
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `SettingsData` | `ISettingsData` | 現在の設定データ |
+| `SaveSettings(SettingsData)` | `bool` | 設定を保存 |
+| `CheckSettingsPath()` | `bool` | 設定ファイルの存在確認 |
+| `GetSettingsPath()` | `string` | 設定ファイルのパス |
+
+#### 設定ファイルパス
+
+- `{AppDirectory}/settings/settings.json`
+
+#### 永続化方式
+
+- `JsonSerializer` + `SettingsJsonContext`（Source Generator）でJSON読み書き
+- コンストラクタで設定ファイルを読み込み、`LanguageService` で言語を初期化
+- `SettingsData.LanguageKey` の変更をR3の `ObservePropertyAndSubscribe` で監視し、言語変更を自動適用
+
+### SettingsData
+
+`ObservableObject` を継承した設定データクラス。
+
+| プロパティ | 型 | デフォルト値 | 概要 |
+|-----------|---|------------|------|
+| `OsuFolderPath` | `string` | `""` | osu!フォルダパス |
+| `LanguageKey` | `string` | `"ja-JP"` | 言語コード |
+
+- JSON Source Generatorとの互換性のため、`[ObservableProperty]` ではなく手動の `SetProperty` パターンを使用
+- `Update(SettingsData)` メソッドで既存インスタンスのプロパティを一括更新
+
+#### SettingsJsonContext
+
+NativeAOT対応のJSON Source Generatorコンテキスト。`SettingsData` のシリアライズに対応。
+
+### SettingsViewModel
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `LanguageKeys` | `IAvaloniaReadOnlyList<string>` | 利用可能な言語コード一覧 |
+| `SelectedLanguageKey` | `string` | 選択中の言語コード |
+| `SelectedFolderPath` | `string` | 選択中のosu!フォルダパス |
+| `OsuPathErrorMessage` | `string` | osu!パスエラーメッセージ |
+| `HasOsuPathError` | `bool` | パスエラー有無 |
+
+- 言語・フォルダパスの変更時に `UpdateSettingData()` で設定を保存
+- `ToggleThemeCommand` — ダーク/ライトテーマの切替（`Semi.Avalonia` の `UnregisterFollowSystemTheme` を使用）
+
+---
+
+## 6. Translate
+
+### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `LanguageService.cs` | サービス（シングルトン） | 言語リソースの管理・翻訳値の取得 |
+| `TranslateExtension.cs` | マークアップ拡張 | XAMLでの多言語バインディング |
+| `LanguageJsonContext.cs` | Source Generator | 言語JSONのデシリアライズ用 |
+| `Resources/Languages/ja-JP.json` | リソース | 日本語翻訳データ |
+| `Resources/Languages/en-US.json` | リソース | 英語翻訳データ |
+| `Resources/Languages/zh-CN.json` | リソース | 中国語（簡体字）翻訳データ |
+
+### 概要
+
+- アプリケーション全体の多言語化（i18n）基盤を提供するモジュール
+- JSONベースの言語リソースファイルを管理し、XAMLマークアップ拡張によるバインディングで動的な言語切替を実現
+- WeakReferenceによるメモリリーク防止と、NativeAOT対応のSource Generatorによるリフレクション回避を特徴とする
+
+### 依存モジュール
+
+- なし（他モジュールから参照される基盤モジュール）
+
+### LanguageService（シングルトン）
+
+#### 対応言語
+
+| 言語コード | 言語 |
+|-----------|------|
+| `ja-JP` | 日本語（デフォルト） |
+| `en-US` | 英語 |
+| `zh-CN` | 中国語（簡体字） |
+
+#### 主要機能
+
+| メンバ | 概要 |
+|-------|------|
+| `Instance` | `Lazy<LanguageService>` によるシングルトンインスタンス |
+| `CurrentLanguage` | 現在の言語コード |
+| `AvailableLanguages` | 対応言語コードのリスト |
+| `ChangeLanguage(string)` | 言語を切り替え、`LanguageChanged` イベントを発火 |
+| `GetString(string)` | キーに対応する翻訳文字列を取得。未発見時は `[key]` を返す |
+
+#### JSONロード
+
+- `avares://` URI でAvaloniaのアセットローダーからリソースファイルを読み込み
+- `LanguageJsonContext.Default.DictionaryStringJsonElement` でデシリアライズ
+- `FlattenDictionary()` でネストされたJSONをドット区切りのフラットキーに変換（例: `Menu.MapList`）
+
+#### AOT対応
+
+- JSONデシリアライズに `LanguageJsonContext`（Source Generator）を使用し、リフレクションを回避
+- `Dictionary<string, JsonElement>` 型でデシリアライズ後、再帰的にフラット化
+
+### TranslateExtension
+
+XAMLマークアップ拡張（`MarkupExtension` 継承）。
+
+#### 使用方法
+
+XAML内で `{translate:Translate 'Key.Name'}` として使用。
+
+#### WeakReference管理
+
+- `TranslateWeakEventManager` を通じて、ターゲットの `AvaloniaObject` と `AvaloniaProperty` を `WeakReference` で登録
+- `LanguageService.LanguageChanged` イベント発火時に、生存中の全登録先を更新
+- ターゲットが破棄されると `WeakReference.TryGetTarget()` が失敗し、自動的にリストから削除
+- 全サブスクリプションが削除されるとイベント購読自体も解除
+
+---
+
+## 7. Shared
+
+### 構成ファイル
+
+| フォルダ/ファイル | 概要 |
+|----------------|------|
+| `ViewModels/ViewModelBase.cs` | ViewModel基底クラス |
+| `Extensions/R3Extensions.cs` | R3関連の拡張メソッド |
+| `Converters/` | XAML用の値コンバーター（15クラス） |
+
+### 概要
+
+- 全モジュールが共通利用する基盤コンポーネントを提供するモジュール
+- ViewModel基底クラス（`ViewModelBase`）によるR3ライフサイクル管理の統一、R3拡張メソッド、XAML値コンバーター群を集約
+- NativeAOT対応のため、リフレクションを使用しないプロパティ監視パターンを提供
+
+### 依存モジュール
+
+- **Translate** — `ViewModelBase` が `LanguageService.Instance` を保持
+
+---
+
+### ViewModelBase
+
+全ViewModelの基底クラス（`ObservableObject` 継承）。
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `LangServiceInstance` | `LanguageService` | 翻訳サービスへの参照（`LanguageService.Instance`） |
+| `Disposables` | `CompositeDisposable` | R3購読のライフサイクル管理 |
+| `Dispose()` | `virtual void` | `Disposables.Dispose()` を呼び出し |
+
+---
+
+### R3Extensions
+
+R3関連のカスタム拡張メソッド。NativeAOT対応のため、リフレクションを使用せず `string` でプロパティ名を指定する。
+
+| メソッド | 引数 | 概要 |
+|---------|------|------|
+| `ObserveProperty<T>(this T, string)` | `source`: `INotifyPropertyChanged` 実装オブジェクト, `propertyName`: 監視プロパティ名 | 特定プロパティの変更を監視する `Observable<PropertyChangedEventArgs>` を生成 |
+| `ObservePropertyChanged<T>(this T)` | `source`: `INotifyPropertyChanged` 実装オブジェクト | 全プロパティの変更を監視する `Observable<PropertyChangedEventArgs>` を生成 |
+| `ObservePropertyAndSubscribe<T>(this T, string, Action, CompositeDisposable)` | `source`, `propertyName`, `action`, `disposables` | プロパティ変更時にアクションを実行し、ライフサイクル管理を行うヘルパー |
+| `ObserveCollectionChanged<T>(this AvaloniaList<T>)` | `source`: 監視対象の `AvaloniaList` | コレクション変更を監視する `Observable<NotifyCollectionChangedEventArgs>` を生成 |
+| `ObserveElementPropertyChanged<T>(this AvaloniaList<T>)` | `source`: `INotifyPropertyChanged` 要素を持つ `AvaloniaList` | 要素のPropertyChanged + コレクション変更を統合監視する `Observable<(T, PropertyChangedEventArgs)>` を生成。要素追加時は自動購読、Reset時は全再構築 |
+
+---
+
+### Converters
+
+XAML用の値コンバーター一覧（全15クラス、13ファイル）。
+
+| クラス名 | ファイル | 概要 |
+|---------|---------|------|
+| `AccuracyConverter` | `AccuracyConverter.cs` | 精度値（double）を `"XX.XX%"` 形式に変換。0の場合は `"-"` |
+| `BoolToBrushConverter` | `BoolToBrushConverter.cs` | bool値に基づいて `TrueBrush` / `FalseBrush` を返す |
+| `BoolToOpacityConverter` | `BoolToHiddenConverter.cs` | bool値をOpacity値に変換（Hidden的な非表示を実現） |
+| `BoolToHitTestVisibleConverter` | `BoolToHiddenConverter.cs` | bool値を `IsHitTestVisible` 値に変換 |
+| `InverseBooleanConverter` | `BoolToHiddenConverter.cs` | bool値を反転 |
+| `BoolToIconKindConverter` | `BoolToIconKindConverter.cs` | bool値に基づいて `MaterialIconKind` を返す |
+| `DateTimeOffsetConverter` | `DateTimeOffsetConverter.cs` | `string` ↔ `DateTimeOffset?` 間の変換（CalendarDatePicker用） |
+| `EmptyStringConverter` | `EmptyStringConverter.cs` | 空文字列を `"-"` に変換 |
+| `EnumToBoolConverter` | `EnumToBoolConverter.cs` | Enum値をboolに変換（RadioButton用） |
+| `FilterTargetToStringConverter` | `FilterTargetToStringConverter.cs` | `FilterTarget` を多言語対応した文字列に変換 |
+| `GradeToBrushConverter` | `GradeToBrushConverter.cs` | グレード文字列に基づいて色を返す（S=オレンジ, A=緑, B=青, C=ピンク, D=茶） |
+| `NullableDateTimeConverter` | `NullableDateTimeConverter.cs` | `DateTime?` をフォーマット文字列で変換。`null`/`MinValue` の場合は `"-"` |
+| `PresetNameConverter` | `PresetNameConverter.cs` | `FilterPreset?` を名前に変換。`null` の場合は翻訳された「(なし)」 |
+| `ScoreConverter` | `ScoreConverter.cs` | スコア値（int）をカンマ区切り表示。0の場合は `"-"` |
+| `ZeroToStringConverter` | `ZeroToStringConverter.cs` | 0値（int/double）を `"-"` に変換 |
+
+---
+
+## 8. Licenses
+
+### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `LicenseItem.cs` | モデル | ライセンス情報を保持するレコード |
+| `LicensesViewModel.cs` | ViewModel | ライセンス一覧の管理 |
+| `LicensesPage.axaml` | View | ライセンス一覧の表示 |
+| `LicensesPage.axaml.cs` | CodeBehind | |
+
+### 概要
+
+- アプリケーションが使用するサードパーティライブラリのライセンス情報を一覧表示するモジュール
+- ライセンス情報はハードコードで管理し、各パッケージのURL外部ブラウザ起動機能を提供
+
+### 依存モジュール
+
+- **Shared** — `ViewModelBase` を継承
+
+### LicenseItem
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `PackageName` | `string` (required) | パッケージ名 |
+| `Version` | `string` (required) | バージョン |
+| `LicenseType` | `string` (required) | ライセンス種別 |
+| `Url` | `string?` | プロジェクトURL |
+| `Copyright` | `string?` | 著作権表示 |
+
+### 固定リスト管理方式
+
+- `LicensesViewModel` のコンストラクタで `AvaloniaList<LicenseItem>` に全ライセンス情報をハードコードで登録
+- 動的な読み込みは行わない
+
+### 登録済みライセンス
+
+| パッケージ名 | バージョン | ライセンス |
+|-------------|-----------|-----------|
+| Avalonia | 11.3.10 | MIT |
+| CommunityToolkit.Mvvm | 8.4.0 | MIT |
+| R3 | 1.3.0 | MIT |
+| Semi.Avalonia | 11.3.7.1 | MIT |
+| Pure.DI | 2.2.15 | MIT |
+| Material.Icons.Avalonia | 2.4.1 | MIT |
+| ZLinq | 1.5.4 | MIT |
+| HotAvalonia | 3.0.2 | MIT |
+| nakuru_audio | 0.1.0 | MIT |
+| rodio | 0.21.1 | MIT OR Apache-2.0 |
+| csbindgen | 1.9.7 | MIT |
+| parking_lot | 0.12.5 | MIT OR Apache-2.0 |
+
+### URL外部ブラウザ起動
+
+- ライセンス一覧の各項目にURLリンクを設置し、クリック時に外部ブラウザで開く
+
+---
+
+## 関連ドキュメント
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — アーキテクチャ全体像・技術スタック・DI構成
+- [DATA_FLOW.md](DATA_FLOW.md) — データフローと状態管理・R3チェーン
+- [NATIVE_AOT.md](NATIVE_AOT.md) — NativeAOT対応ガイドライン
+- [TESTING.md](TESTING.md) — テスト戦略・実行方法
+- [BUILD.md](BUILD.md) — ビルド手順

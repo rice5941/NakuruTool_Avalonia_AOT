@@ -7,7 +7,6 @@
 - CommunityToolkit.Mvvm
 - NativeAOT
 - JsonSerializer
-- OsuParsers
 - ZLinq
 
 # 作業方針
@@ -29,9 +28,3 @@
 | [docs/NATIVE_AOT.md](../docs/NATIVE_AOT.md) | NativeAOT対応のルールとチェックリスト | **新しいコードを書く前に必ず確認** |
 | [docs/TESTING.md](../docs/TESTING.md) | テスト戦略・スクリーンショットテストの書き方 | テスト追加時 |
 | [docs/BUILD.md](../docs/BUILD.md) | ビルド手順・トラブルシューティング | ビルド・環境構築時 |
-
-### LLM向け優先読み込み順序
-1. `docs/ARCHITECTURE.md` — 全体像の把握
-2. `docs/NATIVE_AOT.md` — 守るべき制約の確認
-3. `docs/MODULES.md` — 対象モジュールの詳細確認
-4. `docs/DATA_FLOW.md` — 必要に応じてデータの流れを確認

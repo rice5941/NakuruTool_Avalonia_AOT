@@ -29,7 +29,7 @@ agents: ['_sub_Implement', '_sub_DiffVerify_opus', '_sub_DiffVerify_codex']
 | カテゴリ | ルール |
 | --- | --- |
 | **分解単位** | モジュール（コンポーネント）ごとにタスクを完全に独立させる。 |
-| **検証の組み込み** | 各実装タスクの直後に「Git差分と計画の整合性チェック・修正タスク」を必ず配置する。 |
+| **検証の組み込み** | 各実装サブエージェントの作業完了直後に「Git差分と計画の整合性チェック・修正タスク」を必ず配置する。 |
 | **クリーンアップ** | 全実装完了後、ビルド確認を行い、**未使用の関数・変数・インポートを削除**する工程を入れる。 |
 | **ドキュメント** | 最後に、変更内容を反映するために `docs` フォルダ内の関連ファイル, `copilot-instructions.md`を更新する。 |
 
@@ -46,13 +46,13 @@ agents: ['_sub_Implement', '_sub_DiffVerify_opus', '_sub_DiffVerify_codex']
 
 #### 2. 並列差分検証
 
-実装タスク完了後、以下の構成で#tool:agent/runSubagent を並列起動し、ソースコードが計画通りか厳密に調査させます。
-* **_sub_DiffVerify_opus** × 2基
-* **_sub_DiffVerify_codex** × 2基
+実装サブエージェントが作業を完了するごとに、以下の構成で#tool:agent/runSubagent を並列起動し、ソースコードが計画通りか厳密に調査させます。
+* **_sub_DiffVerify_opus**
+* **_sub_DiffVerify_codex** 
 - agentName: _sub_DiffVerify_opus
 - agentName: _sub_DiffVerify_codex
 
-調査後、4ファイルから結果を集約し、必要に応じて修正タスクを発行してください。
+調査後、2ファイルから結果を集約し、必要に応じて修正タスクを発行してください。
 - agentName: _sub_DiffVerify_opus
 
 > [!IMPORTANT]

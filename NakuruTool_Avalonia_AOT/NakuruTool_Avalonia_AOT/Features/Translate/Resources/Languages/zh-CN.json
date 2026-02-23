@@ -156,5 +156,28 @@
     "Status.ImportComplete": "导入完成",
     "Status.ImportError": "导入时发生错误",
     "Status.ReloadError": "重新加载错误: {0}"
+  },
+  "Preset": {
+    "EditorTitle": "预设编辑",
+    "OpenEditor": "打开预设编辑器",
+    "SelectToEdit": "请选择要编辑的预设",
+    "PresetName": "预设名称",
+    "CollectionName": "收藏夹名称",
+    "EnterPresetName": "输入预设名称",
+    "EnterCollectionName": "输入收藏夹名称",
+    "Conditions": "筛选条件",
+    "Save": "保存",
+    "Delete": "删除",
+    "AddNew": "添加",
+    "NewPresetName": "新预设",
+    "BatchGenerate": "批量生成",
+    "Status.Saved": "已保存",
+    "Status.SaveFailed": "保存失败",
+    "Status.Deleted": "已删除 '{0}'",
+    "Status.DeleteFailed": "删除失败",
+    "Status.DuplicateName": "预设名称 '{0}' 已存在",
+    "Status.BulkProgress": "{0}/{1} 处理中: {2}",
+    "Status.BulkCompleted": "批量完成: 成功 {0} / 失败 {1}",
+    "Status.BulkFailed": "批量生成错误: {0}"
   }
 }

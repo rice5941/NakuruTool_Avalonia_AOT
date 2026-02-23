@@ -30,6 +30,12 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     public partial MapListViewModel ListViewModel { get; set; }
 
     [ObservableProperty]
+    public partial bool IsPresetEditorVisible { get; set; } = false;
+
+    // PresetEditorViewModelは手動newのため[ObservableProperty]不要
+    public PresetEditorViewModel PresetEditorViewModel { get; }
+
+    [ObservableProperty]
     public partial string CollectionName { get; set; } = String.Empty;
     partial void OnCollectionNameChanged(string value) => AddToCollectionCommand.NotifyCanExecuteChanged();
 
@@ -67,6 +73,10 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
         ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel);
+        PresetEditorViewModel = new PresetEditorViewModel(presetService, databaseService, generateCollectionService);
+
+        // MapFilterViewModelにToggle命令を中継するコマンドを注入
+        FilterViewModel.TogglePresetEditorCommand = TogglePresetEditorCommand;
 
         // 進捗監視
         _generateCollectionService.GenerationProgressObservable
@@ -99,6 +109,28 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         // DB読み込み完了後にコレクション名リストを更新
         FilterViewModel.RefreshCollectionNames();
         ListViewModel.Initialize();
+        PresetEditorViewModel.RefreshCollectionNames();
+    }
+
+    [RelayCommand]
+    private void TogglePresetEditor()
+    {
+        IsPresetEditorVisible = !IsPresetEditorVisible;
+    }
+
+    partial void OnIsPresetEditorVisibleChanged(bool value)
+    {
+        if (value)
+        {
+            // 編集画面を開いたときにコレクション名リストを更新
+            PresetEditorViewModel.RefreshCollectionNames();
+        }
+        else
+        {
+            // 編集画面を閉じたとき、一括生成の副作用で更新されたステータスをリセット
+            GenerationStatusMessage = " ";
+            GenerationProgressValue = 0;
+        }
     }
 
     private bool CanAddToCollection() =>
@@ -224,6 +256,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
         FilterViewModel.Dispose();
         ListViewModel.Dispose();
+        PresetEditorViewModel.Dispose();
         base.Dispose();
     }
 }

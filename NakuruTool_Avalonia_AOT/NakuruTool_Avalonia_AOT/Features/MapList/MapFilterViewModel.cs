@@ -54,6 +54,12 @@ public partial class MapFilterViewModel : ViewModelBase
     [ObservableProperty]
     public partial FilterPreset? SelectedPreset { get; set; }
 
+    /// <summary>
+    /// プリセット編集画面切替コマンド（MapListPageViewModelから注入される）
+    /// </summary>
+    [ObservableProperty]
+    public partial IRelayCommand? TogglePresetEditorCommand { get; set; }
+
     partial void OnSelectedPresetChanged(FilterPreset? value)
     {
         if (value != null)

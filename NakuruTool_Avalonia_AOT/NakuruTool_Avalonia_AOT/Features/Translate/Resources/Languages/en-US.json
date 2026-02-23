@@ -156,5 +156,28 @@
     "Status.ImportComplete": "Import complete",
     "Status.ImportError": "An error occurred during import",
     "Status.ReloadError": "Reload error: {0}"
+  },
+  "Preset": {
+    "EditorTitle": "Preset Editor",
+    "OpenEditor": "Open Preset Editor",
+    "SelectToEdit": "Select a preset to edit",
+    "PresetName": "Preset Name",
+    "CollectionName": "Collection Name",
+    "EnterPresetName": "Enter preset name",
+    "EnterCollectionName": "Enter collection name",
+    "Conditions": "Filter Conditions",
+    "Save": "Save",
+    "Delete": "Delete",
+    "AddNew": "Add New",
+    "NewPresetName": "New Preset",
+    "BatchGenerate": "Batch Generate",
+    "Status.Saved": "Saved",
+    "Status.SaveFailed": "Save failed",
+    "Status.Deleted": "Deleted '{0}'",
+    "Status.DeleteFailed": "Delete failed",
+    "Status.DuplicateName": "Preset name '{0}' already exists",
+    "Status.BulkProgress": "{0}/{1} Processing: {2}",
+    "Status.BulkCompleted": "Batch complete: {0} succeeded / {1} failed",
+    "Status.BulkFailed": "Batch generation error: {0}"
   }
 }

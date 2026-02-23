@@ -156,5 +156,28 @@
     "Status.ImportComplete": "インポート完了",
     "Status.ImportError": "インポート中にエラーが発生しました",
     "Status.ReloadError": "再読込エラー: {0}"
+  },
+  "Preset": {
+    "EditorTitle": "プリセット編集",
+    "OpenEditor": "プリセット編集を開く",
+    "SelectToEdit": "編集するプリセットを選択してください",
+    "PresetName": "プリセット名",
+    "CollectionName": "コレクション名",
+    "EnterPresetName": "プリセット名を入力",
+    "EnterCollectionName": "コレクション名を入力",
+    "Conditions": "フィルタ条件",
+    "Save": "保存",
+    "Delete": "削除",
+    "AddNew": "追加",
+    "NewPresetName": "新規プリセット",
+    "BatchGenerate": "一括生成",
+    "Status.Saved": "保存しました",
+    "Status.SaveFailed": "保存に失敗しました",
+    "Status.Deleted": "'{0}' を削除しました",
+    "Status.DeleteFailed": "削除に失敗しました",
+    "Status.DuplicateName": "プリセット名 '{0}' は既に存在します",
+    "Status.BulkProgress": "{0}/{1} 処理中: {2}",
+    "Status.BulkCompleted": "一括生成完了: 成功 {0} / 失敗 {1}",
+    "Status.BulkFailed": "一括生成エラー: {0}"
   }
 }

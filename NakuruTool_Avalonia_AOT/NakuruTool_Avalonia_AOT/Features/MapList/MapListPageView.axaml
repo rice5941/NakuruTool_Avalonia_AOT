@@ -71,10 +71,19 @@
             </Grid>
         </Border>
 
-        <!-- 右側: 譜面リスト -->
-        <MapList:MapListView Grid.Column="1" Grid.RowSpan="2"
-                             DataContext="{Binding ListViewModel}"
-                             Margin="8,0,0,0"/>
+        <!-- 右側: 譜面リスト（通常表示時） -->
+        <Panel Grid.Column="1" Grid.RowSpan="2"
+               Margin="8,0,0,0"
+               IsVisible="{Binding !IsPresetEditorVisible}">
+            <MapList:MapListView DataContext="{Binding ListViewModel}"/>
+        </Panel>
+
+        <!-- 右側: プリセット編集（編集モード時） -->
+        <Panel Grid.Column="1" Grid.RowSpan="2"
+               Margin="8,0,0,0"
+               IsVisible="{Binding IsPresetEditorVisible}">
+            <MapList:PresetEditorView DataContext="{Binding PresetEditorViewModel}"/>
+        </Panel>
     </Grid>
 
     <!-- 大量件数確認オーバーレイ -->

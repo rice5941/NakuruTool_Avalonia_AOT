@@ -541,6 +541,8 @@ public class MockFilterPresetService : IFilterPresetService
     {
         return true;
     }
+
+    public bool RenamePreset(string oldName, FilterPreset updatedPreset) => true;
 }
 
 /// <summary>

@@ -318,6 +318,8 @@ collection.dbのバイナリフォーマット:
 | 12 | `AudioPlayerService._stateSubject` | `AudioPlayerViewModel` | 再生状態変更 | `IsPlaying` 更新 | `AddTo(Disposables)` |
 | 13 | `SettingsData.LanguageKey` | `SettingsService` | 言語キー変更 | `LanguageService.ChangeLanguage()` | `AddTo(_disposables)` |
 | 14 | `ImportExportService._progress` | `ImportExportPageViewModel` | エクスポート/インポート進捗変更 | `StatusMessage` / `ProgressValue` 更新 | `AddTo(Disposables)` |
+| 15 | `PresetEditorViewModel.EditingConditions` (AvaloniaList) | `PresetEditorViewModel` | 編集条件の追加/削除 | `AddConditionCommand` / `SavePresetCommand` のCanExecute更新 | `AddTo(Disposables)` |
+| 16 | `FilterPresetService.Presets` (AvaloniaList) | `PresetEditorViewModel` | プリセットリスト変更 | `BatchGenerateCollectionsCommand` のCanExecute更新 | `AddTo(Disposables)` |
 | IE-2 | `ExportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Export選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, false)` | `AddTo(Disposables)` |
 | IE-3 | `ImportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Import選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, true)` | `AddTo(Disposables)` |
 | IE-4 | `ExportViewModel._statusMessageSubject` | `ImportExportPageViewModel` | エクスポート完了/失敗 | `StatusMessage` 更新 | `AddTo(Disposables)` |

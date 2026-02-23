@@ -69,11 +69,12 @@
 
 #### 責務
 
-- `MapFilterViewModel` と `MapListViewModel` を統合し、MapListページ全体を制御
+- `MapFilterViewModel`、`MapListViewModel`、`PresetEditorViewModel` を統合し、MapListページ全体を制御
 - コレクション名の入力管理
 - `AddToCollectionAsync` によるcollection.db書き込みの起動
 - コレクション生成時のプリセット自動保存
 - 生成進捗の表示管理
+- `TogglePresetEditorCommand` によるプリセット編集画面の表示切替と `MapFilterViewModel` への中継
 
 #### 依存モジュール
 
@@ -88,6 +89,8 @@
 |-----------|---|------|
 | `FilterViewModel` | `MapFilterViewModel` | フィルタ条件管理 |
 | `ListViewModel` | `MapListViewModel` | 譜面一覧管理 |
+| `PresetEditorViewModel` | `PresetEditorViewModel` | プリセット編集画面VM（手動new） |
+| `IsPresetEditorVisible` | `bool` | プリセット編集画面の表示切替フラグ |
 | `CollectionName` | `string` | 書き込み先コレクション名 |
 | `GenerationStatusMessage` | `string` | 生成進捗/結果メッセージ |
 | `GenerationProgressValue` | `int` | 生成進捗値（0–100） |
@@ -97,11 +100,13 @@
 
 #### 主要挙動
 
-1. **`Initialize()`** — `ListViewModel.Initialize()` を呼び出し、全譜面のフィルタ適用と表示を初期化
+1. **`Initialize()`** — `FilterViewModel.RefreshCollectionNames()`, `ListViewModel.Initialize()`, `PresetEditorViewModel.RefreshCollectionNames()` を呼び出し、全譜面のフィルタ適用と表示を初期化
 2. **`AddToCollectionAsync()`** — フィルタ後件数が 10,000件を超える場合はインラインオーバーレイ（`IsLargeCollectionConfirmVisible`）を表示してユーザの確認を待つ。確認後に `ExecuteAddToCollectionAsync()` を実行し `IGenerateCollectionService.GenerateCollection()` でcollection.dbに書き込み。成功時は `SavePresetIfNeeded()` でプリセットを自動保存
 3. **大量件数確認コマンド** — `ConfirmLargeCollectionCommand`（生成を続行）と `CancelLargeCollectionCommand`（キャンセル）でユーザの判断を受け付ける
 4. **プリセット選択時のコレクション名反映** — `FilterViewModel.SelectedPreset` の変更をR3で監視し、`CollectionName` に反映
 5. **進捗監視** — `IGenerateCollectionService.GenerationProgressObservable` をR3で購読し、UI更新
+6. **`TogglePresetEditorCommand`** — `IsPresetEditorVisible` を反転させ、`MapListPageView` 上でプリセット編集画面（`PresetEditorView`）と譜面一覧（`MapListView`）を排他表示。`MapFilterViewModel.TogglePresetEditorCommand` に中継される
+7. **`OnIsPresetEditorVisibleChanged()`** — 編集画面を開いたときに `PresetEditorViewModel.RefreshCollectionNames()` を実行。閉じたときに `GenerationStatusMessage`/`GenerationProgressValue` をリセット
 
 ---
 
@@ -331,6 +336,71 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 - コンストラクタで `presets/` フォルダを確認・作成し、全プリセットを読み込み
 - `SavePreset` — 既存の同名プリセットはリスト内で置換、新規は追加
 - `LoadPresets` — フォルダ内の全 `.json` ファイルをデシリアライズ
+- `RenamePreset(oldName, newPreset)` — 新名が既存プリセットと重複する場合は `false` を返して中止。成功時は旧ファイルを削除し新ファイルを作成、リスト内のエントリを置換
+
+---
+
+### 2.6 PresetEditorViewModel（プリセット編集）
+
+#### 構成ファイル
+
+| ファイル | 種別 |
+|---------|------|
+| `PresetEditorViewModel.cs` | ViewModel |
+| `PresetEditorView.axaml` | View |
+| `PresetEditorView.axaml.cs` | CodeBehind |
+
+#### 責務
+
+- プリセット一覧の表示・選択
+- 選択プリセットのフィルタ条件読み込みと編集（`EditingConditions`）
+- 編集内容の保存（名前変更時は重複チェック付き `RenamePreset` 経由）
+- プリセット削除
+- 全プリセットに対する一括コレクション生成（`BatchGenerateCollectionsAsync`）
+
+> **DI登録なし**: `MapListPageViewModel` のコンストラクタ内で `new PresetEditorViewModel(...)` される
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Presets` | `AvaloniaList<FilterPreset>` | `FilterPresetService.Presets` への参照 |
+| `SelectedPreset` | `FilterPreset?` | 選択中プリセット。変更時に `EditingConditions` を自動更新 |
+| `EditingPresetName` | `string` | 編集中のプリセット名 |
+| `EditingCollectionName` | `string` | 編集中のコレクション名 |
+| `EditingConditions` | `AvaloniaList<FilterCondition>` | 編集中のフィルタ条件一覧（`MapFilterViewModel` とは独立） |
+| `IsBatchGenerating` | `bool` | 一括生成中フラグ |
+| `BatchGenerationProgress` | `int` | 一括生成進捗値（0–100） |
+| `BatchGenerationStatusMessage` | `string` | 一括生成進捗/結果メッセージ |
+| `EditorStatusMessage` | `string` | 保存・削除などの操作結果メッセージ |
+| `CollectionNames` | `ObservableCollection<string>` | DB内コレクション名一覧（Collection条件用） |
+
+#### 主要コマンド
+
+| コマンド | CanExecute | 概要 |
+|---------|-----------|------|
+| `SavePresetCommand` | `SelectedPreset != null` かつ名前・コレクション名・条件が1件以上 | 現在の編集内容でプリセットを保存。名前変更時は `RenamePreset` 経由 |
+| `DeletePresetCommand` | `SelectedPreset != null` | 選択プリセットを削除し `SelectedPreset = null` |
+| `AddConditionCommand` | `EditingConditions.Count < 8` | `EditingConditions` に新規条件を追加 |
+| `RemoveConditionCommand` | 常時 | 指定条件を `EditingConditions` から削除 |
+| `ClearConditionsCommand` | 常時 | `EditingConditions` を全消去 |
+| `BatchGenerateCollectionsCommand` | `!IsBatchGenerating && Presets.Count > 0` | 全プリセットのコレクションを順次生成 |
+
+#### 一括生成フロー
+
+`BatchGenerateCollectionsAsync()` は以下の手順で全プリセットを処理:
+
+1. `_presetService.Presets` をループ
+2. 各プリセットの条件で `_databaseService.Beatmaps` をZLinqでフィルタ（`FilterBeatmapsByPreset()`）
+3. フィルタ結果が1件以上 かつ `CollectionName` が非空の場合、`IGenerateCollectionService.GenerateCollection()` を呼び出し
+4. 進捗を `BatchGenerationProgress` / `BatchGenerationStatusMessage` で随時更新
+
+#### R3による条件変更監視
+
+| 発行元 | トリガー | アクション |
+|-------|---------|----------|
+| `EditingConditions.ObserveCollectionChanged()` | 条件の追加/削除 | `AddConditionCommand` / `SavePresetCommand` のCanExecute更新 |
+| `_presetService.Presets.ObserveCollectionChanged()` | プリセットリスト変更 | `BatchGenerateCollectionsCommand` のCanExecute更新 |
 
 ---
 

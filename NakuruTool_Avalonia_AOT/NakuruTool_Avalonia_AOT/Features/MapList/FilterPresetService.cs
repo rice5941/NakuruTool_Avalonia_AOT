@@ -29,6 +29,11 @@ public interface IFilterPresetService
     /// プリセットを読み込み
     /// </summary>
     void LoadPresets();
+
+    /// <summary>
+    /// プリセットをリネーム（重複チェック付き、保存成功後に旧名削除）
+    /// </summary>
+    bool RenamePreset(string oldName, FilterPreset updatedPreset);
 }
 
 /// <summary>
@@ -170,6 +175,34 @@ public class FilterPresetService : IFilterPresetService
         {
             System.Diagnostics.Debug.WriteLine($"プリセットフォルダの読み込みに失敗しました: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// プリセットをリネーム（重複チェック付き、保存成功後に旧名削除）
+    /// </summary>
+    public bool RenamePreset(string oldName, FilterPreset updatedPreset)
+    {
+        if (string.IsNullOrWhiteSpace(oldName) || string.IsNullOrWhiteSpace(updatedPreset.Name))
+            return false;
+
+        if (oldName != updatedPreset.Name)
+        {
+            // 新しい名前が既に存在する場合は失敗（重複チェック）
+            if (Presets.Any(p => p.Name == updatedPreset.Name))
+                return false;
+
+            // 先に新名で保存（成功確認後に旧名削除 = ロールバック安全設計）
+            var saveSuccess = SavePreset(updatedPreset);
+            if (!saveSuccess)
+                return false;
+
+            // 新名保存成功後に旧名を削除
+            DeletePreset(oldName);
+            return true;
+        }
+
+        // 名前変更なし → 通常の上書き保存
+        return SavePreset(updatedPreset);
     }
 
     /// <summary>

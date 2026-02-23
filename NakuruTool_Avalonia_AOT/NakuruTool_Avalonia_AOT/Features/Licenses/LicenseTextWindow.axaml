@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:licenses="using:NakuruTool_Avalonia_AOT.Features.Licenses"
+        xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+        x:Class="NakuruTool_Avalonia_AOT.Features.Licenses.LicenseTextWindow"
+        x:DataType="licenses:LicenseTextWindowViewModel"
+        Title="{Binding Title}"
+        Width="700"
+        Height="500"
+        MinWidth="400"
+        MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel>
+        <!-- ヘッダー -->
+        <Border DockPanel.Dock="Top" Padding="16,12">
+            <TextBlock FontSize="18"
+                       FontWeight="Bold"
+                       Text="{Binding Title}"
+                       TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- フッター（閉じるボタン） -->
+        <Border DockPanel.Dock="Bottom" Padding="16,8">
+            <Button HorizontalAlignment="Right"
+                    MinWidth="80"
+                    Click="OnCloseClicked"
+                    Content="{translate:Translate 'Licenses.Close'}"/>
+        </Border>
+
+        <!-- 区切り線 -->
+        <Separator DockPanel.Dock="Bottom"/>
+
+        <!-- ライセンス本文 -->
+        <ScrollViewer Padding="16,8">
+            <SelectableTextBlock Text="{Binding LicenseText}"
+                                 FontFamily="Consolas, Courier New, monospace"
+                                 FontSize="12"
+                                 TextWrapping="Wrap"/>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

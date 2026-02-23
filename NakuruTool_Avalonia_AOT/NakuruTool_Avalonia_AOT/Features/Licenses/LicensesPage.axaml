@@ -78,6 +78,13 @@
                                                Opacity="0.6"
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
+
+                                <!-- 全文表示ボタン -->
+                                <Button IsVisible="{Binding LicenseText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        HorizontalAlignment="Left"
+                                        Tag="{Binding}"
+                                        Click="OnViewFullTextClicked"
+                                        Content="{translate:Translate 'Licenses.ViewFullText'}"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

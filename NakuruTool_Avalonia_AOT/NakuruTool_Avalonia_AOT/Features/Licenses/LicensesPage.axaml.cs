@@ -25,7 +25,24 @@ public partial class LicensesPage : UserControl
             }
             catch
             {
-                // URL‚ğŠJ‚¯‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
+                // URL ã‚’é–‹ã‘ãªã„å ´åˆã¯ä½•ã‚‚ã—ãªã„
+            }
+        }
+    }
+
+    private async void OnViewFullTextClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: LicenseItem item })
+        {
+            var window = TopLevel.GetTopLevel(this) as Window;
+            var dialog = new LicenseTextWindow(item);
+            if (window is not null)
+            {
+                await dialog.ShowDialog(window);
+            }
+            else
+            {
+                dialog.Show();
             }
         }
     }

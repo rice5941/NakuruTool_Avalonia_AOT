@@ -1,32 +1,37 @@
 namespace NakuruTool_Avalonia_AOT.Features.Licenses;
 
 /// <summary>
-/// ライセンス情報を保持するモデル
+/// ???C?Z???X???????????f??
 /// </summary>
 public sealed class LicenseItem
 {
     /// <summary>
-    /// パッケージ名
+    /// ?p?b?P?[?W??
     /// </summary>
     public required string PackageName { get; init; }
 
     /// <summary>
-    /// バージョン
+    /// ?o?[?W????
     /// </summary>
     public required string Version { get; init; }
 
     /// <summary>
-    /// ライセンス種別（例: MIT, Apache-2.0など）
+    /// ???C?Z???X???i??: MIT, Apache-2.0???j
     /// </summary>
     public required string LicenseType { get; init; }
 
     /// <summary>
-    /// プロジェクトURL
+    /// ?v???W?F?N?gURL
     /// </summary>
     public string? Url { get; init; }
 
     /// <summary>
-    /// 著作権表示
+    /// ?????\??
     /// </summary>
     public string? Copyright { get; init; }
+
+    /// <summary>
+    /// ライセンス全文テキスト
+    /// </summary>
+    public string? LicenseText { get; init; }
 }

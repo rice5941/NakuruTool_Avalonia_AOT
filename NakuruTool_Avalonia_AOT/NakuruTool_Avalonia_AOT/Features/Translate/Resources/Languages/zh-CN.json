@@ -23,7 +23,9 @@
   "Licenses": {
     "Title": "开源许可",
     "Description": "此应用程序使用以下开源软件。",
-    "LicenseType": "许可证"
+    "LicenseType": "许可证",
+    "ViewFullText": "查看许可证全文",
+    "Close": "关闭"
   },
   "MapList": {
     "TotalCount": "map数",

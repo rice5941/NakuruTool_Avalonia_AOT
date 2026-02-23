@@ -23,7 +23,9 @@
   "Licenses": {
     "Title": "Open Source Licenses",
     "Description": "This application uses the following open source software.",
-    "LicenseType": "License"
+    "LicenseType": "License",
+    "ViewFullText": "View Full Text",
+    "Close": "Close"
   },
   "MapList": {
     "TotalCount": "Maps",

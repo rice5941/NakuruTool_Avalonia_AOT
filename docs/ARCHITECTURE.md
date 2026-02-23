@@ -107,6 +107,9 @@ requirement/           # 要件定義
 | `MapListView` | `MapListViewModel` |
 | `MapFilterView` | `MapFilterViewModel` |
 | `ImportExportPageView` | `ImportExportPageViewModel` |
+| `ExportView` | `ExportViewModel` |
+| `ImportView` | `ImportViewModel` |
+| `ImportExportBeatmapListView` | `ImportExportBeatmapListViewModel` |
 | `SettingsPage` | `SettingsViewModel` |
 | `LicensesPage` | `LicensesViewModel` |
 

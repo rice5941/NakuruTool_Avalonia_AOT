@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 
-public partial class ImportExportPageView : UserControl
+public partial class ImportView : UserControl
 {
-    public ImportExportPageView()
+    public ImportView()
     {
         InitializeComponent();
     }

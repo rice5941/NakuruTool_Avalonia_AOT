@@ -1,0 +1,179 @@
+using Avalonia.Collections;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
+using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
+using NakuruTool_Avalonia_AOT.Features.Translate;
+using R3;
+using System;
+using System.Threading.Tasks;
+using ZLinq;
+
+namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
+
+/// <summary>
+/// エクスポートリスト管理・実行の ViewModel
+/// </summary>
+public partial class ExportViewModel : ViewModelBase, IDisposable
+{
+    [ObservableProperty]
+    public partial AvaloniaList<ExportCollectionItem> ExportCollections { get; set; } = new();
+
+    [ObservableProperty]
+    public partial ExportCollectionItem? SelectedExportCollection { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsProcessing { get; set; } = false;
+
+    [ObservableProperty]
+    public partial bool IsAnyProcessing { get; set; } = false;
+
+    private readonly Subject<ImportExportBeatmapItem[]> _previewRequestedSubject;
+    public Observable<ImportExportBeatmapItem[]> PreviewRequested => _previewRequestedSubject;
+
+    private readonly Subject<string> _statusMessageSubject;
+    public Observable<string> StatusMessageRequested => _statusMessageSubject;
+
+    private readonly IDatabaseService _databaseService;
+    private readonly IImportExportService _importExportService;
+    private bool _disposed;
+
+    public ExportViewModel(
+        IDatabaseService databaseService,
+        IImportExportService importExportService)
+    {
+        _databaseService = databaseService;
+        _importExportService = importExportService;
+
+        _previewRequestedSubject = new Subject<ImportExportBeatmapItem[]>();
+        _previewRequestedSubject.AddTo(Disposables);
+
+        _statusMessageSubject = new Subject<string>();
+        _statusMessageSubject.AddTo(Disposables);
+    }
+
+    /// <summary>
+    /// DB コレクション一覧を読み込む（プレビュー Subject は発行しない）
+    /// </summary>
+    public void Initialize()
+    {
+        ExportCollections.Clear();
+        foreach (var col in _databaseService.OsuCollections)
+        {
+            ExportCollections.Add(new ExportCollectionItem
+            {
+                Name = col.Name,
+                BeatmapMd5s = col.BeatmapMd5s
+            });
+        }
+        // プレビューSubjectは発行しない（親VMのBeatmapListViewModel.Reset()に一本化）
+    }
+
+    partial void OnSelectedExportCollectionChanged(ExportCollectionItem? value)
+    {
+        if (value is null)
+        {
+            // 選択解除時はプレビューをクリア（排他選択対応）
+            _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+            return;
+        }
+        var rows = BuildPreviewRows(value);
+        _previewRequestedSubject.OnNext(rows);
+    }
+
+    partial void OnIsAnyProcessingChanged(bool value)
+    {
+        ExportCommand.NotifyCanExecuteChanged();
+    }
+
+    private ImportExportBeatmapItem[] BuildPreviewRows(ExportCollectionItem item)
+    {
+        return item.BeatmapMd5s
+            .AsValueEnumerable()
+            .Select(md5 =>
+            {
+                if (_databaseService.TryGetBeatmapByMd5(md5, out var beatmap) && beatmap is not null)
+                {
+                    return new ImportExportBeatmapItem
+                    {
+                        KeyCount = beatmap.KeyCount,
+                        Title = beatmap.Title,
+                        Artist = beatmap.Artist,
+                        Version = beatmap.Version,
+                        Creator = beatmap.Creator,
+                        Exists = true
+                    };
+                }
+                return new ImportExportBeatmapItem { Exists = false };
+            })
+            .ToArray();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportAsync()
+    {
+        await UpdateIsProcessingAsync(true);
+        try
+        {
+            var targets = ExportCollections
+                .AsValueEnumerable()
+                .Where(c => c.IsChecked)
+                .Select(c => c.Name)
+                .ToList();
+
+            var count = await _importExportService.ExportAsync(targets);
+            await NotifyStatusAsync(
+                string.Format(LanguageService.Instance.GetString("ImportExport.Status.ExportComplete"), count));
+        }
+        catch (Exception ex)
+        {
+            await NotifyStatusAsync(
+                string.Format(LanguageService.Instance.GetString("ImportExport.Status.ExportError"), ex.Message));
+        }
+        finally
+        {
+            await UpdateIsProcessingAsync(false);
+        }
+    }
+    private bool CanExport() => !IsAnyProcessing;
+
+    [RelayCommand]
+    private void SelectAllExport()
+    {
+        foreach (var item in ExportCollections)
+            item.IsChecked = true;
+    }
+
+    [RelayCommand]
+    private void ClearAllExport()
+    {
+        foreach (var item in ExportCollections)
+            item.IsChecked = false;
+    }
+
+    [RelayCommand]
+    private void ReloadExport()
+    {
+        Initialize();
+        _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+    }
+
+    private async Task UpdateIsProcessingAsync(bool value)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() => IsProcessing = value);
+    }
+
+    private async Task NotifyStatusAsync(string message)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() => _statusMessageSubject.OnNext(message));
+    }
+
+    public override void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        base.Dispose(); // Subject群はAddTo(Disposables)で管理済み
+    }
+}

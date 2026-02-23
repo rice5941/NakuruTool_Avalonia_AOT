@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:importExport="using:NakuruTool_Avalonia_AOT.Features.ImportExport"
+             xmlns:models="using:NakuruTool_Avalonia_AOT.Features.ImportExport.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="NakuruTool_Avalonia_AOT.Features.ImportExport.ImportView"
+             x:DataType="importExport:ImportViewModel">
+
+    <Border BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
+            Background="{DynamicResource SemiGrey0}">
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <!-- Row 0: ヘッダー（Importアイコン + タイトル） -->
+            <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
+                    BorderBrush="{DynamicResource SemiGrey3}"
+                    BorderThickness="0,0,0,1"
+                    Padding="12,8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <mi:MaterialIcon Kind="Import" Width="20" Height="20"
+                                     Foreground="{DynamicResource SemiBluePrimary}"/>
+                    <TextBlock Text="{translate:Translate 'ImportExport.Import'}"
+                               VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 1: ListBox -->
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding ImportFiles}"
+                     SelectedItem="{Binding SelectedImportFile, Mode=TwoWay}"
+                     Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:ImportFileItem">
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="4,2">
+                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                      VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" FontSize="13"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Row 2: ボタン群 -->
+            <Border Grid.Row="2"
+                    BorderBrush="{DynamicResource SemiGrey3}"
+                    BorderThickness="0,1,0,0"
+                    Padding="8">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                    <Button Command="{Binding ReloadImportCommand}"
+                            Theme="{StaticResource SolidButton}" Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <mi:MaterialIcon Kind="Refresh" Width="16" Height="16"/>
+                            <TextBlock Text="{translate:Translate 'ImportExport.ReloadButton'}" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding SelectAllImportCommand}"
+                            Theme="{StaticResource SolidButton}" Padding="12,6">
+                        <TextBlock Text="{translate:Translate 'ImportExport.SelectAll'}" FontSize="12"/>
+                    </Button>
+                    <Button Command="{Binding ClearAllImportCommand}"
+                            Theme="{StaticResource SolidButton}" Padding="12,6">
+                        <TextBlock Text="{translate:Translate 'ImportExport.ClearAll'}" FontSize="12"/>
+                    </Button>
+                    <Button Command="{Binding ImportCommand}"
+                            Theme="{StaticResource SolidButton}" Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <mi:MaterialIcon Kind="Import" Width="16" Height="16"/>
+                            <TextBlock Text="{translate:Translate 'ImportExport.ImportButton'}" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Border>
+
+</UserControl>

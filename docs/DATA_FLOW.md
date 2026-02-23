@@ -274,6 +274,11 @@ collection.dbのバイナリフォーマット:
 | `MapFilterViewModel` | `_filterChangedSubject` | `Subject<Unit>` | フィルタ条件変更通知 |
 | `AudioPlayerService` | `_stateSubject` | `Subject<AudioPlayerState>` | オーディオ再生状態変更通知 |
 | `ImportExportService` | `_progress` | `Subject<ImportExportProgress>` | エクスポート/インポート進捗通知 |
+| `ExportViewModel` | `_previewRequestedSubject` | `Subject<ImportExportBeatmapItem[]>` | エクスポートプレビュー行通知（null時は空配列） |
+| `ExportViewModel` | `_statusMessageSubject` | `Subject<string>` | エクスポート完了/失敗メッセージ通知 |
+| `ImportViewModel` | `_previewRequestedSubject` | `Subject<ImportExportBeatmapItem[]>` | インポートプレビュー行通知（null時は空配列） |
+| `ImportViewModel` | `_statusMessageSubject` | `Subject<string>` | インポート完了/失敗メッセージ通知 |
+| `ImportViewModel` | `_importCompletedSubject` | `Subject<Unit>` | インポート成功通知（親VMの再初期化トリガー） |
 
 ### 5.2 購読チェーン一覧
 
@@ -293,6 +298,14 @@ collection.dbのバイナリフォーマット:
 | 12 | `AudioPlayerService._stateSubject` | `AudioPlayerViewModel` | 再生状態変更 | `IsPlaying` 更新 | `AddTo(Disposables)` |
 | 13 | `SettingsData.LanguageKey` | `SettingsService` | 言語キー変更 | `LanguageService.ChangeLanguage()` | `AddTo(_disposables)` |
 | 14 | `ImportExportService._progress` | `ImportExportPageViewModel` | エクスポート/インポート進捗変更 | `StatusMessage` / `ProgressValue` 更新 | `AddTo(Disposables)` |
+| IE-2 | `ExportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Export選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, false)` | `AddTo(Disposables)` |
+| IE-3 | `ImportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Import選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, true)` | `AddTo(Disposables)` |
+| IE-4 | `ExportViewModel._statusMessageSubject` | `ImportExportPageViewModel` | エクスポート完了/失敗 | `StatusMessage` 更新 | `AddTo(Disposables)` |
+| IE-5 | `ImportViewModel._statusMessageSubject` | `ImportExportPageViewModel` | インポート完了/失敗 | `StatusMessage` 更新 | `AddTo(Disposables)` |
+| IE-6 | `ImportViewModel._importCompletedSubject` | `ImportExportPageViewModel` | インポート成功 | `Initialize()` 再実行（両子VM再構築 + プレビューリセット） | `AddTo(Disposables)` |
+| IE-7 | `ExportViewModel.IsProcessing` ＋ `ImportViewModel.IsProcessing`（Merge） | `ImportExportPageViewModel` | いずれかの処理中フラグ変更 | `IsProcessing` 統合（OR）＋ `IsAnyProcessing` を両子VMに逆流 | `AddTo(Disposables)` |
+| IE-8 | `ExportViewModel.SelectedExportCollection` | `ImportExportPageViewModel` | Export選択変更 | 非null時に `ImportViewModel.SelectedImportFile = null`（排他選択） | `AddTo(Disposables)` |
+| IE-9 | `ImportViewModel.SelectedImportFile` | `ImportExportPageViewModel` | Import選択変更 | 非null時に `ExportViewModel.SelectedExportCollection = null`（排他選択） | `AddTo(Disposables)` |
 
 ### 5.3 ライフサイクル管理
 
@@ -421,78 +434,124 @@ flowchart LR
 
 ## 7. ImportExportフロー
 
-ImportExportページでは、コレクションをJSONファイルにエクスポート・インポートする。
+ImportExportページでは、コレクションをJSONファイルにエクスポート・インポートする。MapListモジュールと同様の親子View/ViewModel構成（**親仲介パターン**）を採用し、子VMが Subject で通知し親VMがオーケストレーションする。
 
 ### 7.1 エクスポートフロー
 
 ```mermaid
 sequenceDiagram
     participant User
+    participant EVM as ExportViewModel
     participant IEPVM as ImportExportPageViewModel
+    participant BLVM as ImportExportBeatmapListViewModel
     participant IES as ImportExportService
     participant DS as DatabaseService
     participant File as exports/{name}.json
 
-    User->>IEPVM: エクスポートするコレクションを選択（チェックボックス）
-    User->>IEPVM: ExportCommand
-    IEPVM->>IEPVM: IsProcessing = true
+    User->>EVM: コレクションを選択（ListBox）
+    EVM->>EVM: OnSelectedExportCollectionChanged()
+    EVM->>EVM: BuildPreviewRows() ← MD5→DB照合
+    EVM->>EVM: _previewRequestedSubject.OnNext(rows)
+    EVM-->>IEPVM: PreviewRequested（購読チェーン#IE-2）
+    IEPVM->>BLVM: SetPreviewRows(rows, isImport: false)
+    BLVM->>BLVM: UpdateFilteredPages() / UpdateShowBeatmaps()
+    BLVM-->>UI: ShowBeatmaps 更新（DataGrid）
 
-    loop 各コレクション名
-        IEPVM->>IES: ExportAsync(collectionNames)
-        IES->>DS: OsuCollections.FirstOrDefault(name)
-        DS-->>IES: OsuCollection
-        IES->>DS: TryGetBeatmapByMd5(md5) ×N
-        DS-->>IES: Beatmap?（DB非存在の場合はMD5のみ）
-        IES->>IES: CollectionExchangeData DTO作成
-        IES->>IES: JsonSerializer.Serialize(ImportExportJsonContext)
-        IES->>File: File.WriteAllTextAsync({name}.json)
-    end
-
-    IES-->>IEPVM: succeeded件数
-    IEPVM->>IEPVM: IsProcessing = false
-    Note over IEPVM: ProgressObservable経由で<br/>StatusMessage/ProgressValue 更新
+    User->>EVM: チェックボックス選択
+    User->>EVM: ExportCommand
+    EVM->>EVM: IsProcessing = true（UIスレッド）
+    Note over EVM: IsAnyProcessing が両子VMに逆流<br/>→ ImportCommand も無効化
+    EVM->>IES: ExportAsync(checkedCollectionNames)
+    IES->>DS: OsuCollections.FirstOrDefault(name)
+    DS-->>IES: OsuCollection
+    IES->>DS: TryGetBeatmapByMd5(md5) ×N
+    DS-->>IES: Beatmap?（DB非存在の場合はMD5のみ）
+    IES->>IES: CollectionExchangeData DTO作成
+    IES->>IES: JsonSerializer.Serialize(ImportExportJsonContext)
+    IES->>File: File.WriteAllTextAsync({name}.json)
+    IES-->>EVM: succeeded件数
+    EVM->>EVM: _statusMessageSubject.OnNext(msg)（UIスレッド）
+    EVM-->>IEPVM: StatusMessageRequested（購読チェーン#IE-4）
+    IEPVM->>IEPVM: StatusMessage 更新
+    EVM->>EVM: IsProcessing = false（UIスレッド）
 ```
 
-### 7.2 インポートフロー
+### 7.2 インポート選択→プレビュー表示フロー
 
 ```mermaid
 sequenceDiagram
     participant User
+    participant IVM as ImportViewModel
     participant IEPVM as ImportExportPageViewModel
+    participant BLVM as ImportExportBeatmapListViewModel
+
+    User->>IVM: インポートファイルを選択（ListBox）
+    IVM->>IVM: OnSelectedImportFileChanged()
+    IVM->>IVM: BuildPreviewRows() ← ParsedDataからDB照合
+    Note over IVM: DB存在: Exists=true<br/>DB非存在: Exists=false（題名等をJSONから補完）
+    IVM->>IVM: _previewRequestedSubject.OnNext(rows)
+    IVM-->>IEPVM: PreviewRequested（購読チェーン#IE-3）
+    IEPVM->>BLVM: SetPreviewRows(rows, isImport: true)
+    BLVM->>BLVM: IsImportPreview = true
+    BLVM->>BLVM: UpdateFilteredPages() / UpdateShowBeatmaps()
+    BLVM-->>UI: ShowBeatmaps 更新（Exists列 表示）
+```
+
+### 7.3 インポート実行→再初期化フロー
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant IVM as ImportViewModel
+    participant IEPVM as ImportExportPageViewModel
+    participant EVM as ExportViewModel
+    participant BLVM as ImportExportBeatmapListViewModel
     participant IES as ImportExportService
     participant DS as DatabaseService
-    participant File as imports/{name}.json
     participant CDW as CollectionDbWriter
     participant CDB as collection.db
 
-    IEPVM->>IES: GetImportFiles()
-    IES->>File: Directory.GetFiles("imports/*.json")
-    IES->>IES: JsonSerializer.Deserialize × ファイル数
-    IES-->>IEPVM: List<ImportFileItem>
-    IEPVM->>IEPVM: ImportFiles に反映
-
-    User->>IEPVM: インポートするファイルを選択（チェックボックス）
-    User->>IEPVM: ImportCommand
-    IEPVM->>IEPVM: IsProcessing = true
-
+    User->>IVM: チェックボックス選択
+    User->>IVM: ImportCommand
+    IVM->>IVM: IsProcessing = true（UIスレッド）
+    IVM->>IES: ImportAsync(checkedFilePaths)
     loop 各JSONファイル
-        IEPVM->>IES: ImportAsync(filePaths)
-        IES->>File: File.ReadAllTextAsync()
+        IES->>IES: File.ReadAllTextAsync()
         IES->>IES: JsonSerializer.Deserialize(ImportExportJsonContext)
-        IES->>IES: ResolveMd5s() — MD5照合でコレクション内容を構築
         IES->>DS: OsuCollections.RemoveAll(同名)
-        Note over DS: サイレント上書き
         IES->>DS: OsuCollections.Add(newCollection)
     end
-
     IES->>CDW: WriteAsync(OsuCollections, collectionDbPath)
     CDW->>CDB: ファイル全体を上書き書き込み
     CDW-->>IES: 完了
-    IES-->>IEPVM: allSuccess
-    IEPVM->>IEPVM: IsProcessing = false
+    IES-->>IVM: allSuccess = true
+    IVM->>IVM: _importCompletedSubject.OnNext(Unit.Default)（UIスレッド）
+    IVM-->>IEPVM: ImportCompleted（購読チェーン#IE-6）
+    IEPVM->>IEPVM: Initialize()
+    IEPVM->>EVM: EVM.Initialize() ← ExportCollections 再構築
+    IEPVM->>IVM: IVM.Initialize() ← ImportFiles 再構築
+    IEPVM->>BLVM: BLVM.Reset() ← プレビューリセット
+    IVM->>IVM: IsProcessing = false（UIスレッド）
 ```
 
-### 7.3 フォルダ構造
+### 7.4 排他選択フロー
+
+Export選択とImport選択は同時に存在できない。親VMがR3で監視し、片方が選択されたら逆側をnullクリアする。
+
+```mermaid
+flowchart TD
+    EU["Export側を選択"] -->|SelectedExportCollection != null| C8["購読チェーン#IE-8"]
+    C8 -->|"ImportViewModel.SelectedImportFile = null"| INC["Import選択クリア"]
+    INC -->|OnSelectedImportFileChanged(null)| EAR["空配列をSubject発行"]
+    EAR -->|SetPreviewRows([], isImport: true)| BLVM["BeatmapListVM プレビュークリア"]
+
+    IU["Import側を選択"] -->|SelectedImportFile != null| C9["購読チェーン#IE-9"]
+    C9 -->|"ExportViewModel.SelectedExportCollection = null"| ENC["Export選択クリア"]
+    ENC -->|OnSelectedExportCollectionChanged(null)| EAR2["空配列をSubject発行"]
+    EAR2 -->|SetPreviewRows([], isImport: false)| BLVM
+```
+
+### 7.5 フォルダ構造
 
 | フォルダ | 用途 | 作成タイミング |
 |---------|------|--------------|

@@ -932,7 +932,7 @@ XAML用の値コンバーター一覧（全15クラス、13ファイル）。
 
 ### 概要
 
-コレクションをJSON形式のファイルにエクスポート・インポートするモジュール。`exports/` フォルダへのJSON出力と `imports/` フォルダからのJSON入力を担う。
+コレクションをJSON形式のファイルにエクスポート・インポートするモジュール。`exports/` フォルダへのJSON出力と `imports/` フォルダからのJSON入力を担う。MapListモジュールと同様の親子View/ViewModel構成（3子ViewModel）を採用する。
 
 ### 構成ファイル一覧
 
@@ -940,9 +940,18 @@ XAML用の値コンバーター一覧（全15クラス、13ファイル）。
 |---------|------|------|
 | `IImportExportService.cs` | インターフェース | エクスポート/インポートサービスの契約定義 |
 | `ImportExportService.cs` | サービス | エクスポート・インポートのビジネスロジック |
-| `ImportExportPageViewModel.cs` | ViewModel | 3パネルUI（Export/Import/Beatmap一覧）のページング・操作管理 |
-| `ImportExportPageView.axaml` | View | 3パネルUIレイアウト定義 |
-| `ImportExportPageView.axaml.cs` | CodeBehind | |
+| `ImportExportPageViewModel.cs` | ViewModel | 親VM: 子VM統合・進捗管理・排他選択・処理中相互排他 |
+| `ImportExportPageView.axaml` | View | 親View: 3パネルUIレイアウト（子Viewを参照） |
+| `ImportExportPageView.axaml.cs` | CodeBehind | `InitializeComponent()` のみ |
+| `ExportViewModel.cs` | ViewModel | 子VM: エクスポートリスト管理・実行 |
+| `ExportView.axaml` | View | 子View: エクスポートリストUI |
+| `ExportView.axaml.cs` | CodeBehind | `InitializeComponent()` のみ |
+| `ImportViewModel.cs` | ViewModel | 子VM: インポートリスト管理・実行 |
+| `ImportView.axaml` | View | 子View: インポートリストUI |
+| `ImportView.axaml.cs` | CodeBehind | `InitializeComponent()` のみ |
+| `ImportExportBeatmapListViewModel.cs` | ViewModel | 子VM: プレビュー表示・ページング |
+| `ImportExportBeatmapListView.axaml` | View | 子View: Beatmapプレビュー DataGrid + ページングUI |
+| `ImportExportBeatmapListView.axaml.cs` | CodeBehind | Exists列の `IsVisible` 制御 |
 | `Models/CollectionExchangeData.cs` | モデル | JSON DTOクラス + NativeAOT Source Generator（`ImportExportJsonContext`） |
 | `Models/ExportCollectionItem.cs` | モデル | エクスポートリスト行モデル（コレクション名、MD5配列） |
 | `Models/ImportFileItem.cs` | モデル | インポートリスト行モデル（ファイルパス、パース済みデータ） |
@@ -1010,34 +1019,178 @@ JSONのルートオブジェクト。1コレクション = 1ファイル。
 
 NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeData`, `List<CollectionExchangeData>`, `CollectionExchangeBeatmap` のシリアライズに対応。シリアライズ設定: `WriteIndented=true`, `SnakeCaseLower` 命名規則。
 
-### 9.3 ImportExportPageViewModel
+### 9.3 ImportExportPageViewModel（親ViewModel）
 
 #### 責務
 
-- DBのコレクション一覧を `ExportCollections` に反映し、エクスポート操作を提供
-- `imports/` フォルダのJSONファイルを `ImportFiles` に反映し、インポート操作を提供
-- 選択中のコレクション/ファイルのBeatmapをプレビューペインに表示（ページング付き）
+- 子VM（`ExportViewModel` / `ImportViewModel` / `ImportExportBeatmapListViewModel`）を手動生成して統合
+- `IImportExportService.ProgressObservable` を購読し `StatusMessage` / `ProgressValue` を更新
+- 子VMの `PreviewRequested` Subject を購読し `BeatmapListViewModel.SetPreviewRows()` を呼び出す（親仲介パターン）
+- 排他選択（Export選択時にImport選択をクリア、逆も同様）をR3 `ObserveProperty` で制御
+- Export/Import各VMの `IsProcessing` のOR統合を `IsAnyProcessing` として子VMに逆流させ、双方のコマンドを連動させる
 
 #### 主要プロパティ
 
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
-| `ExportCollections` | `AvaloniaList<ExportCollectionItem>` | エクスポートリスト（チェックボックス付き） |
-| `ImportFiles` | `AvaloniaList<ImportFileItem>` | インポートリスト（チェックボックス付き） |
-| `ShowBeatmaps` | `IAvaloniaReadOnlyList<ImportExportBeatmapItem>` | 現在ページに表示中のBeatmapプレビュー一覧 |
-| `TotalPreviewCount` | `int` | プレビュー対象の総Beatmap数 |
-| `IsImportPreview` | `bool` | インポートプレビュー中かどうか（表示切替用） |
-| `CurrentPage` / `FilteredPages` / `PageSize` | `int` | ページング制御（MapListViewModelと同様の仕様） |
-| `StatusMessage` | `string` | 進捗メッセージ |
+| `ExportViewModel` | `ExportViewModel` | 子VM: エクスポート（get-only） |
+| `ImportViewModel` | `ImportViewModel` | 子VM: インポート（get-only） |
+| `BeatmapListViewModel` | `ImportExportBeatmapListViewModel` | 子VM: プレビュー（get-only） |
+| `StatusMessage` | `string` | 進捗メッセージ（初期値 `" "`） |
 | `ProgressValue` | `int` | 進捗値（0–100） |
-| `IsProcessing` | `bool` | 処理中フラグ |
+| `IsProcessing` | `bool` | Export / Import いずれかが処理中の統合フラグ |
 
 #### 主要挙動
 
-1. **`Initialize()`** — `IDatabaseService.OsuCollections` → `ExportCollections` に変換、`IImportExportService.GetImportFiles()` → `ImportFiles` に設定
-2. **`ExportCommand`** — チェックされた `ExportCollections` のコレクション名を `ExportAsync()` に渡す
-3. **`ImportCommand`** — チェックされた `ImportFiles` のファイルパスを `ImportAsync()` に渡す
-4. **Beatmapプレビュー** — `SelectedExportCollection` / `SelectedImportFile` 変更時にBeatmapをMD5で検索し `_allPreviewRows` に格納してページング表示
+1. **`Initialize()`** — 子VMの `Initialize()` を呼び出し + `BeatmapListViewModel.Reset()` でプレビューをリセット
+2. **プレビュー更新** — `ExportViewModel.PreviewRequested` / `ImportViewModel.PreviewRequested` を購読し、`BeatmapListViewModel.SetPreviewRows(rows, isImport)` を呼び出す
+3. **ステータス更新** — `ExportViewModel.StatusMessageRequested` / `ImportViewModel.StatusMessageRequested` を購読し `StatusMessage` に反映
+4. **Import成功後の再初期化** — `ImportViewModel.ImportCompleted` を購読し `Initialize()` を再実行
+5. **IsProcessing統合** — Export/Import各VMの `IsProcessing` を `Merge` で統合し、`IsAnyProcessing` として両子VMに逆流
+6. **排他選択** — `ExportViewModel.SelectedExportCollection` が非nullになるとImport選択をnullクリア（逆も同様）
+
+#### コンストラクタ内のR3購読チェーン
+
+| # | 発行元 | アクション |
+|---|-------|-----------|
+| 1 | `IImportExportService.ProgressObservable` | `StatusMessage` / `ProgressValue` 更新 |
+| 2 | `ExportViewModel.PreviewRequested` | `BeatmapListVM.SetPreviewRows(rows, isImport: false)` |
+| 3 | `ImportViewModel.PreviewRequested` | `BeatmapListVM.SetPreviewRows(rows, isImport: true)` |
+| 4 | `ExportViewModel.StatusMessageRequested` | `StatusMessage` 更新 |
+| 5 | `ImportViewModel.StatusMessageRequested` | `StatusMessage` 更新 |
+| 6 | `ImportViewModel.ImportCompleted` | `Initialize()` 再実行 |
+| 7 | `ExportViewModel.IsProcessing` + `ImportViewModel.IsProcessing`（Merge） | `IsProcessing` 統合 + `IsAnyProcessing` を両子VMに逆流 |
+| 8 | `ExportViewModel.SelectedExportCollection` | 非null時に `ImportViewModel.SelectedImportFile = null` |
+| 9 | `ImportViewModel.SelectedImportFile` | 非null時に `ExportViewModel.SelectedExportCollection = null` |
+
+---
+
+### 9.4 ExportViewModel（子ViewModel）
+
+#### 責務
+
+- DBのコレクション一覧（`ExportCollections`）の管理・チェックボックス操作
+- 選択コレクション変更時にプレビュー行を構築し `PreviewRequested` Subjectで通知
+- エクスポート実行（`ExportCommand`）、全選択/全解除/リロード操作
+- `IsAnyProcessing`（親VMから設定）を参照して `ExportCommand` のCanExecuteを制御
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `ExportCollections` | `AvaloniaList<ExportCollectionItem>` | エクスポート対象コレクション一覧 |
+| `SelectedExportCollection` | `ExportCollectionItem?` | 選択中のコレクション |
+| `IsProcessing` | `bool` | 自身の処理中フラグ（親VMが統合） |
+| `IsAnyProcessing` | `bool` | 親VMが設定するグローバル処理中フラグ（CanExecute制御用） |
+
+#### 公開Observable（Subject経由）
+
+| プロパティ | 発行タイミング | 内容 |
+|-----------|-------------|------|
+| `PreviewRequested` | `SelectedExportCollection` 変更時（null時は空配列） | `ImportExportBeatmapItem[]` |
+| `StatusMessageRequested` | エクスポート完了/失敗時 | ステータス文字列 |
+
+> **スレッド安全性**: Subject.OnNext は `Dispatcher.UIThread.InvokeAsync` で包み、UIスレッドで実行することを保証する。
+
+#### 主要挙動
+
+1. **`Initialize()`** — `IDatabaseService.OsuCollections` から `ExportCollections` を再構築（プレビューSubjectは発行しない）
+2. **`OnSelectedExportCollectionChanged()`** — 選択変更時に `BuildPreviewRows()` でMD5→DB照合し `PreviewRequested` を発行。null時は空配列を発行してプレビューをクリア
+3. **`OnIsAnyProcessingChanged()`** — `ExportCommand.NotifyCanExecuteChanged()` を呼び出し
+4. **`ReloadExportCommand`** — `Initialize()` + 空配列Subject発行（プレビューのリセット）
+5. **`ExportAsync(CanExecute = !IsAnyProcessing)`** — チェックされたコレクション名を `IImportExportService.ExportAsync()` に渡す
+
+---
+
+### 9.5 ImportViewModel（子ViewModel）
+
+#### 責務
+
+- `imports/` フォルダのJSONファイル一覧（`ImportFiles`）の管理
+- 選択ファイル変更時にプレビュー行を構築し `PreviewRequested` Subjectで通知
+- インポート実行（`ImportCommand`）、全選択/全解除/リロード操作
+- インポート成功時に `ImportCompleted` Subjectを発行し、親VMに再初期化を依頼
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `ImportFiles` | `AvaloniaList<ImportFileItem>` | インポート対象ファイル一覧 |
+| `SelectedImportFile` | `ImportFileItem?` | 選択中のファイル |
+| `IsProcessing` | `bool` | 自身の処理中フラグ（親VMが統合） |
+| `IsAnyProcessing` | `bool` | 親VMが設定するグローバル処理中フラグ（CanExecute制御用） |
+
+#### 公開Observable（Subject経由）
+
+| プロパティ | 発行タイミング | 内容 |
+|-----------|-------------|------|
+| `PreviewRequested` | `SelectedImportFile` 変更時（null時は空配列） | `ImportExportBeatmapItem[]` |
+| `StatusMessageRequested` | インポート完了/失敗時 | ステータス文字列 |
+| `ImportCompleted` | インポート成功時 | `Unit` |
+
+#### 主要挙動
+
+1. **`Initialize()`** — `IImportExportService.GetImportFiles()` から `ImportFiles` を再構築（プレビューSubjectは発行しない）
+2. **`OnSelectedImportFileChanged()`** — 選択変更時に `BuildPreviewRows()` でDB照合し `PreviewRequested` を発行。null時は空配列を発行
+3. **`ReloadImportCommand`** — `Initialize()` + 空配列Subject発行
+4. **`ImportAsync(CanExecute = !IsAnyProcessing)`** — チェックされたファイルパスを `IImportExportService.ImportAsync()` に渡す。成功時に `ImportCompleted.OnNext(Unit.Default)` を発行
+
+---
+
+### 9.6 ImportExportBeatmapListViewModel（子ViewModel）
+
+#### 責務
+
+- 親VMから `SetPreviewRows(rows, isImport)` で渡されたBeatmapプレビュー行のページング表示
+- `IsImportPreview` フラグで Exists列の表示を切り替え（Import時: 表示、Export時: 非表示）
+- ページング操作（`NextPageCommand` / `PreviousPageCommand`）
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `ShowBeatmaps` | `IAvaloniaReadOnlyList<ImportExportBeatmapItem>` | 現在ページの表示データ |
+| `TotalPreviewCount` | `int` | プレビュー総件数 |
+| `IsImportPreview` | `bool` | Import時 true（Exists列表示制御用） |
+| `CurrentPage` | `int` | 現在ページ（1始まり） |
+| `FilteredPages` | `int` | 総ページ数 |
+| `PageSize` | `int` | 1ページ表示件数（初期値20） |
+| `PageSizes` | `IAvaloniaReadOnlyList<int>` | `{10, 20, 50, 100}` |
+
+#### 主要API
+
+| メソッド | 概要 |
+|---------|------|
+| `SetPreviewRows(ImportExportBeatmapItem[], bool isImport)` | 外部（親VM経由）からプレビュー行を設定してページング初期化 |
+| `Reset()` | プレビューを初期状態（空）にリセット |
+
+#### 引数なしコンストラクタ
+
+外部サービスへの依存を持たない。データは親VMが `SetPreviewRows()` を通じて渡す（テスタビリティ向上・循環依存回避のための設計）。
+
+---
+
+### 9.7 親子間通信パターン
+
+ImportExportモジュールは **親仲介パターン** を採用する。MapListモジュール（子→子の直接購読も許容）とは異なり、Export/Import子VM間に双方向の依存を持たせず、親VMがオーケストレーションを担う。
+
+```
+ExportViewModel  ──PreviewRequested──▶  ImportExportPageViewModel  ──SetPreviewRows()──▶  BeatmapListViewModel
+ImportViewModel  ──PreviewRequested──▶  (親仲介)                   ──SetPreviewRows()──▶
+ExportViewModel  ──StatusMessageRequested──▶  ImportExportPageViewModel.StatusMessage
+ImportViewModel  ──StatusMessageRequested──▶  ImportExportPageViewModel.StatusMessage
+ImportViewModel  ──ImportCompleted──▶   ImportExportPageViewModel.Initialize()
+ImportExportPageViewModel  ──IsAnyProcessing──▶  ExportViewModel（逆流）
+ImportExportPageViewModel  ──IsAnyProcessing──▶  ImportViewModel（逆流）
+```
+
+#### 排他選択の仕組み
+
+親VMがR3 `ObserveProperty` で双方向の選択プロパティを監視し、片方が選ばれたらもう片方をnullクリアする。これにより「ExportとImportの同時プレビュー」を防ぐ。無限ループはせず（null設定→空配列発行→停止）、1往復のみで収束する。
+
+#### 処理中の相互排他（IsAnyProcessing）
+
+親VMが `ExportViewModel.IsProcessing` と `ImportViewModel.IsProcessing` を `Observable.Merge` で統合し、ORをとった値を `IsAnyProcessing` として両子VMに設定する。各子VMは `OnIsAnyProcessingChanged()` で `Command.NotifyCanExecuteChanged()` を呼び出す。これにより、Export中はImportボタンも無効化される（逆も同様）。
 
 ---
 

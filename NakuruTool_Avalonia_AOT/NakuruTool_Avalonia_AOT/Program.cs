@@ -1,6 +1,8 @@
 ﻿using System;
 using Avalonia;
+#if DEBUG
 using HotAvalonia;
+#endif
 
 namespace NakuruTool_Avalonia_AOT
 {
@@ -16,7 +18,9 @@ namespace NakuruTool_Avalonia_AOT
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
+#if DEBUG
                 .UseHotReload()
+#endif
                 .UsePlatformDetect()
                 .WithInterFont()
                 .LogToTrace();

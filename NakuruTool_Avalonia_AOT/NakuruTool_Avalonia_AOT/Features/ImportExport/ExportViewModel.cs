@@ -96,6 +96,7 @@ public partial class ExportViewModel : ViewModelBase, IDisposable
     partial void OnIsAnyProcessingChanged(bool value)
     {
         ExportCommand.NotifyCanExecuteChanged();
+        ReloadExportCommand.NotifyCanExecuteChanged();
     }
 
     private ImportExportBeatmapItem[] BuildPreviewRows(ExportCollectionItem item)
@@ -163,12 +164,30 @@ public partial class ExportViewModel : ViewModelBase, IDisposable
             item.IsChecked = false;
     }
 
-    [RelayCommand]
-    private void ReloadExport()
+    [RelayCommand(CanExecute = nameof(CanReloadExport))]
+    private async Task ReloadExportAsync()
     {
-        Initialize();
-        _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+        await UpdateIsProcessingAsync(true);
+        try
+        {
+            await _databaseService.ReloadCollectionDbAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Initialize();
+                _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+            });
+        }
+        catch (Exception ex)
+        {
+            await NotifyStatusAsync(
+                string.Format(LanguageService.Instance.GetString("ImportExport.Status.ReloadError"), ex.Message));
+        }
+        finally
+        {
+            await UpdateIsProcessingAsync(false);
+        }
     }
+    private bool CanReloadExport() => !IsAnyProcessing;
 
     private async Task UpdateIsProcessingAsync(bool value)
     {

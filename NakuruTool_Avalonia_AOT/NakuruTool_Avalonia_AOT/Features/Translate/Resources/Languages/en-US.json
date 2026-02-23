@@ -150,6 +150,7 @@
     "Status.ExportComplete": "Export complete: {0} items",
     "Status.ExportError": "Export error: {0}",
     "Status.ImportComplete": "Import complete",
-    "Status.ImportError": "An error occurred during import"
+    "Status.ImportError": "An error occurred during import",
+    "Status.ReloadError": "Reload error: {0}"
   }
 }

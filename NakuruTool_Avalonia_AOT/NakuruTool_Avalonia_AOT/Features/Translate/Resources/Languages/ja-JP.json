@@ -150,6 +150,7 @@
     "Status.ExportComplete": "エクスポート完了: {0} 件",
     "Status.ExportError": "エクスポートエラー: {0}",
     "Status.ImportComplete": "インポート完了",
-    "Status.ImportError": "インポート中にエラーが発生しました"
+    "Status.ImportError": "インポート中にエラーが発生しました",
+    "Status.ReloadError": "再読込エラー: {0}"
   }
 }

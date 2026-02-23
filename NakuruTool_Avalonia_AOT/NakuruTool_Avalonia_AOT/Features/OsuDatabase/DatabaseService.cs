@@ -18,6 +18,8 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         List<OsuCollection> OsuCollections { get; }
         Beatmap[] Beatmaps { get; }
         Task LoadDatabasesAsync();
+        Task ReloadDatabasesAsync();
+        Task ReloadCollectionDbAsync();
         bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap);
     }
 
@@ -403,6 +405,29 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             }
 
             await LoadDatabasesAsync();
+        }
+
+        /// <summary>
+        /// collection.db のみ再読込
+        /// </summary>
+        public async Task ReloadCollectionDbAsync()
+        {
+            var settings = _settingsService.SettingsData;
+            var osuFolderPath = settings.OsuFolderPath;
+
+            if (string.IsNullOrWhiteSpace(osuFolderPath) || Directory.Exists(osuFolderPath) == false)
+            {
+                var message = string.Format(LanguageService.Instance.GetString("Loading.FolderNotFound"), osuFolderPath);
+                throw new DirectoryNotFoundException(message);
+            }
+
+            var collectionDbPath = Path.Combine(osuFolderPath, "collection.db");
+            var collections = await ReadCollectionDbAsync(collectionDbPath);
+
+            lock (_lockObject)
+            {
+                _osuCollections = collections;
+            }
         }
 
         public void Dispose()

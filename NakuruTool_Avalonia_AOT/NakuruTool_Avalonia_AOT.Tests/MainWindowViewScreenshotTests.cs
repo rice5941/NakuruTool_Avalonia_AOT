@@ -660,6 +660,8 @@ public class MockDatabaseService : IDatabaseService
     public Observable<DatabaseLoadProgress> OsuDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Observable<DatabaseLoadProgress> ScoresDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Task LoadDatabasesAsync() => Task.CompletedTask;
+    public Task ReloadDatabasesAsync() => Task.CompletedTask;
+    public Task ReloadCollectionDbAsync() => Task.CompletedTask;
     public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap) { beatmap = null; return false; }
     public void Dispose() { }
 }

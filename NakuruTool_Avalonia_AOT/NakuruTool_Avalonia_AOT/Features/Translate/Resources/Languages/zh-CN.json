@@ -150,6 +150,7 @@
     "Status.ExportComplete": "导出完成: {0} 项",
     "Status.ExportError": "导出错误: {0}",
     "Status.ImportComplete": "导入完成",
-    "Status.ImportError": "导入时发生错误"
+    "Status.ImportError": "导入时发生错误",
+    "Status.ReloadError": "重新加载错误: {0}"
   }
 }

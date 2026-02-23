@@ -69,6 +69,7 @@
     "Target.LastPlayed": "最終プレイ",
     "Target.LastModifiedTime": "最終更新",
     "Target.PlayCount": "プレイ回数",
+    "Target.Collection": "コレクション",
     "ComparisonType": "比較条件",
     "Value": "値",
     "ValueMin": "最小値",
@@ -130,5 +131,25 @@
     "CreatingCollection": "新しいコレクションを作成中...",
     "WritingToDb": "collection.dbに書き込み中...",
     "Completed": "コレクションの作成が完了しました"
+  },
+  "ImportExport": {
+    "Export": "エクスポート",
+    "Import": "インポート",
+    "SelectAll": "すべて選択",
+    "ClearAll": "すべて解除",
+    "ExportButton": "エクスポート実行",
+    "ImportButton": "インポート実行",
+    "ReloadButton": "ファイル再読込",
+    "PreviewCount": "map数",
+    "KeyCount": "Key数",
+    "Title": "タイトル",
+    "Artist": "アーティスト",
+    "Version": "難易度",
+    "Creator": "作成者",
+    "Exists": "存在",
+    "Status.ExportComplete": "エクスポート完了: {0} 件",
+    "Status.ExportError": "エクスポートエラー: {0}",
+    "Status.ImportComplete": "インポート完了",
+    "Status.ImportError": "インポート中にエラーが発生しました"
   }
 }

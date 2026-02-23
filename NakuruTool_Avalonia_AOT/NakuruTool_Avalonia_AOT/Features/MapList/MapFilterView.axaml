@@ -104,8 +104,9 @@
 
                                 </StackPanel>
 
-                                <!-- 比較条件選択 -->
-                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                <!-- 比較条件選択（Collection以外のみ表示） -->
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,8"
+                                            IsVisible="{Binding !IsCollectionType}">
                                     <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ComparisonType'}"/>
                                     <StackPanel Orientation="Horizontal" Spacing="24">
                                         <RadioButton Content="=" 
@@ -122,10 +123,17 @@
                                 <!-- 値入力エリア -->
                                 <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
                                     
-                                    <!-- 等価比較時の値入力 -->
-                                    <StackPanel IsVisible="{Binding !IsRangeComparison}" Margin="0,0,0,8">
+                                    <!-- Collection選択（Collectionのみ表示） -->
+                                    <StackPanel IsVisible="{Binding IsCollectionType}" Margin="0,0,0,8">
                                         <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Value'}"/>
-                                        
+                                        <ComboBox Classes="filter-combobox"
+                                                  ItemsSource="{Binding $parent[ItemsControl].((MapList:MapFilterViewModel)DataContext).CollectionNames}"
+                                                  SelectedItem="{Binding CollectionValue}"
+                                                  HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <!-- 等価比較時の値入力（Collection以外のみ表示） -->
+                                    <StackPanel IsVisible="{Binding IsNonCollectionEqual}" Margin="0,0,0,8">
                                         <!-- 文字列入力 -->
                                         <TextBox Classes="filter-input"
                                                  Text="{Binding Value}"

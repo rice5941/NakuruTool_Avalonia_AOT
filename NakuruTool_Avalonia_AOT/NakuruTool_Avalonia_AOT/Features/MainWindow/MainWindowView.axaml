@@ -4,6 +4,7 @@
         xmlns:mapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
         xmlns:settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
         xmlns:licenses="using:NakuruTool_Avalonia_AOT.Features.Licenses"
+        xmlns:importExport="using:NakuruTool_Avalonia_AOT.Features.ImportExport"
         xmlns:osuDatabase="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
         xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -104,7 +105,7 @@
                             <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
                         </StackPanel>
                     </TabItem.Header>
-                    <!-- <pages:HomePage DataContext="{Binding HomeViewModel}"/> -->
+                    <importExport:ImportExportPageView DataContext="{Binding ImportExportPageViewModel}"/>
                 </TabItem>
 
                 <!-- システム -->

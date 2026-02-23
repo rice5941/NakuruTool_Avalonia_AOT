@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using System;
-using System.Linq.Expressions;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
 
@@ -40,7 +39,8 @@ public enum FilterTarget
     IsPlayed,
     LastPlayed,
     LastModifiedTime,
-    PlayCount
+    PlayCount,
+    Collection
 }
 
 /// <summary>
@@ -68,6 +68,7 @@ public static class FilterTargetInfo
         FilterTarget.LastPlayed => true,
         FilterTarget.LastModifiedTime => true,
         FilterTarget.PlayCount => true,
+        FilterTarget.Collection => false,
         _ => false
     };
 
@@ -91,6 +92,7 @@ public static class FilterTargetInfo
         FilterTarget.LastPlayed => false,
         FilterTarget.LastModifiedTime => false,
         FilterTarget.PlayCount => true,
+        FilterTarget.Collection => true,
         _ => true
     };
 
@@ -103,6 +105,11 @@ public static class FilterTargetInfo
         FilterTarget.LastModifiedTime => true,
         _ => false
     };
+
+    /// <summary>
+    /// フィルタ対象がCollection型かどうか
+    /// </summary>
+    public static bool IsCollectionType(FilterTarget target) => target == FilterTarget.Collection;
 
     /// <summary>
     /// フィルタ対象が数値型かどうか
@@ -189,6 +196,12 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _boolValue = true;
+
+    /// <summary>
+    /// Collection型の選択値（Collection用）
+    /// </summary>
+    [ObservableProperty]
+    private string _collectionValue = string.Empty;
 
     /// <summary>
     /// 日付型の最小値（CalendarDatePicker用）
@@ -282,6 +295,16 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     public bool IsEnumType => FilterTargetInfo.IsEnumType(Target);
 
+    /// <summary>
+    /// Collection型かどうか
+    /// </summary>
+    public bool IsCollectionType => FilterTargetInfo.IsCollectionType(Target);
+
+    /// <summary>
+    /// Collection以外かつ等価比較かどうか（値入力エリアの表示制御用）
+    /// </summary>
+    public bool IsNonCollectionEqual => !IsCollectionType && !IsRangeComparison;
+
     partial void OnTargetChanged(FilterTarget value)
     {
         OnPropertyChanged(nameof(SupportsRange));
@@ -291,6 +314,8 @@ public partial class FilterCondition : ObservableObject
         OnPropertyChanged(nameof(IsStringType));
         OnPropertyChanged(nameof(IsBoolType));
         OnPropertyChanged(nameof(IsEnumType));
+        OnPropertyChanged(nameof(IsCollectionType));
+        OnPropertyChanged(nameof(IsNonCollectionEqual));
 
         // SupportsEqualsがfalseでSupportsRangeがtrueの場合は範囲比較に強制
         if (!SupportsEquals && SupportsRange)
@@ -306,11 +331,13 @@ public partial class FilterCondition : ObservableObject
         // 値をリセット
         Value = string.Empty;
         ValueMax = string.Empty;
+        CollectionValue = string.Empty;
     }
 
     partial void OnComparisonTypeChanged(ComparisonType value)
     {
         OnPropertyChanged(nameof(IsRangeComparison));
+        OnPropertyChanged(nameof(IsNonCollectionEqual));
     }
 
     partial void OnValueChanged(string value)
@@ -333,6 +360,7 @@ public partial class FilterCondition : ObservableObject
 
     /// <summary>
     /// Beatmapがこの条件に一致するかどうかを判定
+    /// CollectionフィルタはMapFilterViewModelのMatchesCollectionで処理するため、ここではtrueを返す
     /// </summary>
     public bool Matches(Beatmap beatmap)
     {
@@ -353,6 +381,7 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.LastPlayed => MatchesDateTime(beatmap.LastPlayed),
             FilterTarget.LastModifiedTime => MatchesDateTime(beatmap.LastModifiedTime),
             FilterTarget.PlayCount => MatchesNumeric(beatmap.PlayCount),
+            FilterTarget.Collection => true, // CollectionフィルタはViewModelで処理
             _ => true
         };
     }

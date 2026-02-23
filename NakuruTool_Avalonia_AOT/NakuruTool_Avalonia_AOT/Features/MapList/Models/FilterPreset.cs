@@ -1,7 +1,6 @@
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
@@ -53,6 +52,11 @@ public class FilterConditionData
     public bool BoolValue { get; set; }
 
     /// <summary>
+    /// Collection型の選択値
+    /// </summary>
+    public string CollectionValue { get; set; } = string.Empty;
+
+    /// <summary>
     /// FilterConditionからデータを作成
     /// </summary>
     public static FilterConditionData FromFilterCondition(FilterCondition condition)
@@ -64,7 +68,8 @@ public class FilterConditionData
             Value = condition.Value,
             ValueMax = condition.ValueMax,
             StatusValue = condition.StatusValue.ToString(),
-            BoolValue = condition.BoolValue
+            BoolValue = condition.BoolValue,
+            CollectionValue = condition.CollectionValue
         };
     }
 
@@ -85,7 +90,8 @@ public class FilterConditionData
             Value = Value,
             ValueMax = ValueMax,
             StatusValue = statusValue,
-            BoolValue = BoolValue
+            BoolValue = BoolValue,
+            CollectionValue = CollectionValue
         };
     }
 }

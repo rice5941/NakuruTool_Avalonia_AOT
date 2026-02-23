@@ -18,6 +18,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         List<OsuCollection> OsuCollections { get; }
         Beatmap[] Beatmaps { get; }
         Task LoadDatabasesAsync();
+        bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap);
     }
 
     /// <summary>
@@ -317,6 +318,20 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             }
 
             return index >= 0;
+        }
+
+        /// <summary>
+        /// MD5ハッシュで Beatmap を O(1) 検索する（ImportExport等から利用）
+        /// </summary>
+        public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap)
+        {
+            beatmap = null;
+            if (TryGetBeatmapIndex(md5Hash, out var index))
+            {
+                beatmap = _beatmaps[index];
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

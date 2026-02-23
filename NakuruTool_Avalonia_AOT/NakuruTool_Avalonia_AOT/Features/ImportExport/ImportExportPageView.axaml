@@ -1,0 +1,374 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:importExport="using:NakuruTool_Avalonia_AOT.Features.ImportExport"
+             xmlns:models="using:NakuruTool_Avalonia_AOT.Features.ImportExport.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             x:Class="NakuruTool_Avalonia_AOT.Features.ImportExport.ImportExportPageView"
+             x:DataType="importExport:ImportExportPageViewModel">
+
+    <UserControl.Resources>
+        <converters:BoolToIconKindConverter x:Key="ExistsIconConverter"
+                                            TrueIcon="CheckCircleOutline"
+                                            FalseIcon="AlertCircleOutline"/>
+        <converters:BoolToBrushConverter x:Key="ExistsBrushConverter"
+                                         TrueBrush="#4CAF50"
+                                         FalseBrush="#F44336"/>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- DataGrid全体のスタイル -->
+        <Style Selector="DataGrid">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey1}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="48"/>
+        </Style>
+
+        <!-- ヘッダーセルのスタイル -->
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey2}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+
+        <!-- データセルのスタイル -->
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey2}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+
+        <!-- 行の交互背景色 -->
+        <Style Selector="DataGridRow:nth-child(even)">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey0}"/>
+        </Style>
+
+        <Style Selector="DataGridRow:nth-child(odd)">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- 行ホバー時のスタイル -->
+        <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+            <Setter Property="Fill" Value="{DynamicResource SemiBlue0}"/>
+        </Style>
+
+        <!-- プライマリ値のスタイル -->
+        <Style Selector="TextBlock.primary-value">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
+        </Style>
+
+        <!-- セカンダリ値のスタイル -->
+        <Style Selector="TextBlock.secondary-value">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey7}"/>
+        </Style>
+
+        <!-- 数値中央寄せのスタイル -->
+        <Style Selector="TextBlock.numeric-value">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- 三分割レイアウト: 上段リスト / 中段進捗 / 下段beatmapプレビュー -->
+    <Grid RowDefinitions="*,Auto,2*">
+
+        <!-- ─── Row 0: 上段 (エクスポート左 / インポート右) ─── -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,8,*" Margin="0,0,0,8">
+
+            <!-- ─ 左: エクスポートリスト ─ -->
+            <Border Grid.Column="0"
+                    BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
+                    Background="{DynamicResource SemiGrey0}">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- ヘッダー -->
+                    <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
+                            BorderBrush="{DynamicResource SemiGrey3}"
+                            BorderThickness="0,0,0,1"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Export" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="{translate:Translate 'ImportExport.Export'}"
+                                       VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- リスト -->
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding ExportCollections}"
+                             SelectedItem="{Binding SelectedExportCollection, Mode=TwoWay}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:ExportCollectionItem">
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="4,2">
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- 下部ボタン -->
+                    <Border Grid.Row="2"
+                            BorderBrush="{DynamicResource SemiGrey3}"
+                            BorderThickness="0,1,0,0"
+                            Padding="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                            <Button Command="{Binding ReloadExportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="Refresh" Width="16" Height="16"/>
+                                    <TextBlock Text="{translate:Translate 'ImportExport.ReloadButton'}" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SelectAllExportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <TextBlock Text="{translate:Translate 'ImportExport.SelectAll'}" FontSize="12"/>
+                            </Button>
+                            <Button Command="{Binding ClearAllExportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <TextBlock Text="{translate:Translate 'ImportExport.ClearAll'}" FontSize="12"/>
+                            </Button>
+                            <Button Command="{Binding ExportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="Export" Width="16" Height="16"/>
+                                    <TextBlock Text="{translate:Translate 'ImportExport.ExportButton'}" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ─ 右: インポートリスト ─ -->
+            <Border Grid.Column="2"
+                    BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
+                    Background="{DynamicResource SemiGrey0}">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- ヘッダー -->
+                    <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
+                            BorderBrush="{DynamicResource SemiGrey3}"
+                            BorderThickness="0,0,0,1"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Import" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="{translate:Translate 'ImportExport.Import'}"
+                                       VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- リスト -->
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding ImportFiles}"
+                             SelectedItem="{Binding SelectedImportFile, Mode=TwoWay}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:ImportFileItem">
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="4,2">
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" FontSize="13"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- 下部ボタン -->
+                    <Border Grid.Row="2"
+                            BorderBrush="{DynamicResource SemiGrey3}"
+                            BorderThickness="0,1,0,0"
+                            Padding="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                            <Button Command="{Binding ReloadImportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="Refresh" Width="16" Height="16"/>
+                                    <TextBlock Text="{translate:Translate 'ImportExport.ReloadButton'}" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SelectAllImportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <TextBlock Text="{translate:Translate 'ImportExport.SelectAll'}" FontSize="12"/>
+                            </Button>
+                            <Button Command="{Binding ClearAllImportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <TextBlock Text="{translate:Translate 'ImportExport.ClearAll'}" FontSize="12"/>
+                            </Button>
+                            <Button Command="{Binding ImportCommand}"
+                                    Theme="{StaticResource SolidButton}" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="Import" Width="16" Height="16"/>
+                                    <TextBlock Text="{translate:Translate 'ImportExport.ImportButton'}" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ─── Row 1: 進捗表示 ─── -->
+        <Border Grid.Row="1"
+                BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
+                Background="{DynamicResource SemiGrey0}"
+                Padding="12,8" Margin="0,0,0,8">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource SemiGrey7}"/>
+                <ProgressBar Value="{Binding ProgressValue}" Maximum="100"
+                             Height="4" IsVisible="{Binding IsProcessing}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ─── Row 2: beatmapプレビュー + ページング ─── -->
+        <Grid Grid.Row="2" RowDefinitions="Auto,*,Auto">
+            <!-- ヘッダー: 件数表示 -->
+            <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
+                    BorderBrush="{DynamicResource SemiGrey3}"
+                    BorderThickness="1,1,1,0"
+                    CornerRadius="4,4,0,0"
+                    Padding="12,8">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                    <TextBlock Text="{translate:Translate 'ImportExport.PreviewCount'}" VerticalAlignment="Center" FontSize="14"/>
+                    <Border CornerRadius="12" Padding="12,4">
+                        <TextBlock Text="{Binding TotalPreviewCount}"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"
+                                   FontSize="13"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- DataGrid -->
+            <DataGrid Grid.Row="1"
+                      x:Name="BeatmapGrid"
+                      ItemsSource="{Binding ShowBeatmaps}"
+                      IsReadOnly="True"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+
+                    <!-- キー数 -->
+                    <DataGridTemplateColumn Width="60">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'ImportExport.KeyCount'}"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ImportExportBeatmapItem">
+                                <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}"
+                                           Classes="numeric-value"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           FontSize="13"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 曲情報: タイトル・バージョン（1行目）/ アーティスト・作成者（2行目） -->
+                    <DataGridTemplateColumn Width="*" MinWidth="200">
+                        <DataGridTemplateColumn.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="Music" Width="16" Height="16"/>
+                                <TextBlock Text="{translate:Translate 'ImportExport.Title'}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ImportExportBeatmapItem">
+                                <StackPanel Spacing="1" Margin="4,0" VerticalAlignment="Center">
+                                    <!-- 1行目: タイトル + バージョン -->
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Title}"
+                                                   Classes="song-primary"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Version}"
+                                                   Classes="song-primary"
+                                                   Opacity="0.7"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <!-- 2行目: アーティスト + 作成者 -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding Artist}"
+                                                   Classes="song-secondary"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Creator}"
+                                                   Classes="song-secondary"
+                                                   Opacity="0.85"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Exists（最終列: Importプレビュー時のみ表示） -->
+                    <DataGridTemplateColumn Width="70">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'ImportExport.Exists'}"
+                                       HorizontalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ImportExportBeatmapItem">
+                                <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <mi:MaterialIcon Width="20" Height="20"
+                                                     Kind="{Binding Exists, Converter={StaticResource ExistsIconConverter}}"
+                                                     Foreground="{Binding Exists, Converter={StaticResource ExistsBrushConverter}}"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- ページネーション -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource SemiGrey1}"
+                    BorderBrush="{DynamicResource SemiGrey3}"
+                    BorderThickness="1,0,1,1"
+                    CornerRadius="0,0,4,4"
+                    Padding="12">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                    <Button Command="{Binding PreviousPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronLeft" Height="32" Width="32"/>
+                    </Button>
+                    <Border Background="{DynamicResource SemiGrey2}"
+                            CornerRadius="6"
+                            Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentPage}"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="/" FontSize="16" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding FilteredPages}" FontSize="16" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Button Command="{Binding NextPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronRight" Height="32" Width="32"/>
+                    </Button>
+                    <ComboBox Width="80"
+                              ItemsSource="{Binding PageSizes}"
+                              SelectedItem="{Binding PageSize, Mode=TwoWay}"
+                              TextElement.FontSize="16"
+                              TextElement.FontWeight="Bold"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Grid>
+</UserControl>

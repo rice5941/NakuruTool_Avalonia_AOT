@@ -69,6 +69,7 @@
     "Target.LastPlayed": "最后游玩",
     "Target.LastModifiedTime": "最后修改",
     "Target.PlayCount": "游玩次数",
+    "Target.Collection": "收藏夹",
     "ComparisonType": "比较条件",
     "Value": "值",
     "ValueMin": "最小值",
@@ -130,5 +131,25 @@
     "CreatingCollection": "正在创建新收藏夹...",
     "WritingToDb": "正在写入 collection.db...",
     "Completed": "收藏夹创建完成"
+  },
+  "ImportExport": {
+    "Export": "导出",
+    "Import": "导入",
+    "SelectAll": "全选",
+    "ClearAll": "取消全选",
+    "ExportButton": "导出",
+    "ImportButton": "导入",
+    "ReloadButton": "重新加载",
+    "PreviewCount": "谱面列表",
+    "KeyCount": "键数",
+    "Title": "标题",
+    "Artist": "艺术家",
+    "Version": "难度",
+    "Creator": "作者",
+    "Exists": "存在",
+    "Status.ExportComplete": "导出完成: {0} 项",
+    "Status.ExportError": "导出错误: {0}",
+    "Status.ImportComplete": "导入完成",
+    "Status.ImportError": "导入时发生错误"
   }
 }

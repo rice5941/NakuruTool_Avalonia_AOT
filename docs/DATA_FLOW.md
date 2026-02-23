@@ -273,6 +273,7 @@ collection.dbのバイナリフォーマット:
 | `GenerateCollectionService` | `_generationProgress` | `Subject<GenerationProgress>` | コレクション生成進捗 |
 | `MapFilterViewModel` | `_filterChangedSubject` | `Subject<Unit>` | フィルタ条件変更通知 |
 | `AudioPlayerService` | `_stateSubject` | `Subject<AudioPlayerState>` | オーディオ再生状態変更通知 |
+| `ImportExportService` | `_progress` | `Subject<ImportExportProgress>` | エクスポート/インポート進捗通知 |
 
 ### 5.2 購読チェーン一覧
 
@@ -291,6 +292,7 @@ collection.dbのバイナリフォーマット:
 | 11 | `MapFilterViewModel.Conditions` 要素 | `MapFilterViewModel` | 条件プロパティ変更 | `NotifyFilterChanged()` | `AddTo(Disposables)` |
 | 12 | `AudioPlayerService._stateSubject` | `AudioPlayerViewModel` | 再生状態変更 | `IsPlaying` 更新 | `AddTo(Disposables)` |
 | 13 | `SettingsData.LanguageKey` | `SettingsService` | 言語キー変更 | `LanguageService.ChangeLanguage()` | `AddTo(_disposables)` |
+| 14 | `ImportExportService._progress` | `ImportExportPageViewModel` | エクスポート/インポート進捗変更 | `StatusMessage` / `ProgressValue` 更新 | `AddTo(Disposables)` |
 
 ### 5.3 ライフサイクル管理
 
@@ -415,3 +417,84 @@ flowchart LR
 ```
 
 テーマ変更は `Application.RequestedThemeVariant` のセッターがAvalonia内部でUI全体のスタイル再評価をトリガーするため、明示的な通知チェーンは不要。`UnregisterFollowSystemTheme()` でシステムのテーマ追従を解除する。
+---
+
+## 7. ImportExportフロー
+
+ImportExportページでは、コレクションをJSONファイルにエクスポート・インポートする。
+
+### 7.1 エクスポートフロー
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant IEPVM as ImportExportPageViewModel
+    participant IES as ImportExportService
+    participant DS as DatabaseService
+    participant File as exports/{name}.json
+
+    User->>IEPVM: エクスポートするコレクションを選択（チェックボックス）
+    User->>IEPVM: ExportCommand
+    IEPVM->>IEPVM: IsProcessing = true
+
+    loop 各コレクション名
+        IEPVM->>IES: ExportAsync(collectionNames)
+        IES->>DS: OsuCollections.FirstOrDefault(name)
+        DS-->>IES: OsuCollection
+        IES->>DS: TryGetBeatmapByMd5(md5) ×N
+        DS-->>IES: Beatmap?（DB非存在の場合はMD5のみ）
+        IES->>IES: CollectionExchangeData DTO作成
+        IES->>IES: JsonSerializer.Serialize(ImportExportJsonContext)
+        IES->>File: File.WriteAllTextAsync({name}.json)
+    end
+
+    IES-->>IEPVM: succeeded件数
+    IEPVM->>IEPVM: IsProcessing = false
+    Note over IEPVM: ProgressObservable経由で<br/>StatusMessage/ProgressValue 更新
+```
+
+### 7.2 インポートフロー
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant IEPVM as ImportExportPageViewModel
+    participant IES as ImportExportService
+    participant DS as DatabaseService
+    participant File as imports/{name}.json
+    participant CDW as CollectionDbWriter
+    participant CDB as collection.db
+
+    IEPVM->>IES: GetImportFiles()
+    IES->>File: Directory.GetFiles("imports/*.json")
+    IES->>IES: JsonSerializer.Deserialize × ファイル数
+    IES-->>IEPVM: List<ImportFileItem>
+    IEPVM->>IEPVM: ImportFiles に反映
+
+    User->>IEPVM: インポートするファイルを選択（チェックボックス）
+    User->>IEPVM: ImportCommand
+    IEPVM->>IEPVM: IsProcessing = true
+
+    loop 各JSONファイル
+        IEPVM->>IES: ImportAsync(filePaths)
+        IES->>File: File.ReadAllTextAsync()
+        IES->>IES: JsonSerializer.Deserialize(ImportExportJsonContext)
+        IES->>IES: ResolveMd5s() — MD5照合でコレクション内容を構築
+        IES->>DS: OsuCollections.RemoveAll(同名)
+        Note over DS: サイレント上書き
+        IES->>DS: OsuCollections.Add(newCollection)
+    end
+
+    IES->>CDW: WriteAsync(OsuCollections, collectionDbPath)
+    CDW->>CDB: ファイル全体を上書き書き込み
+    CDW-->>IES: 完了
+    IES-->>IEPVM: allSuccess
+    IEPVM->>IEPVM: IsProcessing = false
+```
+
+### 7.3 フォルダ構造
+
+| フォルダ | 用途 | 作成タイミング |
+|---------|------|--------------|
+| `{AppDirectory}/exports/` | エクスポートJSON出力先 | `ExportAsync()` 呼び出し時に自動作成 |
+| `{AppDirectory}/imports/` | インポートJSON配置先 | `GetImportFiles()` 呼び出し時に自動作成 |

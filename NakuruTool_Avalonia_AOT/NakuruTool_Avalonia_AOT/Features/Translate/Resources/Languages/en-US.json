@@ -69,6 +69,7 @@
     "Target.LastPlayed": "Last Played",
     "Target.LastModifiedTime": "Last Modified",
     "Target.PlayCount": "Play Count",
+    "Target.Collection": "Collection",
     "ComparisonType": "Comparison",
     "Value": "Value",
     "ValueMin": "Min",
@@ -130,5 +131,25 @@
     "CreatingCollection": "Creating new collection...",
     "WritingToDb": "Writing to collection.db...",
     "Completed": "Collection generation completed"
+  },
+  "ImportExport": {
+    "Export": "Export",
+    "Import": "Import",
+    "SelectAll": "Select All",
+    "ClearAll": "Deselect All",
+    "ExportButton": "Export",
+    "ImportButton": "Import",
+    "ReloadButton": "Reload Files",
+    "PreviewCount": "Beatmaps",
+    "KeyCount": "Keys",
+    "Title": "Title",
+    "Artist": "Artist",
+    "Version": "Difficulty",
+    "Creator": "Creator",
+    "Exists": "Exists",
+    "Status.ExportComplete": "Export complete: {0} items",
+    "Status.ExportError": "Export error: {0}",
+    "Status.ImportComplete": "Import complete",
+    "Status.ImportError": "An error occurred during import"
   }
 }

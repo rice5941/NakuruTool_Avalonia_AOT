@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
@@ -18,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public IDatabaseLoadingViewModel DatabaseLoadingViewModel { get; }
     public IMapListViewModel MapListViewModel { get; }
     public MapListPageViewModel MapListPageViewModel { get; }
+    public ImportExportPageViewModel ImportExportPageViewModel { get; }
     public ILicensesViewModel LicensesViewModel { get; }
 
     private readonly ISettingsService _settingsService;
@@ -40,6 +42,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IDatabaseLoadingViewModel databaseLoadingViewModel, 
         IMapListViewModel mapListViewModel,
         MapListPageViewModel mapListPageViewModel,
+        ImportExportPageViewModel importExportPageViewModel,
         ILicensesViewModel licensesViewModel,
         ISettingsService settingsService)
     {
@@ -47,6 +50,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DatabaseLoadingViewModel = databaseLoadingViewModel;
         MapListViewModel = mapListViewModel;
         MapListPageViewModel = mapListPageViewModel;
+        ImportExportPageViewModel = importExportPageViewModel;
         LicensesViewModel = licensesViewModel;
         _settingsService = settingsService;
 
@@ -73,8 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // データベース読み込み完了後にMapListPageViewModelを初期化
         MapListPageViewModel.Initialize();
-
-        //await Task.Delay(350);
+        ImportExportPageViewModel.Initialize();
 
         IsLoadingOverlayVisible = false;
 
@@ -100,6 +103,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await DatabaseLoadingViewModel.InitialLoadAsync();
             MapListPageViewModel.Initialize();
+            ImportExportPageViewModel.Initialize();
         }
         catch
         {

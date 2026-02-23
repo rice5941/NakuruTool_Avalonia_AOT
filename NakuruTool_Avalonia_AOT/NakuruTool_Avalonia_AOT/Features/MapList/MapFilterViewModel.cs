@@ -7,7 +7,10 @@ using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using ZLinq;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
 
@@ -37,6 +40,16 @@ public partial class MapFilterViewModel : ViewModelBase
     public Observable<Unit> FilterChanged => _filterChangedSubject;
 
     private readonly IFilterPresetService _presetService;
+    private readonly IDatabaseService _databaseService;
+
+    // Collectionフィルタ用MD5キャッシュ
+    private HashSet<string>? _collectionMd5Cache;
+    private string? _cachedCollectionName;
+
+    /// <summary>
+    /// 利用可能なコレクション名一覧
+    /// </summary>
+    public ObservableCollection<string> CollectionNames { get; } = new();
 
     [ObservableProperty]
     public partial FilterPreset? SelectedPreset { get; set; }
@@ -59,9 +72,13 @@ public partial class MapFilterViewModel : ViewModelBase
     /// </summary>
     public AvaloniaList<FilterPreset?> PresetsWithNone { get; } = new();
 
-    public MapFilterViewModel(IFilterPresetService presetService)
+    public MapFilterViewModel(IFilterPresetService presetService, IDatabaseService databaseService)
     {
         _presetService = presetService;
+        _databaseService = databaseService;
+
+        // コレクション名リストを初期化
+        RefreshCollectionNames();
 
         // プリセットリストの変更を監視して、PresetsWithNoneを更新
         UpdatePresetsWithNone();
@@ -116,12 +133,52 @@ public partial class MapFilterViewModel : ViewModelBase
         
         foreach (var condition in Conditions)
         {
-            if (!condition.Matches(beatmap))
+            if (condition.Target == FilterTarget.Collection)
+            {
+                if (!MatchesCollection(beatmap, condition.CollectionValue))
+                    return false;
+            }
+            else if (!condition.Matches(beatmap))
             {
                 return false;
             }
         }
         return true;
+    }
+
+    /// <summary>
+    /// コレクションによるフィルタリング（HashSetキャッシュでO(1)ルックアップ）
+    /// </summary>
+    private bool MatchesCollection(Beatmap beatmap, string collectionName)
+    {
+        if (string.IsNullOrEmpty(collectionName)) return true;
+
+        if (_cachedCollectionName != collectionName)
+        {
+            var col = _databaseService.OsuCollections
+                .AsValueEnumerable()
+                .FirstOrDefault(c => c.Name == collectionName);
+            _collectionMd5Cache = col != null
+                ? new HashSet<string>(col.BeatmapMd5s, StringComparer.OrdinalIgnoreCase)
+                : new HashSet<string>();
+            _cachedCollectionName = collectionName;
+        }
+        return _collectionMd5Cache!.Contains(beatmap.MD5Hash);
+    }
+
+    /// <summary>
+    /// コレクション名リストを更新
+    /// </summary>
+    public void RefreshCollectionNames()
+    {
+        CollectionNames.Clear();
+        _collectionMd5Cache = null;
+        _cachedCollectionName = null;
+
+        foreach (var col in _databaseService.OsuCollections)
+        {
+            CollectionNames.Add(col.Name);
+        }
     }
 
     private void NotifyFilterChanged()

@@ -49,7 +49,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     {
         _generateCollectionService = generateCollectionService;
 
-        FilterViewModel = new MapFilterViewModel(presetService);
+        FilterViewModel = new MapFilterViewModel(presetService, databaseService);
         ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel);
 
         // 進捗監視
@@ -75,6 +75,8 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
     public void Initialize()
     {
+        // DB読み込み完了後にコレクション名リストを更新
+        FilterViewModel.RefreshCollectionNames();
         ListViewModel.Initialize();
     }
 

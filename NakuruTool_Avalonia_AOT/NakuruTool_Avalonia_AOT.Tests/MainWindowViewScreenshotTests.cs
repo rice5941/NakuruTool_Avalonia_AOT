@@ -8,7 +8,10 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+using NakuruTool_Avalonia_AOT.Features.ImportExport;
+using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
+using System.Collections.Generic;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.MapList.Models;
@@ -45,6 +48,9 @@ public class MainWindowViewScreenshotTests
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
         var mockSettingsService = new MockSettingsService();
+        var mockDatabaseServiceA = new MockDatabaseService();
+        var mockImportExportServiceA = new MockImportExportService();
+        var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -52,6 +58,7 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
+            mockImportExportPageViewModelA,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -115,6 +122,9 @@ public class MainWindowViewScreenshotTests
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
         var mockSettingsService = new MockSettingsService();
+        var mockDatabaseServiceB = new MockDatabaseService();
+        var mockImportExportServiceB = new MockImportExportService();
+        var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -122,6 +132,7 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
+            mockImportExportPageViewModelB,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -202,6 +213,9 @@ public class MainWindowViewScreenshotTests
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
         var mockSettingsService = new MockSettingsService();
+        var mockDatabaseServiceC = new MockDatabaseService();
+        var mockImportExportServiceC = new MockImportExportService();
+        var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -209,6 +223,7 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
+            mockImportExportPageViewModelC,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -263,6 +278,9 @@ public class MainWindowViewScreenshotTests
         var mockMapListPageViewModel = new MockMapListPageViewModel();
         var mockLicensesViewModel = new MockLicensesViewModel();
         var mockSettingsService = new MockSettingsService();
+        var mockDatabaseService3 = new MockDatabaseService();
+        var mockImportExportService3 = new MockImportExportService();
+        var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -270,6 +288,7 @@ public class MainWindowViewScreenshotTests
             mockDatabaseLoadingViewModel,
             mockMapListViewModel,
             mockMapListPageViewModel,
+            mockImportExportPageViewModel3,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -619,6 +638,18 @@ public class MockMapListViewModel : IMapListViewModel
 }
 
 /// <summary>
+/// テスト用のモックImportExportService
+/// </summary>
+public class MockImportExportService : IImportExportService
+{
+    public Observable<ImportExportProgress> ProgressObservable { get; } = Observable.Empty<ImportExportProgress>();
+    public List<ImportFileItem> GetImportFiles() => [];
+    public Task<int> ExportAsync(IReadOnlyList<string> collectionNames) => Task.FromResult(0);
+    public Task<bool> ImportAsync(IReadOnlyList<string> filePaths) => Task.FromResult(true);
+    public void Dispose() { }
+}
+
+/// <summary>
 /// テスト用のモックDatabaseService
 /// </summary>
 public class MockDatabaseService : IDatabaseService
@@ -629,6 +660,7 @@ public class MockDatabaseService : IDatabaseService
     public Observable<DatabaseLoadProgress> OsuDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Observable<DatabaseLoadProgress> ScoresDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();
     public Task LoadDatabasesAsync() => Task.CompletedTask;
+    public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap) { beatmap = null; return false; }
     public void Dispose() { }
 }
 

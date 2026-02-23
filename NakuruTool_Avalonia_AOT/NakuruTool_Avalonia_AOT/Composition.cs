@@ -1,4 +1,5 @@
 ﻿using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
@@ -19,6 +20,7 @@ partial class Composition
         .Bind<MapListPageViewModel>().As(Singleton).To<MapListPageViewModel>()
         .Bind<AudioPlayerViewModel>().As(Singleton).To<AudioPlayerViewModel>()
         .Bind<ILicensesViewModel>().As(Singleton).To<LicensesViewModel>()
+        .Bind<ImportExportPageViewModel>().As(Singleton).To<ImportExportPageViewModel>()
 
         // サービスの登録
         .Bind<ISettingsService>().As(Singleton).To<SettingsService>()
@@ -26,6 +28,7 @@ partial class Composition
         .Bind<IGenerateCollectionService>().As(Singleton).To<GenerateCollectionService>()
         .Bind<IFilterPresetService>().As(Singleton).To<FilterPresetService>()
         .Bind<IAudioPlayerService>().As(Singleton).To<AudioPlayerService>()
+        .Bind<IImportExportService>().As(Singleton).To<ImportExportService>()
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします

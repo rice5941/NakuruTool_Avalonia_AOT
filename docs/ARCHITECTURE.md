@@ -15,6 +15,7 @@ osu! の beatmap コレクション編集ツール。各種データベースフ
 - **譜面一覧表示**: ページング付きリスト表示、スコアデータの統合表示
 - **高度なフィルタリング**: 最大8条件の複合フィルタ、プリセット保存/復元
 - **コレクション生成**: フィルタ結果から `collection.db` を生成・書き込み
+- **エクスポート/インポート**: コレクションを JSON 形式でファイルに書き出し・読み込み
 - **オーディオプレビュー**: 譜面選択時に音声を自動再生（Rust ネイティブライブラリ）
 - **多言語対応**: 日本語/英語の動的切り替え
 - **テーマ切替**: ダーク/ライトテーマ
@@ -63,6 +64,8 @@ osu! の beatmap コレクション編集ツール。各種データベースフ
 ```
 Features/
 ├── AudioPlayer/       # オーディオ再生（Rust FFI連携）
+├── ImportExport/      # コレクションJSON形式エクスポート/インポート
+│   └── Models/        #   CollectionExchangeData, ExportCollectionItem, ImportFileItem, ImportExportBeatmapItem
 ├── Licenses/          # ライセンス表示画面
 ├── MainWindow/        # メインウィンドウ（タブナビゲーション、読み込みオーバーレイ）
 ├── MapList/           # 譜面一覧・フィルタ・コレクション生成
@@ -103,6 +106,7 @@ requirement/           # 要件定義
 | `MapListPageView` | `MapListPageViewModel` |
 | `MapListView` | `MapListViewModel` |
 | `MapFilterView` | `MapFilterViewModel` |
+| `ImportExportPageView` | `ImportExportPageViewModel` |
 | `SettingsPage` | `SettingsViewModel` |
 | `LicensesPage` | `LicensesViewModel` |
 
@@ -132,6 +136,7 @@ requirement/           # 要件定義
 - `MapListPageViewModel`
 - `AudioPlayerViewModel`
 - `ILicensesViewModel` → `LicensesViewModel`
+- `ImportExportPageViewModel`
 
 **Service（全て Singleton）**
 
@@ -140,6 +145,7 @@ requirement/           # 要件定義
 - `IGenerateCollectionService` → `GenerateCollectionService`
 - `IFilterPresetService` → `FilterPresetService`
 - `IAudioPlayerService` → `AudioPlayerService`
+- `IImportExportService` → `ImportExportService`
 
 **Root（エントリポイント）**
 
@@ -190,10 +196,13 @@ graph TD
     MW[MainWindow] --> Settings
     MW --> OsuDatabase
     MW --> MapList
+    MW --> ImportExport
     MW --> Licenses
     MapList --> OsuDatabase
     MapList --> AudioPlayer
     MapList --> Shared
+    ImportExport --> OsuDatabase
+    ImportExport --> Translate
     AudioPlayer --> Settings
     AudioPlayer --> NativeLib["nakuru_audio (Rust)"]
     OsuDatabase --> Settings
@@ -201,8 +210,10 @@ graph TD
     Translate -.->|参照| MW
     Translate -.->|参照| MapList
     Translate -.->|参照| OsuDatabase
+    Translate -.->|参照| ImportExport
     Shared -.->|参照| MW
     Shared -.->|参照| MapList
+    Shared -.->|参照| ImportExport
 ```
 
 ---

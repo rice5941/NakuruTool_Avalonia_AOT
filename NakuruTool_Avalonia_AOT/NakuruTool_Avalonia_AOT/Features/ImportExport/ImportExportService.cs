@@ -72,11 +72,11 @@ public class ImportExportService : IImportExportService
                     continue;
 
                 var data = BuildExchangeData(collection);
-                var json = JsonSerializer.Serialize(data, ImportExportJsonContext.Default.CollectionExchangeData);
 
                 var fileName = SanitizeFileName(name) + ".json";
                 var filePath = Path.Combine(ExportsFolder, fileName);
-                await File.WriteAllTextAsync(filePath, json);
+                await using var stream = File.Create(filePath);
+                await JsonSerializer.SerializeAsync(stream, data, ImportExportJsonContext.Default.CollectionExchangeData);
                 succeeded++;
             }
             catch (Exception ex)
@@ -123,8 +123,8 @@ public class ImportExportService : IImportExportService
         {
             try
             {
-                var json = File.ReadAllText(filePath);
-                var data = JsonSerializer.Deserialize(json, ImportExportJsonContext.Default.CollectionExchangeData);
+                using var stream = File.OpenRead(filePath);
+                var data = JsonSerializer.Deserialize(stream, ImportExportJsonContext.Default.CollectionExchangeData);
                 if (data is null) continue;
 
                 result.Add(new ImportFileItem
@@ -176,8 +176,8 @@ public class ImportExportService : IImportExportService
 
             try
             {
-                var json = await File.ReadAllTextAsync(filePath);
-                var data = JsonSerializer.Deserialize(json, ImportExportJsonContext.Default.CollectionExchangeData);
+                await using var stream = File.OpenRead(filePath);
+                var data = await JsonSerializer.DeserializeAsync(stream, ImportExportJsonContext.Default.CollectionExchangeData);
                 if (data is null)
                 {
                     allSuccess = false;

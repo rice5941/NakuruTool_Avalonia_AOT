@@ -304,7 +304,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         }
 
         /// <summary>
-        /// MD5ハッシュでインデックスを取得（辞書優先、無い場合は二分探索）
+        /// MD5ハッシュでインデックスを取得（辞書検索）
         /// </summary>
         private bool TryGetBeatmapIndex(string md5Hash, out int index)
         {
@@ -314,12 +314,13 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 return false;
             }
 
-            if (_beatmapIndex != null && _beatmapIndex.TryGetValue(md5Hash, out index))
+            if (_beatmapIndex == null)
             {
-                return true;
+                return false;
             }
 
-            return index >= 0;
+            // TryGetValue失敗時はout indexが0に上書きされるため、戻り値をそのまま返す
+            return _beatmapIndex.TryGetValue(md5Hash, out index);
         }
 
         /// <summary>

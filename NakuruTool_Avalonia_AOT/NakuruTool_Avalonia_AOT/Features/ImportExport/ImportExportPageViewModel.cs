@@ -12,12 +12,10 @@ namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 /// </summary>
 public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
 {
-    // ── 子VM（get-only, DI不要・手動生成）────────────────────────────
     public ExportViewModel ExportViewModel { get; }
     public ImportViewModel ImportViewModel { get; }
     public ImportExportBeatmapListViewModel BeatmapListViewModel { get; }
 
-    // ── 親VMが管理するプロパティ ──────────────────────────────────────
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = " ";
 
@@ -36,12 +34,11 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
     {
         _importExportService = importExportService;
 
-        // 子VMを手動生成（MapListパターン準拠）
         ExportViewModel = new ExportViewModel(databaseService, importExportService);
         ImportViewModel = new ImportViewModel(databaseService, importExportService);
         BeatmapListViewModel = new ImportExportBeatmapListViewModel();
 
-        // (1) Service進捗監視
+        // Service進捗監視
         _importExportService.ProgressObservable
             .Subscribe(progress =>
             {
@@ -50,32 +47,32 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
             })
             .AddTo(Disposables);
 
-        // (2) Export: プレビューリクエスト
+        // Export: プレビューリクエスト
         ExportViewModel.PreviewRequested
             .Subscribe(rows => BeatmapListViewModel.SetPreviewRows(rows, isImport: false))
             .AddTo(Disposables);
 
-        // (3) Import: プレビューリクエスト
+        // Import: プレビューリクエスト
         ImportViewModel.PreviewRequested
             .Subscribe(rows => BeatmapListViewModel.SetPreviewRows(rows, isImport: true))
             .AddTo(Disposables);
 
-        // (4) Export: 結果メッセージ
+        // Export: 結果メッセージ
         ExportViewModel.StatusMessageRequested
             .Subscribe(msg => StatusMessage = msg)
             .AddTo(Disposables);
 
-        // (5) Import: 結果メッセージ
+        // Import: 結果メッセージ
         ImportViewModel.StatusMessageRequested
             .Subscribe(msg => StatusMessage = msg)
             .AddTo(Disposables);
 
-        // (6) Import成功後の再初期化
+        // Import成功後の再初期化
         ImportViewModel.ImportCompleted
             .Subscribe(_ => Initialize())
             .AddTo(Disposables);
 
-        // (7) IsProcessing統合＋子VMへの逆流（Merge方式）
+        // IsProcessing統合＋子VMへの逆流（Merge方式）
         ExportViewModel.ObserveProperty(nameof(ExportViewModel.IsProcessing))
             .Merge(ImportViewModel.ObserveProperty(nameof(ImportViewModel.IsProcessing)))
             .Subscribe(_ =>
@@ -86,7 +83,7 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
             })
             .AddTo(Disposables);
 
-        // (8) 排他選択: Export選択時にImport選択をクリア
+        // 排他選択: Export選択時にImport選択をクリア
         ExportViewModel.ObserveProperty(nameof(ExportViewModel.SelectedExportCollection))
             .Subscribe(_ =>
             {
@@ -95,7 +92,7 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
             })
             .AddTo(Disposables);
 
-        // (9) 排他選択: Import選択時にExport選択をクリア
+        // 排他選択: Import選択時にExport選択をクリア
         ImportViewModel.ObserveProperty(nameof(ImportViewModel.SelectedImportFile))
             .Subscribe(_ =>
             {

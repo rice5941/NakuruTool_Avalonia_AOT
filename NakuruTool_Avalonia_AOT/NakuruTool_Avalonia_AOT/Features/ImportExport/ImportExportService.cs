@@ -109,8 +109,6 @@ public class ImportExportService : IImportExportService
         return data;
     }
 
-    // ─────────────────────────── インポート ───────────────────────────
-
     /// <summary>
     /// imports/ フォルダの JSON ファイル一覧を取得（パース済み）
     /// </summary>
@@ -235,8 +233,6 @@ public class ImportExportService : IImportExportService
 
         return md5s.ToArray();
     }
-
-    // ─────────────────────────── ユーティリティ ───────────────────────────
 
     private void NotifyProgress(string message, int value)
     {

@@ -77,8 +77,9 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
     {
         if (value is null)
         {
-            // 選択解除時はプレビューをクリア（排他選択対応）
-            _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+            // null化は排他選択またはReloadで発生する。
+            // Reloadは明示的に空配列をSubject発行するため、ここでは何もしない。
+            // 排他選択時にプレビューを発行すると、反対側のプレビューを上書きしてしまう。
             return;
         }
         var rows = BuildPreviewRows(value);

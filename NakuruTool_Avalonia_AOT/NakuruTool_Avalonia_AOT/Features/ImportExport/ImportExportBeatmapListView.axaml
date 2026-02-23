@@ -116,7 +116,7 @@
             <DataGrid.Columns>
 
                 <!-- キー数 -->
-                <DataGridTemplateColumn Width="60">
+                <DataGridTemplateColumn Width="80">
                     <DataGridTemplateColumn.Header>
                         <TextBlock Text="{translate:Translate 'ImportExport.KeyCount'}"/>
                     </DataGridTemplateColumn.Header>
@@ -169,7 +169,7 @@
                 </DataGridTemplateColumn>
 
                 <!-- Exists（最終列: Importプレビュー時のみ表示） -->
-                <DataGridTemplateColumn Width="70">
+                <DataGridTemplateColumn Width="80">
                     <DataGridTemplateColumn.Header>
                         <TextBlock Text="{translate:Translate 'ImportExport.Exists'}"
                                    HorizontalAlignment="Center"/>

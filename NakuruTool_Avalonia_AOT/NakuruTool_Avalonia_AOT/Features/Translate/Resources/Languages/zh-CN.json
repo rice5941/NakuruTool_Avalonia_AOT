@@ -18,7 +18,8 @@
     "PleaseChooseOsuPath": "请选择 osu!.exe。",
     "ErrorOsuPathGetFailed": "无法获取本地路径。",
     "ErrorOsuPathEmpty": "文件夹路径为空。",
-    "AutoPlayOnSelect": "选择时自动播放"
+    "AutoPlayOnSelect": "选择时自动播放",
+    "AppVersion": "版本"
   },
   "Licenses": {
     "Title": "开源许可",

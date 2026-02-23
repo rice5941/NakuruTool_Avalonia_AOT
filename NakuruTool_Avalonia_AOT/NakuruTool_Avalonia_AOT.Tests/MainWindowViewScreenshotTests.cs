@@ -498,6 +498,7 @@ public class MockSettingsViewModel : ISettingsViewModel
     public string OsuPathErrorMessage { get; set; } = string.Empty;
     public bool HasOsuPathError { get; set; } = false;
     public bool AutoPlayOnSelect { get; set; } = true;
+    public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
 }

@@ -8,6 +8,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using Semi.Avalonia;
 using System;
+using System.Reflection;
 
 namespace NakuruTool_Avalonia_AOT.Features.Settings;
 
@@ -19,11 +20,17 @@ public interface ISettingsViewModel : IDisposable
     string OsuPathErrorMessage { get; }
     bool HasOsuPathError { get; }
     bool AutoPlayOnSelect { get; set; }
+    string AppVersion { get; }
 }
 
 public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
 {
     public IAvaloniaReadOnlyList<string> LanguageKeys { get; } = new AvaloniaList<string>(LanguageService.Instance.AvailableLanguages);
+
+    public string AppVersion { get; } =
+        typeof(SettingsViewModel).Assembly.GetName().Version is { } v
+            ? $"{v.Major}.{v.Minor}.{v.Build}"
+            : "unknown";
 
     [ObservableProperty]
     public partial string SelectedLanguageKey { get; set; }

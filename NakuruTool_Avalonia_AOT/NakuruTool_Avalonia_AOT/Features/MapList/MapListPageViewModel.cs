@@ -61,6 +61,11 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
             })
             .AddTo(Disposables);
 
+        // フィルタ後件数が変化したときにAddToCollectionCommandの有効/無効を更新
+        ListViewModel.ObserveProperty(nameof(ListViewModel.FilteredCount))
+            .Subscribe(_ => AddToCollectionCommand.NotifyCanExecuteChanged())
+            .AddTo(Disposables);
+
         // プリセット選択時にコレクション名を反映
         FilterViewModel.ObserveProperty(nameof(FilterViewModel.SelectedPreset))
             .Subscribe(_ =>
@@ -80,7 +85,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         ListViewModel.Initialize();
     }
 
-    private bool CanAddToCollection() => !IsGenerating && !string.IsNullOrWhiteSpace(CollectionName);
+    private bool CanAddToCollection() => !IsGenerating && !string.IsNullOrWhiteSpace(CollectionName) && ListViewModel.FilteredCount > 0;
 
     [RelayCommand(CanExecute = nameof(CanAddToCollection))]
     private async Task AddToCollectionAsync()

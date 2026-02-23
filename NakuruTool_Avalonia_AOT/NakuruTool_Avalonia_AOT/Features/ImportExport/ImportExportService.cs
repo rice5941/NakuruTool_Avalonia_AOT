@@ -117,9 +117,9 @@ public class ImportExportService : IImportExportService
         EnsureDirectory(ImportsFolder);
 
         var result = new List<ImportFileItem>();
-        var files = Directory.GetFiles(ImportsFolder, "*.json");
 
-        foreach (var filePath in files)
+        // JSON ファイル
+        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.json"))
         {
             try
             {
@@ -127,14 +127,24 @@ public class ImportExportService : IImportExportService
                 var data = JsonSerializer.Deserialize(stream, ImportExportJsonContext.Default.CollectionExchangeData);
                 if (data is null) continue;
 
-                result.Add(new ImportFileItem
-                {
-                    FilePath = filePath,
-                    DisplayName = Path.GetFileNameWithoutExtension(filePath),
-                    CollectionName = data.Name,
-                    BeatmapCount = data.Beatmaps.Count,
-                    ParsedData = data
-                });
+                result.Add(CreateImportFileItem(filePath, data));
+            }
+            catch
+            {
+                // パース失敗のファイルはスキップ
+            }
+        }
+
+        // XML ファイル（OsuCollection エクスポーター形式）
+        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.xml"))
+        {
+            try
+            {
+                using var stream = File.OpenRead(filePath);
+                var data = OsuCollectionXmlParser.Parse(stream);
+                if (data is null) continue;
+
+                result.Add(CreateImportFileItem(filePath, data));
             }
             catch
             {
@@ -144,6 +154,16 @@ public class ImportExportService : IImportExportService
 
         return result;
     }
+
+    /// <summary>パース済みデータから ImportFileItem を生成する共通ヘルパー</summary>
+    private static ImportFileItem CreateImportFileItem(string filePath, CollectionExchangeData data) => new()
+    {
+        FilePath = filePath,
+        DisplayName = Path.GetFileNameWithoutExtension(filePath),
+        CollectionName = data.Name,
+        BeatmapCount = data.Beatmaps.Count,
+        ParsedData = data
+    };
 
     /// <summary>
     /// 指定パスの JSON ファイルをインポートし、collection.db に反映する。
@@ -176,8 +196,19 @@ public class ImportExportService : IImportExportService
 
             try
             {
-                await using var stream = File.OpenRead(filePath);
-                var data = await JsonSerializer.DeserializeAsync(stream, ImportExportJsonContext.Default.CollectionExchangeData);
+                CollectionExchangeData? data;
+                var extension = Path.GetExtension(filePath);
+                if (string.Equals(extension, ".xml", StringComparison.OrdinalIgnoreCase))
+                {
+                    using var stream = File.OpenRead(filePath);
+                    data = OsuCollectionXmlParser.Parse(stream);
+                }
+                else
+                {
+                    await using var stream = File.OpenRead(filePath);
+                    data = await JsonSerializer.DeserializeAsync(stream, ImportExportJsonContext.Default.CollectionExchangeData);
+                }
+
                 if (data is null)
                 {
                     allSuccess = false;

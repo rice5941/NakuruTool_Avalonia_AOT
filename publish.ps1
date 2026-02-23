@@ -14,7 +14,7 @@ if (Test-Path $vsWherePath) {
 
 # プロジェクトディレクトリに移動
 $projectDir = Join-Path $PSScriptRoot "NakuruTool_Avalonia_AOT\NakuruTool_Avalonia_AOT"
-Set-Location $projectDir
+Push-Location $projectDir
 
 Write-Host "Publishing NakuruTool with NativeAOT..." -ForegroundColor Cyan
 
@@ -39,7 +39,19 @@ if ($LASTEXITCODE -eq 0) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
+
+    # pdbファイルを削除
+    $pdbFiles = @(Get-ChildItem -Path $publishDir -Recurse -Filter "*.pdb" -ErrorAction SilentlyContinue)
+    if ($pdbFiles.Count -gt 0) {
+        $pdbFiles | Remove-Item -Force
+        Write-Host "  Removed $($pdbFiles.Count) .pdb file(s)" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  No .pdb files found" -ForegroundColor DarkGray
+    }
 } else {
     Write-Host "`nPublish failed with exit code $LASTEXITCODE" -ForegroundColor Red
+    Pop-Location
     exit $LASTEXITCODE
 }
+
+Pop-Location

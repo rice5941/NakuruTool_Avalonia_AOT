@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
@@ -67,12 +68,13 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         IDatabaseService databaseService,
         IGenerateCollectionService generateCollectionService,
         IFilterPresetService presetService,
-        AudioPlayerViewModel audioPlayerViewModel)
+        AudioPlayerViewModel audioPlayerViewModel,
+        ISettingsService settingsService)
     {
         _generateCollectionService = generateCollectionService;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
-        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel);
+        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, settingsService);
         PresetEditorViewModel = new PresetEditorViewModel(presetService, databaseService, generateCollectionService);
 
         // MapFilterViewModelにToggle命令を中継するコマンドを注入

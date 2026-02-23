@@ -9,14 +9,16 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         string OsuFolderPath { get; set; }
         string LanguageKey { get; set; }
         int AudioVolume { get; set; }
+        bool AutoPlayOnSelect { get; set; }
     }
 
     public partial class SettingsData : ObservableObject, ISettingsData
     {
-        // JsonƒVƒŠƒAƒ‰ƒCƒYg—p‚Í[ObservableProperty]g—p•s‰Â
+        // Jsonã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºä½¿ç”¨æ™‚ã¯[ObservableProperty]ä½¿ç”¨ä¸å¯
         private string _osuFolderPath = string.Empty;
         private string _languageKey = "ja-JP";
         private int _audioVolume = 50;
+        private bool _autoPlayOnSelect = true;
 
         public string OsuFolderPath
         {
@@ -36,16 +38,23 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             set => SetProperty(ref _audioVolume, value);
         }
 
+        public bool AutoPlayOnSelect
+        {
+            get => _autoPlayOnSelect;
+            set => SetProperty(ref _autoPlayOnSelect, value);
+        }
+
         public void Update(SettingsData newData)
         {
             OsuFolderPath = newData.OsuFolderPath;
             LanguageKey = newData.LanguageKey;
             AudioVolume = newData.AudioVolume;
+            AutoPlayOnSelect = newData.AutoPlayOnSelect;
         }
     }
 
     /// <summary>
-    /// NativeAOT‘Î‰‚Ì‚½‚ß‚ÌJSON Source GeneratorƒRƒ“ƒeƒLƒXƒg
+    /// NativeAOTå¯¾å¿œã®ãŸã‚ã®JSON Source Generatorã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ
     /// </summary>
     [JsonSourceGenerationOptions(
         WriteIndented = true,

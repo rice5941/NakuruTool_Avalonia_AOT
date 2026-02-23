@@ -17,7 +17,8 @@
     "ChooseOsuPath": "osu!.exeを選択",
     "PleaseChooseOsuPath": "osu!.exeを選択してください。",
     "ErrorOsuPathGetFailed": "ローカルパスを取得できませんでした。",
-    "ErrorOsuPathEmpty": "フォルダパスが空です。"
+    "ErrorOsuPathEmpty": "フォルダパスが空です。",
+    "AutoPlayOnSelect": "選択時自動再生"
   },
   "Licenses": {
     "Title": "オープンソースライセンス",

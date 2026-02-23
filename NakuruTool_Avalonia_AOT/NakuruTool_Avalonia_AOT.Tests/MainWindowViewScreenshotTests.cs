@@ -497,6 +497,7 @@ public class MockSettingsViewModel : ISettingsViewModel
     public string SelectedFolderPath { get; set; } = @"C:\osu!";
     public string OsuPathErrorMessage { get; set; } = string.Empty;
     public bool HasOsuPathError { get; set; } = false;
+    public bool AutoPlayOnSelect { get; set; } = true;
 
     public void Dispose() { }
 }
@@ -554,7 +555,8 @@ public class MockMapListPageViewModel : MapListPageViewModel
         new MockDatabaseService(),
         new MockGenerateCollectionService(),
         new MockFilterPresetService(),
-        new MockAudioPlayerViewModel())
+        new MockAudioPlayerViewModel(),
+        new MockSettingsService())
     {
     }
 }
@@ -712,6 +714,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public string OsuFolderPath { get; set; } = @"C:\osu!";
     public string LanguageKey { get; set; } = "ja-JP";
     public int AudioVolume { get; set; } = 50;
+    public bool AutoPlayOnSelect { get; set; } = true;
 }
 
 /// <summary>

@@ -57,5 +57,11 @@
 				</Button>
             </HeaderedContentControl>
 
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.AutoPlayOnSelect'}">
+            <ToggleSwitch IsChecked="{Binding AutoPlayOnSelect}" />
+        </HeaderedContentControl>
+
     </WrapPanel>
 </UserControl>

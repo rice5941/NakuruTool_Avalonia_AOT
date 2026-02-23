@@ -17,7 +17,8 @@
     "ChooseOsuPath": "Select osu!.exe",
     "PleaseChooseOsuPath": "Please select osu!.exe.",
     "ErrorOsuPathGetFailed": "Could not get local path.",
-    "ErrorOsuPathEmpty": "Folder path is empty."
+    "ErrorOsuPathEmpty": "Folder path is empty.",
+    "AutoPlayOnSelect": "Auto Play on Select"
   },
   "Licenses": {
     "Title": "Open Source Licenses",

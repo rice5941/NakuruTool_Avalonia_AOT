@@ -18,6 +18,7 @@ public interface ISettingsViewModel : IDisposable
     string SelectedFolderPath { get; }
     string OsuPathErrorMessage { get; }
     bool HasOsuPathError { get; }
+    bool AutoPlayOnSelect { get; set; }
 }
 
 public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
@@ -56,6 +57,17 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
     [ObservableProperty]
     public partial bool HasOsuPathError { get; set; } = false;
 
+    [ObservableProperty]
+    public partial bool AutoPlayOnSelect { get; set; } = true;
+
+    partial void OnAutoPlayOnSelectChanged(bool value)
+    {
+        if (_isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private readonly IDatabaseService _databaseService;
     private bool _isInitialized = false;
@@ -68,6 +80,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         var settingsData = settingsService.SettingsData;
         SelectedLanguageKey = settingsData.LanguageKey;
         SelectedFolderPath = settingsData.OsuFolderPath;
+        AutoPlayOnSelect = settingsData.AutoPlayOnSelect;
 
         UpdateOsuPathErrorMessage();
 
@@ -81,7 +94,8 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             LanguageKey = SelectedLanguageKey,
             OsuFolderPath = SelectedFolderPath,
             // AudioVolumeはAudioPlayerViewModelが管理するため、現在の設定値を引き継ぐ
-            AudioVolume = _settingsService.SettingsData.AudioVolume
+            AudioVolume = _settingsService.SettingsData.AudioVolume,
+            AutoPlayOnSelect = AutoPlayOnSelect
         };
 
         _settingsService.SaveSettings(settingData);

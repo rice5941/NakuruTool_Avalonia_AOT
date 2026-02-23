@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
@@ -62,6 +63,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     private IDatabaseService _databaseService;
     private MapFilterViewModel _filterViewModel;
+    private readonly ISettingsService _settingsService;
 
     private const int DefaultPageSize = 20;
 
@@ -73,11 +75,13 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     public MapListViewModel(
         IDatabaseService databaseService,
         MapFilterViewModel filterViewModel,
-        AudioPlayerViewModel audioPlayerViewModel)
+        AudioPlayerViewModel audioPlayerViewModel,
+        ISettingsService settingsService)
     {
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;
         AudioPlayer = audioPlayerViewModel;
+        _settingsService = settingsService;
 
         ShowBeatmaps = _showBeatmapsList;
 
@@ -85,9 +89,15 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
             .Subscribe(_ => ApplyFilter())
             .AddTo(Disposables);
 
-        // 譜面選択時にオーディオを再生
+        // 譜面選択時にオーディオを再生（設定でONの場合のみ）
         this.ObserveProperty(nameof(SelectedBeatmap))
-            .Subscribe(_ => AudioPlayer.PlayBeatmapAudio(SelectedBeatmap))
+            .Subscribe(_ =>
+            {
+                if (_settingsService.SettingsData.AutoPlayOnSelect)
+                {
+                    AudioPlayer.PlayBeatmapAudio(SelectedBeatmap);
+                }
+            })
             .AddTo(Disposables);
     }
 

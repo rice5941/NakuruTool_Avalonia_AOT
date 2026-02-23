@@ -89,7 +89,11 @@
     "EnterCollectionName": "Enter collection name",
     "GenerationSuccess": "Created '{0}' ({1} maps)",
     "GenerationFailed": "Failed to create collection",
-    "NoFilteredMaps": "No filtered maps"
+    "NoFilteredMaps": "No filtered maps",
+    "ConfirmLargeCollectionTitle": "Large Collection Confirmation",
+    "ConfirmLargeCollectionMessage": "There are {0:N0} filtered maps.\nDo you want to generate the collection?",
+    "ConfirmOk": "Generate",
+    "ConfirmCancel": "Cancel"
   },
   "Loading": {
     "Start": "Loading db files",

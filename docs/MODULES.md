@@ -92,13 +92,16 @@
 | `GenerationStatusMessage` | `string` | 生成進捗/結果メッセージ |
 | `GenerationProgressValue` | `int` | 生成進捗値（0–100） |
 | `IsGenerating` | `bool` | 生成中フラグ |
+| `IsLargeCollectionConfirmVisible` | `bool` | 大量件数確認オーバーレイの表示制御 |
+| `LargeCollectionConfirmMessage` | `string` | 確認メッセージ（フィルタ後件数を含む動的テキスト） |
 
 #### 主要挙動
 
 1. **`Initialize()`** — `ListViewModel.Initialize()` を呼び出し、全譜面のフィルタ適用と表示を初期化
-2. **`AddToCollectionAsync()`** — `IGenerateCollectionService.GenerateCollection()` でcollection.dbに書き込み。成功時は `SavePresetIfNeeded()` でプリセットを自動保存
-3. **プリセット選択時のコレクション名反映** — `FilterViewModel.SelectedPreset` の変更をR3で監視し、`CollectionName` に反映
-4. **進捗監視** — `IGenerateCollectionService.GenerationProgressObservable` をR3で購読し、UI更新
+2. **`AddToCollectionAsync()`** — フィルタ後件数が 10,000件を超える場合はインラインオーバーレイ（`IsLargeCollectionConfirmVisible`）を表示してユーザの確認を待つ。確認後に `ExecuteAddToCollectionAsync()` を実行し `IGenerateCollectionService.GenerateCollection()` でcollection.dbに書き込み。成功時は `SavePresetIfNeeded()` でプリセットを自動保存
+3. **大量件数確認コマンド** — `ConfirmLargeCollectionCommand`（生成を続行）と `CancelLargeCollectionCommand`（キャンセル）でユーザの判断を受け付ける
+4. **プリセット選択時のコレクション名反映** — `FilterViewModel.SelectedPreset` の変更をR3で監視し、`CollectionName` に反映
+5. **進捗監視** — `IGenerateCollectionService.GenerationProgressObservable` をR3で購読し、UI更新
 
 ---
 

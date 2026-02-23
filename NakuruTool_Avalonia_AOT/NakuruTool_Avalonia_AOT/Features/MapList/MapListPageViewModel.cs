@@ -18,6 +18,11 @@ namespace NakuruTool_Avalonia_AOT.Features.MapList;
 /// </summary>
 public partial class MapListPageViewModel : ViewModelBase, IDisposable
 {
+    /// <summary>
+    /// 確認ダイアログを表示する閾値
+    /// </summary>
+    private const int LargeCollectionThreshold = 10_000;
+
     [ObservableProperty]
     public partial MapFilterViewModel FilterViewModel { get; set; }
 
@@ -37,6 +42,17 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool IsGenerating { get; set; } = false;
     partial void OnIsGeneratingChanged(bool value) => AddToCollectionCommand.NotifyCanExecuteChanged();
+
+    [ObservableProperty]
+    public partial bool IsLargeCollectionConfirmVisible { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string LargeCollectionConfirmMessage { get; set; } = string.Empty;
+
+    partial void OnIsLargeCollectionConfirmVisibleChanged(bool value)
+    {
+        AddToCollectionCommand.NotifyCanExecuteChanged();
+    }
 
     private readonly IGenerateCollectionService _generateCollectionService;
     private bool _disposed;
@@ -85,13 +101,55 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         ListViewModel.Initialize();
     }
 
-    private bool CanAddToCollection() => !IsGenerating && !string.IsNullOrWhiteSpace(CollectionName) && ListViewModel.FilteredCount > 0;
+    private bool CanAddToCollection() =>
+        !IsGenerating
+        && !IsLargeCollectionConfirmVisible
+        && !string.IsNullOrWhiteSpace(CollectionName)
+        && ListViewModel.FilteredCount > 0;
 
     [RelayCommand(CanExecute = nameof(CanAddToCollection))]
     private async Task AddToCollectionAsync()
     {
-        await UpdateIsGeneratingAsync(true);
+        var filteredCount = ListViewModel.FilteredCount;
+
+        if (filteredCount > LargeCollectionThreshold)
+        {
+            LargeCollectionConfirmMessage = string.Format(
+                LanguageService.Instance.GetString("Collection.ConfirmLargeCollectionMessage"),
+                filteredCount);
+            IsLargeCollectionConfirmVisible = true;
+            return;
+        }
+
+        await ExecuteAddToCollectionAsync();
+    }
+
+    [RelayCommand]
+    private async Task ConfirmLargeCollectionAsync()
+    {
+        IsLargeCollectionConfirmVisible = false;
+        await ExecuteAddToCollectionAsync();
+    }
+
+    [RelayCommand]
+    private void CancelLargeCollection()
+    {
+        IsLargeCollectionConfirmVisible = false;
+    }
+
+    /// <summary>
+    /// コレクション生成の実処理（確認済み前提）
+    /// </summary>
+    private async Task ExecuteAddToCollectionAsync()
+    {
+        // 確認ダイアログ表示中にフィルタが変動した場合のガード
         var filteredBeatmaps = ListViewModel.FilteredBeatmapsArray;
+        if (filteredBeatmaps.Length == 0)
+        {
+            return;
+        }
+
+        await UpdateIsGeneratingAsync(true);
 
         try
         {

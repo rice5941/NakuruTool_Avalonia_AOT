@@ -25,6 +25,7 @@
         </Style>
     </UserControl.Styles>
 
+    <Panel>
     <Grid RowDefinitions="*,Auto" ColumnDefinitions="320,*">
         <!-- 左側: フィルタパネル -->
         <MapList:MapFilterView Grid.Row="0" Grid.Column="0"
@@ -71,9 +72,44 @@
         </Border>
 
         <!-- 右側: 譜面リスト -->
-        <MapList:MapListView Grid.Column="1" Grid.RowSpan="3"
+        <MapList:MapListView Grid.Column="1" Grid.RowSpan="2"
                              DataContext="{Binding ListViewModel}"
                              Margin="8,0,0,0"/>
     </Grid>
+
+    <!-- 大量件数確認オーバーレイ -->
+    <Border IsVisible="{Binding IsLargeCollectionConfirmVisible}"
+            Background="#80000000"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Theme="{DynamicResource CardBorder}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MinWidth="400" MaxWidth="500" Padding="24">
+            <StackPanel Spacing="16">
+                <!-- 警告アイコン + タイトル -->
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                    <mi:MaterialIcon Kind="AlertCircleOutline" Width="24" Height="24"
+                                     Foreground="#E6A700"/>
+                    <TextBlock Text="{translate:Translate 'Collection.ConfirmLargeCollectionTitle'}"
+                               FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 確認メッセージ（件数を含む動的テキスト） -->
+                <TextBlock Text="{Binding LargeCollectionConfirmMessage}"
+                           TextWrapping="Wrap" TextAlignment="Center"/>
+
+                <!-- OK / キャンセル ボタン -->
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                    <Button Command="{Binding ConfirmLargeCollectionCommand}"
+                            Content="{translate:Translate 'Collection.ConfirmOk'}"
+                            Theme="{StaticResource SolidButton}"
+                            MinWidth="100"/>
+                    <Button Command="{Binding CancelLargeCollectionCommand}"
+                            Content="{translate:Translate 'Collection.ConfirmCancel'}"
+                            MinWidth="100"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Border>
+    </Panel>
 
 </UserControl>

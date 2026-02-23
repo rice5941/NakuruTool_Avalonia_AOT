@@ -89,7 +89,11 @@
     "EnterCollectionName": "コレクション名を入力してください",
     "GenerationSuccess": "'{0}' を作成（{1} map）",
     "GenerationFailed": "コレクションの作成に失敗しました",
-    "NoFilteredMaps": "絞り込まれたmapがありません"
+    "NoFilteredMaps": "絞り込まれたmapがありません",
+    "ConfirmLargeCollectionTitle": "件数確認",
+    "ConfirmLargeCollectionMessage": "フィルタ後のmapが {0:N0} 件あります。\nコレクションを生成しますか？",
+    "ConfirmOk": "生成する",
+    "ConfirmCancel": "キャンセル"
   },
   "Loading": {
     "Start": "dbファイル読み込み",

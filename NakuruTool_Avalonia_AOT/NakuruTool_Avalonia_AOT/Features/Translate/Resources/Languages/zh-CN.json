@@ -89,7 +89,11 @@
     "EnterCollectionName": "请输入收藏夹名称",
     "GenerationSuccess": "已创建 '{0}' ({1} map)",
     "GenerationFailed": "收藏夹创建失败",
-    "NoFilteredMaps": "没有筛选出的map"
+    "NoFilteredMaps": "没有筛选出的map",
+    "ConfirmLargeCollectionTitle": "数量确认",
+    "ConfirmLargeCollectionMessage": "筛选后共有 {0:N0} 个map。\n确定要生成收藏夹吗？",
+    "ConfirmOk": "生成",
+    "ConfirmCancel": "取消"
   },
   "Loading": {
     "Start": "正在读取 db 文件",

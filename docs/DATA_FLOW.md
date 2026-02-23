@@ -212,7 +212,27 @@ sequenceDiagram
     participant FPS as FilterPresetService
 
     User->>MLPVM: AddToCollectionCommand
+    MLPVM->>MLPVM: AddToCollectionAsync()
+
+    alt FilteredCount > 10,000
+        MLPVM->>MLPVM: LargeCollectionConfirmMessage = "X件のBeatmapが対象です"
+        MLPVM->>MLPVM: IsLargeCollectionConfirmVisible = true
+        Note over MLPVM: インラインオーバーレイ表示<br/>ユーザーの操作を待機
+        alt ユーザーが「生成する」を選択
+            User->>MLPVM: ConfirmLargeCollectionCommand
+            MLPVM->>MLPVM: IsLargeCollectionConfirmVisible = false
+            MLPVM->>MLPVM: ExecuteAddToCollectionAsync()
+        else ユーザーが「キャンセル」を選択
+            User->>MLPVM: CancelLargeCollectionCommand
+            MLPVM->>MLPVM: IsLargeCollectionConfirmVisible = false
+            Note over MLPVM: 何もしない
+        end
+    else FilteredCount <= 10,000
+        MLPVM->>MLPVM: ExecuteAddToCollectionAsync()
+    end
+
     MLPVM->>MLPVM: IsGenerating = true
+    Note over MLPVM: FilteredBeatmapsArray を再取得し<br/>0件でないことを確認
 
     MLPVM->>GCS: GenerateCollection(CollectionName, FilteredBeatmaps)
     GCS->>GCS: 進捗通知: "既存コレクション読み込み中"

@@ -711,6 +711,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
 {
     public string OsuFolderPath { get; set; } = @"C:\osu!";
     public string LanguageKey { get; set; } = "ja-JP";
+    public int AudioVolume { get; set; } = 50;
 }
 
 /// <summary>

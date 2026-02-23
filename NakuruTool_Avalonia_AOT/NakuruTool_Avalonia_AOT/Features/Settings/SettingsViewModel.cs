@@ -79,7 +79,9 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         var settingData = new SettingsData
         {
             LanguageKey = SelectedLanguageKey,
-            OsuFolderPath = SelectedFolderPath
+            OsuFolderPath = SelectedFolderPath,
+            // AudioVolumeはAudioPlayerViewModelが管理するため、現在の設定値を引き継ぐ
+            AudioVolume = _settingsService.SettingsData.AudioVolume
         };
 
         _settingsService.SaveSettings(settingData);

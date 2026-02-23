@@ -8,6 +8,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
     {
         string OsuFolderPath { get; set; }
         string LanguageKey { get; set; }
+        int AudioVolume { get; set; }
     }
 
     public partial class SettingsData : ObservableObject, ISettingsData
@@ -15,6 +16,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         // Jsonシリアライズ使用時は[ObservableProperty]使用不可
         private string _osuFolderPath = string.Empty;
         private string _languageKey = "ja-JP";
+        private int _audioVolume = 50;
 
         public string OsuFolderPath
         {
@@ -28,10 +30,17 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             set => SetProperty(ref _languageKey, value);
         }
 
+        public int AudioVolume
+        {
+            get => _audioVolume;
+            set => SetProperty(ref _audioVolume, value);
+        }
+
         public void Update(SettingsData newData)
         {
             OsuFolderPath = newData.OsuFolderPath;
             LanguageKey = newData.LanguageKey;
+            AudioVolume = newData.AudioVolume;
         }
     }
 

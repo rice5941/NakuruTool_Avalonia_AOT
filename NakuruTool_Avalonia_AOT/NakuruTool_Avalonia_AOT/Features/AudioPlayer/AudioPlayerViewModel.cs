@@ -19,11 +19,18 @@ public partial class AudioPlayerViewModel : ViewModelBase
     public partial bool IsPlaying { get; set; } = false;
 
     [ObservableProperty]
-    public partial int Volume { get; set; } = 50;
-    partial void OnVolumeChanged(int value) => _audioPlayerService.Volume = value;
+    public partial int Volume { get; set; }
+
+    partial void OnVolumeChanged(int value)
+    {
+        _audioPlayerService.Volume = value;
+        // ボリューム変更を設定ファイルに保存（R3 Debounceで300ms間隔）
+        _volumeSaveSubject.OnNext(value);
+    }
 
     private readonly IAudioPlayerService _audioPlayerService;
     private readonly ISettingsService _settingsService;
+    private readonly Subject<int> _volumeSaveSubject = new();
 
     public AudioPlayerViewModel(
         IAudioPlayerService audioPlayerService,
@@ -32,13 +39,31 @@ public partial class AudioPlayerViewModel : ViewModelBase
         _audioPlayerService = audioPlayerService;
         _settingsService = settingsService;
 
+        // 設定ファイルから初期音量を読み込み
+        Volume = _settingsService.SettingsData.AudioVolume;
+
         // オーディオ再生状態の監視
         _audioPlayerService.StateChanged
             .Subscribe(state => IsPlaying = state == AudioPlayerState.Playing)
             .AddTo(Disposables);
 
-        // 初期音量を設定
+        // ボリューム変更を300msデバウンスして設定保存
+        _volumeSaveSubject
+            .Debounce(TimeSpan.FromMilliseconds(300))
+            .Subscribe(SaveVolume)
+            .AddTo(Disposables);
+
+        // 初期音量をサービスに反映
         _audioPlayerService.Volume = Volume;
+    }
+
+    private void SaveVolume(int volume)
+    {
+        if (_settingsService.SettingsData is SettingsData settingsData)
+        {
+            settingsData.AudioVolume = volume;
+            _settingsService.SaveSettings(settingsData);
+        }
     }
 
     [RelayCommand]

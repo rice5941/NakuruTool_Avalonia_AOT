@@ -18,12 +18,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
         /// <summary>
         /// シングルトンインスタンス
         /// </summary>
-        private static readonly Lazy<LanguageService> _instance = new Lazy<LanguageService>(() => new LanguageService());
-
-        /// <summary>
-        /// シングルトンインスタンスの取得
-        /// </summary>
-        public static LanguageService Instance => _instance.Value;
+        public static readonly LanguageService Instance = new LanguageService();
 
         /// <summary>
         /// 現在の言語コード

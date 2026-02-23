@@ -4,7 +4,7 @@
   },
   "Menu": {
     "Main": "主界面",
-    "MapList": "谱面列表",
+    "MapList": "beatmap列表",
     "ImportExport": "导入/导出",
     "Systems": "系统",
     "Settings": "设置",
@@ -25,7 +25,7 @@
     "LicenseType": "许可证"
   },
   "MapList": {
-    "TotalCount": "谱面数",
+    "TotalCount": "map数",
     "FilteredCount": "筛选后",
     "Title": "曲名",
     "Artist": "艺术家",
@@ -87,14 +87,14 @@
   "Collection": {
     "GenerateCollection": "生成收藏夹",
     "EnterCollectionName": "请输入收藏夹名称",
-    "GenerationSuccess": "已创建 '{0}' ({1} 首曲目)",
+    "GenerationSuccess": "已创建 '{0}' ({1} map)",
     "GenerationFailed": "收藏夹创建失败",
-    "NoFilteredMaps": "没有筛选出的谱面"
+    "NoFilteredMaps": "没有筛选出的map"
   },
   "Loading": {
     "Start": "正在读取 db 文件",
     "Completed": "读取完成",
-    "CompletedWithStats": "读取完成: {0} 个收藏夹, {1} 个谱面",
+    "CompletedWithStats": "读取完成: {0} 个收藏夹, {1} 个map",
     "ErrorMessage": "错误: {0}",
     "Failed": "读取失败",
     "CollectionDb": "collection.db",
@@ -102,15 +102,15 @@
     "CollectionLoading": "正在读取 collection.db...",
     "CollectionVersion": "collection.db 版本: {0}",
     "CollectionCount": "收藏夹数量: {0}",
-    "CollectionItemCompleted": "收藏夹 '{0}' 读取完成 ({1} 个谱面)",
+    "CollectionItemCompleted": "收藏夹 '{0}' 读取完成 ({1} 个map)",
     "CollectionCompleted": "collection.db 读取完成",
     "OsuDb": "osu!.db",
     "OsuNotFound": "未找到 osu!.db",
     "OsuLoading": "正在读取 osu!.db...",
     "OsuVersion": "osu!.db 版本: {0}",
-    "BeatmapCount": "谱面数量: {0}",
-    "BeatmapProcessing": "正在处理谱面... ({0}/{1})",
-    "OsuSorting": "正在对谱面进行排序...",
+    "BeatmapCount": "map数量: {0}",
+    "BeatmapProcessing": "正在处理map... ({0}/{1})",
+    "OsuSorting": "正在对map进行排序...",
     "OsuCompleted": "osu!.db 读取完成",
     "OsuError": "osu!.db 读取错误: {0}",
     "OsuPathNotSet": "osu! 文件夹路径未设置",
@@ -118,9 +118,9 @@
     "ScoresDb": "scores.db",
     "ScoresNotFound": "未找到分数数据库（已跳过）",
     "ScoresLoading": "正在读取分数数据库 (scores.db)...",
-    "ScoresLoaded": "分数数据库读取完成 ({0} 个谱面)",
-    "ScoresApplying": "正在将分数数据应用到谱面... ({0}/{1})",
-    "ScoresCompleted": "分数数据应用完成 ({0} 个谱面)",
+    "ScoresLoaded": "分数数据库读取完成 ({0} 个map)",
+    "ScoresApplying": "正在将分数数据应用到map... ({0}/{1})",
+    "ScoresCompleted": "分数数据应用完成 ({0} 个map)",
     "InvalidStringPrefix": "无效的字符串前缀: 0x{0:X2}"
   },
   "Generation": {
@@ -140,7 +140,7 @@
     "ExportButton": "导出",
     "ImportButton": "导入",
     "ReloadButton": "重新加载",
-    "PreviewCount": "谱面列表",
+    "PreviewCount": "map列表",
     "KeyCount": "键数",
     "Title": "标题",
     "Artist": "艺术家",

@@ -4,7 +4,7 @@
   },
   "Menu": {
     "Main": "メイン",
-    "MapList": "譜面一覧",
+    "MapList": "beatmap一覧",
     "ImportExport": "インポート/エクスポート",
     "Systems": "システム",
     "Settings": "設定",
@@ -87,9 +87,9 @@
   "Collection": {
     "GenerateCollection": "コレクション生成",
     "EnterCollectionName": "コレクション名を入力してください",
-    "GenerationSuccess": "'{0}' を作成（{1}曲）",
+    "GenerationSuccess": "'{0}' を作成（{1} map）",
     "GenerationFailed": "コレクションの作成に失敗しました",
-    "NoFilteredMaps": "絞り込まれた譜面がありません"
+    "NoFilteredMaps": "絞り込まれたmapがありません"
   },
   "Loading": {
     "Start": "dbファイル読み込み",

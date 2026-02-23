@@ -38,12 +38,22 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
         ImportViewModel = new ImportViewModel(databaseService, importExportService);
         BeatmapListViewModel = new ImportExportBeatmapListViewModel();
 
-        // Service進捗監視
+        // Service進捗監視（Export/Import どちらが処理中かで振り分け）
         _importExportService.ProgressObservable
             .Subscribe(progress =>
             {
                 StatusMessage = progress.Message;
                 ProgressValue = progress.ProgressValue;
+                if (ExportViewModel.IsProcessing)
+                {
+                    ExportViewModel.StatusMessage = progress.Message;
+                    ExportViewModel.ProgressValue = progress.ProgressValue;
+                }
+                else if (ImportViewModel.IsProcessing)
+                {
+                    ImportViewModel.StatusMessage = progress.Message;
+                    ImportViewModel.ProgressValue = progress.ProgressValue;
+                }
             })
             .AddTo(Disposables);
 
@@ -59,12 +69,12 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
 
         // Export: 結果メッセージ
         ExportViewModel.StatusMessageRequested
-            .Subscribe(msg => StatusMessage = msg)
+            .Subscribe(msg => ExportViewModel.StatusMessage = msg)
             .AddTo(Disposables);
 
         // Import: 結果メッセージ
         ImportViewModel.StatusMessageRequested
-            .Subscribe(msg => StatusMessage = msg)
+            .Subscribe(msg => ImportViewModel.StatusMessage = msg)
             .AddTo(Disposables);
 
         // Import成功後の再初期化
@@ -80,6 +90,8 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
                 IsProcessing = ExportViewModel.IsProcessing || ImportViewModel.IsProcessing;
                 ExportViewModel.IsAnyProcessing = IsProcessing;
                 ImportViewModel.IsAnyProcessing = IsProcessing;
+                ExportViewModel.IsProgressVisible = ExportViewModel.IsProcessing;
+                ImportViewModel.IsProgressVisible = ImportViewModel.IsProcessing;
             })
             .AddTo(Disposables);
 

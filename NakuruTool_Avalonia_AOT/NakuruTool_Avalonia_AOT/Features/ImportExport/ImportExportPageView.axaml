@@ -7,32 +7,24 @@
              x:Class="NakuruTool_Avalonia_AOT.Features.ImportExport.ImportExportPageView"
              x:DataType="importExport:ImportExportPageViewModel">
 
-    <!-- 三分割レイアウト: 上段リスト / 中段進捗 / 下段beatmapプレビュー -->
-    <Grid RowDefinitions="*,Auto,2*">
+    <!-- 左右2列レイアウト: 左列(Export/進捗/Import) / 右列(BeatmapList) -->
+    <Grid ColumnDefinitions="*,8,*">
 
-        <!-- ─── Row 0: 上段 (Export左 / Import右) ─── -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,8,*" Margin="0,0,0,8">
-            <importExport:ExportView Grid.Column="0"
+        <!-- ─── Column 0: 左列 (Export上 / Import下) ─── -->
+        <Grid Grid.Column="0" RowDefinitions="*,8,*">
+
+            <!-- Row 0: Export（進捗はExportView内部に内包） -->
+            <importExport:ExportView Grid.Row="0"
                                      DataContext="{Binding ExportViewModel}"/>
-            <importExport:ImportView Grid.Column="2"
+
+            <!-- Row 2: Import（進捗はImportView内部に内包） -->
+            <importExport:ImportView Grid.Row="2"
                                      DataContext="{Binding ImportViewModel}"/>
+
         </Grid>
 
-        <!-- ─── Row 1: 進捗表示（親VMのプロパティに直接バインド） ─── -->
-        <Border Grid.Row="1"
-                BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
-                Background="{DynamicResource SemiGrey0}"
-                Padding="12,8" Margin="0,0,0,8">
-            <StackPanel Spacing="4">
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12"
-                           Foreground="{DynamicResource SemiGrey7}"/>
-                <ProgressBar Value="{Binding ProgressValue}" Maximum="100"
-                             Height="4" IsVisible="{Binding IsProcessing}"/>
-            </StackPanel>
-        </Border>
-
-        <!-- ─── Row 2: Beatmapプレビュー + ページング ─── -->
-        <importExport:ImportExportBeatmapListView Grid.Row="2"
+        <!-- ─── Column 2: 右列 (BeatmapListView全体) ─── -->
+        <importExport:ImportExportBeatmapListView Grid.Column="2"
                                                    DataContext="{Binding BeatmapListViewModel}"/>
 
     </Grid>

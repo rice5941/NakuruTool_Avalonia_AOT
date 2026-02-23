@@ -12,7 +12,7 @@
 
     <Border BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
             Background="{DynamicResource SemiGrey0}">
-        <Grid RowDefinitions="Auto,*,Auto">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
 
             <!-- Row 0: ヘッダー（Importアイコン + タイトル） -->
             <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
@@ -71,6 +71,19 @@
                             <TextBlock Text="{translate:Translate 'ImportExport.ImportButton'}" FontSize="12"/>
                         </StackPanel>
                     </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 3: 進捗表示 -->
+            <Border Grid.Row="3"
+                    BorderThickness="0,1,0,0" BorderBrush="{DynamicResource SemiGrey3}"
+                    Background="{DynamicResource SemiGrey0}"
+                    Padding="12,6">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="11"
+                               Foreground="{DynamicResource SemiGrey7}"/>
+                    <ProgressBar Value="{Binding ProgressValue}" Maximum="100"
+                                 Height="3" IsVisible="{Binding IsProgressVisible}"/>
                 </StackPanel>
             </Border>
 

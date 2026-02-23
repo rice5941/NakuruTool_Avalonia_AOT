@@ -30,6 +30,15 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool IsAnyProcessing { get; set; } = false;
 
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; } = " ";
+
+    [ObservableProperty]
+    public partial int ProgressValue { get; set; } = 0;
+
+    [ObservableProperty]
+    public partial bool IsProgressVisible { get; set; } = false;
+
     private readonly Subject<ImportExportBeatmapItem[]> _previewRequestedSubject;
     public Observable<ImportExportBeatmapItem[]> PreviewRequested => _previewRequestedSubject;
 

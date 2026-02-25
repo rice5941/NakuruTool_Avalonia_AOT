@@ -65,6 +65,12 @@
 
         <HeaderedContentControl
             Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.PreferUnicode'}">
+            <ToggleSwitch IsChecked="{Binding PreferUnicode}" />
+        </HeaderedContentControl>
+
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.AppVersion'}">
             <TextBlock Text="{Binding AppVersion}" VerticalAlignment="Center" />
         </HeaderedContentControl>

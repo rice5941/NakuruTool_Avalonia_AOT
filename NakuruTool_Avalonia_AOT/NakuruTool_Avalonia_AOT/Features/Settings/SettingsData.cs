@@ -10,6 +10,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         string LanguageKey { get; set; }
         int AudioVolume { get; set; }
         bool AutoPlayOnSelect { get; set; }
+        bool PreferUnicode { get; set; }
     }
 
     public partial class SettingsData : ObservableObject, ISettingsData
@@ -19,6 +20,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         private string _languageKey = "ja-JP";
         private int _audioVolume = 50;
         private bool _autoPlayOnSelect = true;
+        private bool _preferUnicode = false;
 
         public string OsuFolderPath
         {
@@ -44,12 +46,19 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             set => SetProperty(ref _autoPlayOnSelect, value);
         }
 
+        public bool PreferUnicode
+        {
+            get => _preferUnicode;
+            set => SetProperty(ref _preferUnicode, value);
+        }
+
         public void Update(SettingsData newData)
         {
             OsuFolderPath = newData.OsuFolderPath;
             LanguageKey = newData.LanguageKey;
             AudioVolume = newData.AudioVolume;
             AutoPlayOnSelect = newData.AutoPlayOnSelect;
+            PreferUnicode = newData.PreferUnicode;
         }
     }
 

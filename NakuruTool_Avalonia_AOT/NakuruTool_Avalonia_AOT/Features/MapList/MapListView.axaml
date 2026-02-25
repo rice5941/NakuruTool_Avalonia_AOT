@@ -25,6 +25,7 @@
         <converters:EmptyStringConverter x:Key="EmptyStringConverter"/>
         <converters:ScoreConverter x:Key="ScoreConverter"/>
         <converters:AccuracyConverter x:Key="AccuracyConverter"/>
+        <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -180,14 +181,14 @@
                         <DataTemplate>
                             <StackPanel Spacing="2" Margin="4,0">
                                 <!-- タイトル（プライマリ） -->
-                                <TextBlock Text="{Binding Title}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Title}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <!-- バージョン（難易度名） -->
                                     <TextBlock Text="{Binding Version}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                                 <!-- アーティスト/マッパー -->
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding Artist}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Artist}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding Creator}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </StackPanel>

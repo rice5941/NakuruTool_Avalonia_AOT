@@ -24,7 +24,9 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public int KeyCount { get; init; }
         public BeatmapStatus Status { get; init; }
         public required string Title { get; init; }
+        public string TitleUnicode { get; init; } = string.Empty;
         public required string Artist { get; init; }
+        public string ArtistUnicode { get; init; } = string.Empty;
         public required string Version { get; init; }
         public required string Creator { get; init; }
         public double BPM { get; init; }

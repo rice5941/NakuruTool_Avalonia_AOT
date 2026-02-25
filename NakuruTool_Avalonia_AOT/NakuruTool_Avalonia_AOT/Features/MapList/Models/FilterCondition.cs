@@ -368,8 +368,8 @@ public partial class FilterCondition : ObservableObject
         {
             FilterTarget.KeyCount => MatchesNumeric(beatmap.KeyCount),
             FilterTarget.Status => beatmap.Status == StatusValue,
-            FilterTarget.Title => MatchesString(beatmap.Title),
-            FilterTarget.Artist => MatchesString(beatmap.Artist),
+            FilterTarget.Title => MatchesString(beatmap.Title) || MatchesString(beatmap.TitleUnicode),
+            FilterTarget.Artist => MatchesString(beatmap.Artist) || MatchesString(beatmap.ArtistUnicode),
             FilterTarget.Version => MatchesString(beatmap.Version),
             FilterTarget.Creator => MatchesString(beatmap.Creator),
             FilterTarget.BPM => MatchesDouble(beatmap.BPM),

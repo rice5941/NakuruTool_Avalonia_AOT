@@ -20,6 +20,7 @@ public interface ISettingsViewModel : IDisposable
     string OsuPathErrorMessage { get; }
     bool HasOsuPathError { get; }
     bool AutoPlayOnSelect { get; set; }
+    bool PreferUnicode { get; set; }
     string AppVersion { get; }
 }
 
@@ -75,6 +76,17 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         }
     }
 
+    [ObservableProperty]
+    public partial bool PreferUnicode { get; set; } = false;
+
+    partial void OnPreferUnicodeChanged(bool value)
+    {
+        if (_isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private readonly IDatabaseService _databaseService;
     private bool _isInitialized = false;
@@ -88,6 +100,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         SelectedLanguageKey = settingsData.LanguageKey;
         SelectedFolderPath = settingsData.OsuFolderPath;
         AutoPlayOnSelect = settingsData.AutoPlayOnSelect;
+        PreferUnicode = settingsData.PreferUnicode;
 
         UpdateOsuPathErrorMessage();
 
@@ -102,7 +115,8 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             OsuFolderPath = SelectedFolderPath,
             // AudioVolumeはAudioPlayerViewModelが管理するため、現在の設定値を引き継ぐ
             AudioVolume = _settingsService.SettingsData.AudioVolume,
-            AutoPlayOnSelect = AutoPlayOnSelect
+            AutoPlayOnSelect = AutoPlayOnSelect,
+            PreferUnicode = PreferUnicode
         };
 
         _settingsService.SaveSettings(settingData);

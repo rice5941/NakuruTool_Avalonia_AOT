@@ -50,7 +50,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceA = new MockDatabaseService();
         var mockImportExportServiceA = new MockImportExportService();
-        var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA);
+        var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA, mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -124,7 +124,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceB = new MockDatabaseService();
         var mockImportExportServiceB = new MockImportExportService();
-        var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB);
+        var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB, mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -215,7 +215,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceC = new MockDatabaseService();
         var mockImportExportServiceC = new MockImportExportService();
-        var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC);
+        var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC, mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -280,7 +280,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseService3 = new MockDatabaseService();
         var mockImportExportService3 = new MockImportExportService();
-        var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3);
+        var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3, mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -498,6 +498,7 @@ public class MockSettingsViewModel : ISettingsViewModel
     public string OsuPathErrorMessage { get; set; } = string.Empty;
     public bool HasOsuPathError { get; set; } = false;
     public bool AutoPlayOnSelect { get; set; } = true;
+    public bool PreferUnicode { get; set; } = false;
     public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
@@ -716,6 +717,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public string LanguageKey { get; set; } = "ja-JP";
     public int AudioVolume { get; set; } = 50;
     public bool AutoPlayOnSelect { get; set; } = true;
+    public bool PreferUnicode { get; set; } = false;
 }
 
 /// <summary>

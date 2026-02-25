@@ -328,6 +328,8 @@ collection.dbのバイナリフォーマット:
 | IE-7 | `ExportViewModel.IsProcessing` ＋ `ImportViewModel.IsProcessing`（Merge） | `ImportExportPageViewModel` | いずれかの処理中フラグ変更 | `IsProcessing` 統合（OR）＋ `IsAnyProcessing` を両子VMに逆流 | `AddTo(Disposables)` |
 | IE-8 | `ExportViewModel.SelectedExportCollection` | `ImportExportPageViewModel` | Export選択変更 | 非null時に `ImportViewModel.SelectedImportFile = null`（排他選択） | `AddTo(Disposables)` |
 | IE-9 | `ImportViewModel.SelectedImportFile` | `ImportExportPageViewModel` | Import選択変更 | 非null時に `ExportViewModel.SelectedExportCollection = null`（排他選択） | `AddTo(Disposables)` |
+| UC-1 | `SettingsData.PreferUnicode` | `MapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
+| UC-2 | `SettingsData.PreferUnicode` | `ImportExportBeatmapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
 
 ### 5.3 ライフサイクル管理
 
@@ -434,7 +436,34 @@ flowchart TD
 2. `SemiTheme.Locale` に新しい `CultureInfo` を設定
 3. Semi.Avaloniaのビルトインコントロール（ダイアログ等）の言語が更新
 
-### 6.3 テーマ変更時のチェーン
+### 6.3 PreferUnicode変更時のUnicode表示切替チェーン
+
+Unicode表示の切り替えは `UnicodeDisplayConverter`（IValueConverter）を通じてView層で行う。設定変更時は DataGrid の行を再構築することで Converter を再評価する。
+
+```mermaid
+flowchart TD
+    User["ユーザー"] -->|"Unicode表示トグル"| SVM["SettingsViewModel<br/>OnPreferUnicodeChanged()"]
+    SVM -->|SaveSettings| SS["SettingsService"]
+    SS -->|"Update() → PropertyChanged"| SD["SettingsData.PreferUnicode"]
+
+    SD -->|"R3 ObservePropertyAndSubscribe<br/>（チェーン#UC-1）"| MLVM["MapListViewModel<br/>.UpdateShowBeatmaps()"]
+    SD -->|"R3 ObservePropertyAndSubscribe<br/>（チェーン#UC-2）"| IEBLVM["ImportExportBeatmapListViewModel<br/>.UpdateShowBeatmaps()"]
+
+    MLVM -->|"DataGrid行再構築"| DG1["MapListView DataGrid"]
+    IEBLVM -->|"DataGrid行再構築"| DG2["ImportExportBeatmapListView DataGrid"]
+
+    DG1 -->|"バインディング再評価"| UDC1["UnicodeDisplayConverter.Convert()"]
+    DG2 -->|"バインディング再評価"| UDC2["UnicodeDisplayConverter.Convert()"]
+
+    UDC1 -->|"SettingsService.Current?.PreferUnicode"| R1["Unicode版 or ASCII版を返却"]
+    UDC2 -->|"SettingsService.Current?.PreferUnicode"| R2["Unicode版 or ASCII版を返却"]
+```
+
+- `UnicodeDisplayConverter` は `SettingsService.Current`（internal static）から `PreferUnicode` を参照
+- Unicode文字列が空の場合はASCII版にフォールバック
+- フィルタ検索は `PreferUnicode` 設定に関係なく常にASCII版・Unicode版の両方をOR検索
+
+### 6.4 テーマ変更時のチェーン
 
 テーマ変更はR3リアクティブチェーンを使用せず、Avaloniaの組み込み機能で直接切り替える。
 

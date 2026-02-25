@@ -19,6 +19,7 @@
     "ErrorOsuPathGetFailed": "Could not get local path.",
     "ErrorOsuPathEmpty": "Folder path is empty.",
     "AutoPlayOnSelect": "Auto Play on Select",
+    "PreferUnicode": "Prefer Unicode Display",
     "AppVersion": "Version"
   },
   "Licenses": {

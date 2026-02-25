@@ -99,6 +99,12 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
                 }
             })
             .AddTo(Disposables);
+
+        // Unicode表示設定の変更時にリスト表示を更新（Converter再評価のため）
+        _settingsService.SettingsData.ObservePropertyAndSubscribe(
+            nameof(ISettingsData.PreferUnicode),
+            () => UpdateShowBeatmaps(),
+            Disposables);
     }
 
     public void Initialize()

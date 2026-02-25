@@ -111,7 +111,9 @@ public partial class ExportViewModel : ViewModelBase, IDisposable
                     {
                         KeyCount = beatmap.KeyCount,
                         Title = beatmap.Title,
+                        TitleUnicode = beatmap.TitleUnicode,
                         Artist = beatmap.Artist,
+                        ArtistUnicode = beatmap.ArtistUnicode,
                         Version = beatmap.Version,
                         Creator = beatmap.Creator,
                         Exists = true

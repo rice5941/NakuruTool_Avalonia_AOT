@@ -22,6 +22,12 @@ public interface ISettingsService : IDisposable
 /// </summary>
 public sealed class SettingsService : ISettingsService
 {
+    /// <summary>
+    /// Converter等のDI外コンポーネントからSettings値を参照するための静的アクセサ。
+    /// UnicodeDisplayConverter専用。他の用途での使用は推奨しない。
+    /// </summary>
+    internal static ISettingsData? Current { get; private set; }
+
     private readonly string _settingsPath;
     private readonly CompositeDisposable _disposables = [];
     private bool _disposed;
@@ -49,6 +55,9 @@ public sealed class SettingsService : ISettingsService
         SettingsData = settingsData;
 
         LanguageService.Instance.ChangeLanguage(SettingsData.LanguageKey);
+
+        // Converter用の静的アクセサを設定
+        Current = settingsData;
 
         // R3拡張メソッドを使用して言語変更を監視
         settingsData.ObservePropertyAndSubscribe(

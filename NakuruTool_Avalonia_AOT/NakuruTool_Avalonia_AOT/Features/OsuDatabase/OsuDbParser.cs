@@ -399,9 +399,9 @@ public sealed class OsuDbParser : IDisposable
             }
 
             string artist = ReadStringFromBuffer(buffer, ref pos);
-            ReadStringFromBuffer(buffer, ref pos); // artistUnicode (skip)
+            string artistUnicode = ReadStringFromBuffer(buffer, ref pos);
             string title = ReadStringFromBuffer(buffer, ref pos);
-            ReadStringFromBuffer(buffer, ref pos); // titleUnicode (skip)
+            string titleUnicode = ReadStringFromBuffer(buffer, ref pos);
             string creator = ReadStringFromBuffer(buffer, ref pos);
             string difficulty = ReadStringFromBuffer(buffer, ref pos);
             string audioFilename = ReadStringFromBuffer(buffer, ref pos);
@@ -485,7 +485,9 @@ public sealed class OsuDbParser : IDisposable
             {
                 MD5Hash = md5Hash,
                 Title = title,
+                TitleUnicode = titleUnicode,
                 Artist = artist,
+                ArtistUnicode = artistUnicode,
                 Version = difficulty,
                 Creator = creator,
                 BPM = bpm,

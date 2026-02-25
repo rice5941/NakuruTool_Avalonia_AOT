@@ -2,7 +2,10 @@ using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
+using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
+using R3;
 using System;
 
 namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
@@ -38,9 +41,15 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
 
     private bool _disposed;
 
-    public ImportExportBeatmapListViewModel()
+    public ImportExportBeatmapListViewModel(ISettingsService settingsService)
     {
         ShowBeatmaps = _showBeatmapsList;
+
+        // Unicode表示設定の変更時にリスト表示を更新
+        settingsService.SettingsData.ObservePropertyAndSubscribe(
+            nameof(ISettingsData.PreferUnicode),
+            () => UpdateShowBeatmaps(),
+            Disposables);
     }
 
     /// <summary>

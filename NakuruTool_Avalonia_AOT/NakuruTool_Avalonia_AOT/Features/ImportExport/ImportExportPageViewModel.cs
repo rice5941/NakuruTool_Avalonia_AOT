@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
@@ -30,13 +31,14 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
 
     public ImportExportPageViewModel(
         IDatabaseService databaseService,
-        IImportExportService importExportService)
+        IImportExportService importExportService,
+        ISettingsService settingsService)
     {
         _importExportService = importExportService;
 
         ExportViewModel = new ExportViewModel(databaseService, importExportService);
         ImportViewModel = new ImportViewModel(databaseService, importExportService);
-        BeatmapListViewModel = new ImportExportBeatmapListViewModel();
+        BeatmapListViewModel = new ImportExportBeatmapListViewModel(settingsService);
 
         // Service進捗監視（Export/Import どちらが処理中かで振り分け）
         _importExportService.ProgressObservable

@@ -5,7 +5,9 @@ public sealed record ImportExportBeatmapItem
 {
     public int KeyCount { get; init; }
     public string Title { get; init; } = string.Empty;
+    public string TitleUnicode { get; init; } = string.Empty;
     public string Artist { get; init; } = string.Empty;
+    public string ArtistUnicode { get; init; } = string.Empty;
     public string Version { get; init; } = string.Empty;
     public string Creator { get; init; } = string.Empty;
 

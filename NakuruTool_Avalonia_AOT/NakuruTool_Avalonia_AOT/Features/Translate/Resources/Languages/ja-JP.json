@@ -19,6 +19,7 @@
     "ErrorOsuPathGetFailed": "ローカルパスを取得できませんでした。",
     "ErrorOsuPathEmpty": "フォルダパスが空です。",
     "AutoPlayOnSelect": "選択時自動再生",
+    "PreferUnicode": "Unicode表示を優先",
     "AppVersion": "バージョン"
   },
   "Licenses": {

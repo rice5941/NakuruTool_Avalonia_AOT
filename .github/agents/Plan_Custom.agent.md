@@ -53,7 +53,6 @@ handoffs:
 * 設計案の段階で、モジュール間のインターフェイスを意識させ、不要な関数や変数が実装されないようにしてください。
 * 疑問点や不明点がある場合は、Step3でユーザーへの質問を行うため、設計案の最後に質問事項を記載させてください。
 - agentName: _sub_Architect_opus
-- agentName: _sub_Architect_opus4.5
 - agentName: _sub_Architect_codex
 
 2. **設計の統合**:
@@ -65,7 +64,6 @@ handoffs:
 * 統合完了後、統合設計案レビュー用のサブエージェントを#tool:agent/runSubagent を使って起動し、統合された設計案の品質をチェックさせます。必要に応じて修正タスクを発行してください。
 
 - agentName: _sub_Architect_opus
-- agentName: _sub_Architect_opus4.5
 - agentName: _sub_Architect_codex
 
 * 統合完了後、中間ファイル（`agent_tmp` 内）を削除し、最終設計案を返します。

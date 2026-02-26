@@ -233,6 +233,9 @@
 | `Artist` | 文字列 | ✓ | ✗ | アーティスト名（部分一致） |
 | `Creator` | 文字列 | ✓ | ✗ | 譜面作成者（部分一致） |
 | `BPM` | 数値（double） | ✓ | ✓ | BPM |
+| `OD` | 数値（double） | ✓ | ✓ | Overall Difficulty |
+| `HP` | 数値（double） | ✓ | ✓ | HP Drain Rate |
+| `DrainTime` | 数値（int） | ✓ | ✓ | ドレイン時間（秒、`mm:ss` 形式での入力も可） |
 | `Difficulty` | 数値（double） | ✗ | ✓ | 難易度（StarRating） |
 | `LongNoteRate` | 数値（double） | ✗ | ✓ | LN率（入力は0–100、内部は0.0–1.0） |
 | `BestAccuracy` | 数値（double） | ✓ | ✓ | 最高精度 |
@@ -563,6 +566,9 @@ collection.dbのバイナリフォーマットに準拠して書き込み（`Col
 | `Version` | `string` (required) | 難易度名 |
 | `Creator` | `string` (required) | 譜面作成者 |
 | `BPM` | `double` | BPM |
+| `OD` | `double` | Overall Difficulty |
+| `HP` | `double` | HP Drain Rate |
+| `DrainTimeSeconds` | `int` | ドレイン時間（秒） |
 | `Difficulty` | `double` | 難易度（StarRating） |
 | `LongNoteRate` | `double` | LN率（0.0–1.0） |
 | `IsPlayed` | `bool` | プレイ済みか |
@@ -882,7 +888,7 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 |----------------|------|
 | `ViewModels/ViewModelBase.cs` | ViewModel基底クラス |
 | `Extensions/R3Extensions.cs` | R3関連の拡張メソッド |
-| `Converters/` | XAML用の値コンバーター（15クラス） |
+| `Converters/` | XAML用の値コンバーター（16クラス） |
 
 ### 概要
 
@@ -924,7 +930,7 @@ R3関連のカスタム拡張メソッド。NativeAOT対応のため、リフレ
 
 ### Converters
 
-XAML用の値コンバーター一覧（全15クラス、13ファイル）。
+XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 
 | クラス名 | ファイル | 概要 |
 |---------|---------|------|
@@ -942,6 +948,7 @@ XAML用の値コンバーター一覧（全15クラス、13ファイル）。
 | `NullableDateTimeConverter` | `NullableDateTimeConverter.cs` | `DateTime?` をフォーマット文字列で変換。`null`/`MinValue` の場合は `"-"` |
 | `PresetNameConverter` | `PresetNameConverter.cs` | `FilterPreset?` を名前に変換。`null` の場合は翻訳された「(なし)」 |
 | `ScoreConverter` | `ScoreConverter.cs` | スコア値（int）をカンマ区切り表示。0の場合は `"-"` |
+| `DrainTimeConverter` | `DrainTimeConverter.cs` | `mm:ss` 形式 ⇔ 秒数の変換ユーティリティ |
 | `ZeroToStringConverter` | `ZeroToStringConverter.cs` | 0値（int/double）を `"-"` に変換 |
 | `UnicodeDisplayConverter` | `UnicodeDisplayConverter.cs` | `PreferUnicode`設定に基づいて`Beatmap`/`ImportExportBeatmapItem`のTitle/ArtistのUnicode版/ASCII版を切り替え。`SettingsService.Current`から設定値を参照。Unicodeが空の場合はASCII版にフォールバック |
 

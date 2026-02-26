@@ -43,5 +43,11 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public double BestAccuracy { get; init; }
         public int PlayCount { get; init; }
         public required string Grade { get; init; }
+        /// <summary>Overall Difficulty</summary>
+        public double OD { get; init; }
+        /// <summary>HP Drain</summary>
+        public double HP { get; init; }
+        /// <summary>曲の長さ（秒単位）</summary>
+        public int DrainTimeSeconds { get; init; }
     }
 }

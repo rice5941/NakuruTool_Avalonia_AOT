@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Shared.Converters;
 using System;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
@@ -40,7 +41,10 @@ public enum FilterTarget
     LastPlayed,
     LastModifiedTime,
     PlayCount,
-    Collection
+    Collection,
+    OD,
+    HP,
+    DrainTime
 }
 
 /// <summary>
@@ -69,6 +73,9 @@ public static class FilterTargetInfo
         FilterTarget.LastModifiedTime => true,
         FilterTarget.PlayCount => true,
         FilterTarget.Collection => false,
+        FilterTarget.OD => true,
+        FilterTarget.HP => true,
+        FilterTarget.DrainTime => true,
         _ => false
     };
 
@@ -93,6 +100,9 @@ public static class FilterTargetInfo
         FilterTarget.LastModifiedTime => false,
         FilterTarget.PlayCount => true,
         FilterTarget.Collection => true,
+        FilterTarget.OD => true,
+        FilterTarget.HP => true,
+        FilterTarget.DrainTime => true,
         _ => true
     };
 
@@ -123,6 +133,8 @@ public static class FilterTargetInfo
         FilterTarget.BestAccuracy => true,
         FilterTarget.BestScore => true,
         FilterTarget.PlayCount => true,
+        FilterTarget.OD => true,
+        FilterTarget.HP => true,
         _ => false
     };
 
@@ -153,6 +165,15 @@ public static class FilterTargetInfo
     public static bool IsEnumType(FilterTarget target) => target switch
     {
         FilterTarget.Status => true,
+        _ => false
+    };
+
+    /// <summary>
+    /// フィルタ対象が時間長型（mm:ss形式）かどうか
+    /// </summary>
+    public static bool IsDurationType(FilterTarget target) => target switch
+    {
+        FilterTarget.DrainTime => true,
         _ => false
     };
 }
@@ -301,6 +322,11 @@ public partial class FilterCondition : ObservableObject
     public bool IsCollectionType => FilterTargetInfo.IsCollectionType(Target);
 
     /// <summary>
+    /// 時間長型（mm:ss形式入力）かどうか
+    /// </summary>
+    public bool IsDurationType => FilterTargetInfo.IsDurationType(Target);
+
+    /// <summary>
     /// Collection以外かつ等価比較かどうか（値入力エリアの表示制御用）
     /// </summary>
     public bool IsNonCollectionEqual => !IsCollectionType && !IsRangeComparison;
@@ -315,6 +341,7 @@ public partial class FilterCondition : ObservableObject
         OnPropertyChanged(nameof(IsBoolType));
         OnPropertyChanged(nameof(IsEnumType));
         OnPropertyChanged(nameof(IsCollectionType));
+        OnPropertyChanged(nameof(IsDurationType));
         OnPropertyChanged(nameof(IsNonCollectionEqual));
 
         // SupportsEqualsがfalseでSupportsRangeがtrueの場合は範囲比較に強制
@@ -381,6 +408,9 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.LastPlayed => MatchesDateTime(beatmap.LastPlayed),
             FilterTarget.LastModifiedTime => MatchesDateTime(beatmap.LastModifiedTime),
             FilterTarget.PlayCount => MatchesNumeric(beatmap.PlayCount),
+            FilterTarget.OD => MatchesDouble(beatmap.OD),
+            FilterTarget.HP => MatchesDouble(beatmap.HP),
+            FilterTarget.DrainTime => MatchesDuration(beatmap.DrainTimeSeconds),
             FilterTarget.Collection => true, // CollectionフィルタはViewModelで処理
             _ => true
         };
@@ -482,6 +512,28 @@ public partial class FilterCondition : ObservableObject
             }
             
             return value.Value.Date >= min.Date && value.Value.Date <= max.Date;
+        }
+    }
+
+    /// <summary>
+    /// mm:ss形式の時間長マッチング
+    /// </summary>
+    private bool MatchesDuration(int valueSeconds)
+    {
+        if (string.IsNullOrEmpty(Value)) return true;
+        if (!DrainTimeConverter.TryParseToSeconds(Value, out var min)) return true;
+
+        if (ComparisonType == ComparisonType.Equals)
+        {
+            return valueSeconds == min;
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(ValueMax) || !DrainTimeConverter.TryParseToSeconds(ValueMax, out var max))
+            {
+                return valueSeconds >= min;
+            }
+            return valueSeconds >= min && valueSeconds <= max;
         }
     }
 }

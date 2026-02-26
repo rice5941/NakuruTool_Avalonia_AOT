@@ -415,17 +415,21 @@ public sealed class OsuDbParser : IDisposable
             DateTime lastModifiedTime = ReadDateTimeFromBuffer(buffer, ref pos);
 
             float circleSize;
+            float hp;
+            float od;
             if (osuVersion >= 20140609)
             {
                 pos += 4; // AR
                 circleSize = ReadSingleFromBuffer(buffer, ref pos);
-                pos += 8; // HP + OD
+                hp = ReadSingleFromBuffer(buffer, ref pos);
+                od = ReadSingleFromBuffer(buffer, ref pos);
             }
             else
             {
                 pos++;
                 circleSize = buffer[pos++];
-                pos += 2;
+                hp = buffer[pos++];
+                od = buffer[pos++];
             }
 
             pos += 8; // SliderVelocity
@@ -436,7 +440,8 @@ public sealed class OsuDbParser : IDisposable
                 maniaStarRating = ReadStarRatingDictionaryForMania(buffer, ref pos);
             }
 
-            pos += 12; // DrainTime + TotalTime + AudioPreviewTime
+            int drainTimeSec = ReadInt32FromBuffer(buffer, ref pos);
+            pos += 8; // TotalTime + AudioPreviewTime
 
             double bpm = ReadTimingPointsAndCalculateBPM(buffer, ref pos);
 
@@ -503,6 +508,9 @@ public sealed class OsuDbParser : IDisposable
                 Grade = ConvertGradeToString(maniaGrade),
                 KeyCount = keyCount,
                 LongNoteRate = longNoteRate,
+                OD = od,
+                HP = hp,
+                DrainTimeSeconds = drainTimeSec,
                 BestScore = 0,
                 BestAccuracy = 0,
                 PlayCount = 0

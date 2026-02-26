@@ -279,6 +279,12 @@
                                                               ItemsSource="{x:Static MapList:MapFilterViewModel.StatusOptions}"
                                                               SelectedItem="{Binding StatusValue}"
                                                               IsVisible="{Binding IsEnumType}"/>
+
+                                                        <!-- DrainTime入力（mm:ss形式） -->
+                                                        <TextBox Classes="filter-input"
+                                                                 Text="{Binding Value}"
+                                                                 IsVisible="{Binding IsDurationType}"
+                                                                 Watermark="mm:ss"/>
                                                 </StackPanel>
 
                                                 <!-- 範囲比較時の入力（横並び） -->
@@ -300,6 +306,12 @@
                                                         <CalendarDatePicker SelectedDate="{Binding DateValue, Mode=TwoWay}"
                                                                             IsVisible="{Binding IsDateType}"
                                                                             HorizontalAlignment="Stretch"/>
+
+                                                            <!-- DrainTime最小値 -->
+                                                            <TextBox Classes="filter-input"
+                                                                     Text="{Binding Value}"
+                                                                     IsVisible="{Binding IsDurationType}"
+                                                                     Watermark="mm:ss"/>
                                                     </StackPanel>
 
                                                     <!-- 最大値 -->
@@ -316,6 +328,12 @@
                                                         <CalendarDatePicker SelectedDate="{Binding DateValueMax, Mode=TwoWay}"
                                                                             IsVisible="{Binding IsDateType}"
                                                                             HorizontalAlignment="Stretch"/>
+
+                                                            <!-- DrainTime最大値 -->
+                                                            <TextBox Classes="filter-input"
+                                                                     Text="{Binding ValueMax}"
+                                                                     IsVisible="{Binding IsDurationType}"
+                                                                     Watermark="mm:ss"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </StackPanel>

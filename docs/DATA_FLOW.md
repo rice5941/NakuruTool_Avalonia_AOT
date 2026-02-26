@@ -183,6 +183,7 @@ flowchart TD
 2. **変更通知**: `_filterChangedSubject.OnNext(Unit.Default)` でフィルタ変更を通知
 3. **フィルタ実行**: `MapListViewModel` が `FilterChanged` を購読し `ApplyFilter()` を呼び出し
 4. **ZLinqフィルタ**: `_databaseService.Beatmaps.AsValueEnumerable().Where(x => _filterViewModel.Matches(x))` でフィルタ実行
+   - フィルタ対象フィールド: `Title`, `Artist`, `BPM`, `Difficulty`, `OD`, `HP`, `DrainTime`, `KeyCount`, `LongNoteRate`, `Status` など（詳細は [MODULES.md](MODULES.md) 参照）
 5. **ページリセット**: `FilteredPages` 更新時に `CurrentPage = 1` にリセット
 6. **表示更新**: `Span<Beatmap>` の `skip/take` でページ分のデータを `ShowBeatmaps`（`AvaloniaList`）にセット
 

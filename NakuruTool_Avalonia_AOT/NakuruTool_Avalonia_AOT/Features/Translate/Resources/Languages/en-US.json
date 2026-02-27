@@ -52,7 +52,11 @@
     "BeatmapSetId": "BeatmapSet ID",
     "BeatmapId": "Beatmap ID",
     "BestScore": "Score",
-    "BestAccuracy": "Acc."
+    "BestAccuracy": "Acc.",
+    "ModSwitcher": "Mod Switch",
+    "ModCategory.NoMod": "NoMod",
+    "ModCategory.HalfTime": "HT",
+    "ModCategory.DoubleTime": "DT/NC"
   },
   "MapFilter": {
     "Title": "Filter Conditions",
@@ -90,7 +94,8 @@
     "EnterMinNumber": "Enter min value",
     "EnterMaxNumber": "Enter max value",
     "Yes": "Yes",
-    "No": "No"
+    "No": "No",
+    "ModCategory": "Mod"
   },
   "Collection": {
     "GenerateCollection": "Generate Collection",

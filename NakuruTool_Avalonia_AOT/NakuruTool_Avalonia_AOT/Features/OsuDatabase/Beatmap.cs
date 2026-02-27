@@ -49,5 +49,40 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public double HP { get; init; }
         /// <summary>曲の長さ（秒単位）</summary>
         public int DrainTimeSeconds { get; init; }
+
+        // Mod別スコア・精度・グレード
+        public int BestScoreNoMod { get; init; }
+        public double BestAccuracyNoMod { get; init; }
+        public string GradeNoMod { get; init; } = string.Empty;
+        public int BestScoreHT { get; init; }
+        public double BestAccuracyHT { get; init; }
+        public string GradeHT { get; init; } = string.Empty;
+        public int BestScoreDT { get; init; }
+        public double BestAccuracyDT { get; init; }
+        public string GradeDT { get; init; } = string.Empty;
+
+        /// <summary>指定modの最高スコアを取得</summary>
+        public int GetBestScore(ModCategory mod) => mod switch
+        {
+            ModCategory.HalfTime => BestScoreHT,
+            ModCategory.DoubleTime => BestScoreDT,
+            _ => BestScoreNoMod
+        };
+
+        /// <summary>指定modの最高精度を取得</summary>
+        public double GetBestAccuracy(ModCategory mod) => mod switch
+        {
+            ModCategory.HalfTime => BestAccuracyHT,
+            ModCategory.DoubleTime => BestAccuracyDT,
+            _ => BestAccuracyNoMod
+        };
+
+        /// <summary>指定modのグレードを取得</summary>
+        public string GetGrade(ModCategory mod) => mod switch
+        {
+            ModCategory.HalfTime => GradeHT,
+            ModCategory.DoubleTime => GradeDT,
+            _ => GradeNoMod
+        };
     }
 }

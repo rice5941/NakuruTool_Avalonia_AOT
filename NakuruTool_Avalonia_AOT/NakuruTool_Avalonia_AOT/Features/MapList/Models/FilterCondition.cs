@@ -188,6 +188,11 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     public string Id { get; } = Guid.NewGuid().ToString();
 
+    /// <summary>
+    /// 利用可能なModCategory一覧（ComboBoxのItemsSource用）
+    /// </summary>
+    public static ModCategory[] ModCategories => Enum.GetValues<ModCategory>();
+
     [ObservableProperty]
     private FilterTarget _target = FilterTarget.KeyCount;
 
@@ -223,6 +228,12 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     [ObservableProperty]
     private string _collectionValue = string.Empty;
+
+    /// <summary>
+    /// スコア/精度フィルタ用のmod区分（BestScore/BestAccuracy対象時のみ使用）
+    /// </summary>
+    [ObservableProperty]
+    private ModCategory _scoreModCategory = ModCategory.NoMod;
 
     /// <summary>
     /// 日付型の最小値（CalendarDatePicker用）
@@ -327,6 +338,11 @@ public partial class FilterCondition : ObservableObject
     public bool IsDurationType => FilterTargetInfo.IsDurationType(Target);
 
     /// <summary>
+    /// BestScore/BestAccuracy型かどうか（mod選択UIの表示制御用）
+    /// </summary>
+    public bool IsScoreOrAccTarget => Target == FilterTarget.BestScore || Target == FilterTarget.BestAccuracy;
+
+    /// <summary>
     /// Collection以外かつ等価比較かどうか（値入力エリアの表示制御用）
     /// </summary>
     public bool IsNonCollectionEqual => !IsCollectionType && !IsRangeComparison;
@@ -343,6 +359,7 @@ public partial class FilterCondition : ObservableObject
         OnPropertyChanged(nameof(IsCollectionType));
         OnPropertyChanged(nameof(IsDurationType));
         OnPropertyChanged(nameof(IsNonCollectionEqual));
+        OnPropertyChanged(nameof(IsScoreOrAccTarget));
 
         // SupportsEqualsがfalseでSupportsRangeがtrueの場合は範囲比較に強制
         if (!SupportsEquals && SupportsRange)
@@ -402,8 +419,8 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.BPM => MatchesDouble(beatmap.BPM),
             FilterTarget.Difficulty => MatchesDouble(beatmap.Difficulty),
             FilterTarget.LongNoteRate => MatchesLongNoteRate(beatmap.LongNoteRate),
-            FilterTarget.BestAccuracy => MatchesDouble(beatmap.BestAccuracy),
-            FilterTarget.BestScore => MatchesNumeric(beatmap.BestScore),
+            FilterTarget.BestAccuracy => MatchesDouble(beatmap.GetBestAccuracy(ScoreModCategory)),
+            FilterTarget.BestScore => MatchesNumeric(beatmap.GetBestScore(ScoreModCategory)),
             FilterTarget.IsPlayed => beatmap.IsPlayed == BoolValue,
             FilterTarget.LastPlayed => MatchesDateTime(beatmap.LastPlayed),
             FilterTarget.LastModifiedTime => MatchesDateTime(beatmap.LastModifiedTime),

@@ -52,7 +52,11 @@
     "BeatmapSetId": "BeatmapSet ID",
     "BeatmapId": "Beatmap ID",
     "BestScore": "分数",
-    "BestAccuracy": "准确率"
+    "BestAccuracy": "准确率",
+    "ModSwitcher": "Mod切换",
+    "ModCategory.NoMod": "无Mod",
+    "ModCategory.HalfTime": "HT",
+    "ModCategory.DoubleTime": "DT/NC"
   },
   "MapFilter": {
     "Title": "筛选条件",
@@ -90,7 +94,8 @@
     "EnterMinNumber": "输入最小值",
     "EnterMaxNumber": "输入最大值",
     "Yes": "是",
-    "No": "否"
+    "No": "否",
+    "ModCategory": "Mod"
   },
   "Collection": {
     "GenerateCollection": "生成收藏夹",

@@ -86,7 +86,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:FilterCondition">
                         <Border Classes="filter-card">
-                            <Grid RowDefinitions="Auto,Auto,Auto">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                                 <!-- フィルタ対象選択 -->
                                 <StackPanel Grid.Row="0" Margin="0,0,0,8">
                                     <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Target'}"/>
@@ -128,8 +128,24 @@
                                     </StackPanel>
                                 </StackPanel>
 
+                                <!-- Mod選択（BestScore/BestAccuracy時のみ表示） -->
+                                <StackPanel Grid.Row="2" Margin="0,0,0,8"
+                                            IsVisible="{Binding IsScoreOrAccTarget}">
+                                    <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ModCategory'}"/>
+                                    <ComboBox Classes="filter-combobox"
+                                              ItemsSource="{x:Static models:FilterCondition.ModCategories}"
+                                              SelectedItem="{Binding ScoreModCategory}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static converters:ModCategoryToStringConverter.Instance}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+
                                 <!-- 値入力エリア -->
-                                <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+                                <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
                                     
                                     <!-- Collection選択（Collectionのみ表示） -->
                                     <StackPanel IsVisible="{Binding IsCollectionType}" Margin="0,0,0,8">

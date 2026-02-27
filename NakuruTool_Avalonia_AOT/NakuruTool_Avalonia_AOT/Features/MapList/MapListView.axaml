@@ -7,6 +7,7 @@
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
              xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
              x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListView"
              x:DataType="MapList:MapListViewModel">
 
@@ -25,6 +26,7 @@
         <converters:EmptyStringConverter x:Key="EmptyStringConverter"/>
         <converters:ScoreConverter x:Key="ScoreConverter"/>
         <converters:AccuracyConverter x:Key="AccuracyConverter"/>
+        <converters:ModCategoryToStringConverter x:Key="ModCategoryToStringConverter"/>
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
@@ -119,23 +121,40 @@
                 BorderThickness="1,1,1,0"
                 CornerRadius="4,4,0,0"
                 Padding="12,8">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
-                <TextBlock Text="{translate:Translate 'MapList.TotalCount'}" VerticalAlignment="Center" FontSize="14"/>
-                <Border CornerRadius="12" Padding="12,4">
-                    <TextBlock Text="{Binding TotalCount}" 
-                               VerticalAlignment="Center" 
-                               FontWeight="Bold"
-                               FontSize="13"/>
-                </Border>
-                <TextBlock Text="{translate:Translate 'MapList.FilteredCount'}" VerticalAlignment="Center" FontSize="14"/>
-                <Border CornerRadius="12" Padding="12,4">
-                    <TextBlock Text="{Binding FilteredCount}" 
-                               VerticalAlignment="Center" 
-                               FontWeight="Bold"
-                               FontSize="13"/>
-                </Border>
-            </StackPanel>
+            <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                    <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                    <TextBlock Text="{translate:Translate 'MapList.TotalCount'}" VerticalAlignment="Center" FontSize="14"/>
+                    <Border CornerRadius="12" Padding="12,4">
+                        <TextBlock Text="{Binding TotalCount}" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="Bold"
+                                   FontSize="13"/>
+                    </Border>
+                    <TextBlock Text="{translate:Translate 'MapList.FilteredCount'}" VerticalAlignment="Center" FontSize="14"/>
+                    <Border CornerRadius="12" Padding="12,4">
+                        <TextBlock Text="{Binding FilteredCount}" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="Bold"
+                                   FontSize="13"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Mod切替（ヘッダー右端） -->
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <mi:MaterialIcon Kind="Speedometer" Width="20" Height="20"
+                                     Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
+                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
+                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
+                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
+                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
+                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
+                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <DataGrid Grid.Row="1"

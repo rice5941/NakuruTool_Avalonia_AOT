@@ -57,6 +57,11 @@ public class FilterConditionData
     public string CollectionValue { get; set; } = string.Empty;
 
     /// <summary>
+    /// スコア/精度フィルタ用のmod区分（文字列で保存）
+    /// </summary>
+    public string ScoreModCategory { get; set; } = string.Empty;
+
+    /// <summary>
     /// FilterConditionからデータを作成
     /// </summary>
     public static FilterConditionData FromFilterCondition(FilterCondition condition)
@@ -69,7 +74,8 @@ public class FilterConditionData
             ValueMax = condition.ValueMax,
             StatusValue = condition.StatusValue.ToString(),
             BoolValue = condition.BoolValue,
-            CollectionValue = condition.CollectionValue
+            CollectionValue = condition.CollectionValue,
+            ScoreModCategory = condition.ScoreModCategory.ToString()
         };
     }
 
@@ -82,6 +88,7 @@ public class FilterConditionData
         var target = Enum.TryParse<FilterTarget>(Target, out var t) ? t : FilterTarget.KeyCount;
         var comparisonType = Enum.TryParse<ComparisonType>(ComparisonType, out var ct) ? ct : Models.ComparisonType.Equals;
         var statusValue = Enum.TryParse<BeatmapStatus>(StatusValue, out var sv) ? sv : BeatmapStatus.None;
+        var scoreModCategory = Enum.TryParse<OsuDatabase.ModCategory>(ScoreModCategory, out var smc) ? smc : OsuDatabase.ModCategory.NoMod;
 
         return new FilterCondition
         {
@@ -91,7 +98,8 @@ public class FilterConditionData
             ValueMax = ValueMax,
             StatusValue = statusValue,
             BoolValue = BoolValue,
-            CollectionValue = CollectionValue
+            CollectionValue = CollectionValue,
+            ScoreModCategory = scoreModCategory
         };
     }
 }

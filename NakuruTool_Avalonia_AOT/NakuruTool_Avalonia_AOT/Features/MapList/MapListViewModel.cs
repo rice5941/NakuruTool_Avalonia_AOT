@@ -23,6 +23,7 @@ public interface IMapListViewModel: IDisposable
     int PageSize { get; }
     IAvaloniaReadOnlyList<int> PageSizes { get; }
     Beatmap? SelectedBeatmap { get; set; }
+    ModCategory SelectedModCategory { get; set; }
     void Initialize();
     void ApplyFilter();
     Beatmap[] FilteredBeatmapsArray { get; }
@@ -53,6 +54,9 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     [ObservableProperty]
     public partial Beatmap? SelectedBeatmap { get; set; }
+
+    [ObservableProperty]
+    public partial ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
 
     /// <summary>
     /// オーディオ再生コントロール用ViewModel
@@ -160,10 +164,18 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         
         if (take > 0)
         {
+            var mod = SelectedModCategory;
             var span = FilteredBeatmapsArray.AsSpan(skip, take);
             foreach (var beatmap in span)
             {
-                _showBeatmapsList.Add(beatmap);
+                // 選択されたmod区分に応じてBestScore/BestAccuracy/Gradeを差し替え
+                var displayed = beatmap with
+                {
+                    BestScore = beatmap.GetBestScore(mod),
+                    BestAccuracy = beatmap.GetBestAccuracy(mod),
+                    Grade = beatmap.GetGrade(mod)
+                };
+                _showBeatmapsList.Add(displayed);
             }
         }
     }
@@ -186,6 +198,11 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     partial void OnPageSizeChanged(int value)
     {
         UpdateFilteredPages();
+        UpdateShowBeatmaps();
+    }
+
+    partial void OnSelectedModCategoryChanged(ModCategory value)
+    {
         UpdateShowBeatmaps();
     }
 

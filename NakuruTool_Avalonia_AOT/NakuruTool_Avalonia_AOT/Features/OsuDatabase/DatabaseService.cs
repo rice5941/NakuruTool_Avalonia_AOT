@@ -256,15 +256,57 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                 {
                     var beatmap = _beatmaps[index];
 
-                    int bestScore = scoreList.AsValueEnumerable().Max(s => s.ReplayScore);
-                    double bestAccuracy = scoreList.AsValueEnumerable().Max(s => CalculateAccuracy(s));
+                    // 全体値
+                    int bestScore = 0;
+                    double bestAccuracy = 0;
                     int playCount = scoreList.Count;
+
+                    // Mod別値
+                    int bestScoreNoMod = 0, bestScoreHT = 0, bestScoreDT = 0;
+                    double bestAccNoMod = 0, bestAccHT = 0, bestAccDT = 0;
+
+                    foreach (var score in scoreList)
+                    {
+                        var acc = CalculateAccuracy(score);
+                        var replayScore = score.ReplayScore;
+
+                        // 全体のベスト更新
+                        if (replayScore > bestScore) bestScore = replayScore;
+                        if (acc > bestAccuracy) bestAccuracy = acc;
+
+                        // Mod別に振り分け
+                        var modCategory = OsuMods.Categorize(score.Mods);
+                        switch (modCategory)
+                        {
+                            case ModCategory.HalfTime:
+                                if (replayScore > bestScoreHT) bestScoreHT = replayScore;
+                                if (acc > bestAccHT) bestAccHT = acc;
+                                break;
+                            case ModCategory.DoubleTime:
+                                if (replayScore > bestScoreDT) bestScoreDT = replayScore;
+                                if (acc > bestAccDT) bestAccDT = acc;
+                                break;
+                            default:
+                                if (replayScore > bestScoreNoMod) bestScoreNoMod = replayScore;
+                                if (acc > bestAccNoMod) bestAccNoMod = acc;
+                                break;
+                        }
+                    }
 
                     _beatmaps[index] = beatmap with
                     {
                         BestScore = bestScore,
                         BestAccuracy = bestAccuracy,
-                        PlayCount = playCount
+                        PlayCount = playCount,
+                        BestScoreNoMod = bestScoreNoMod,
+                        BestAccuracyNoMod = bestAccNoMod,
+                        GradeNoMod = CalculateGradeFromAccuracy(bestAccNoMod),
+                        BestScoreHT = bestScoreHT,
+                        BestAccuracyHT = bestAccHT,
+                        GradeHT = CalculateGradeFromAccuracy(bestAccHT),
+                        BestScoreDT = bestScoreDT,
+                        BestAccuracyDT = bestAccDT,
+                        GradeDT = CalculateGradeFromAccuracy(bestAccDT)
                     };
                 }
 
@@ -367,6 +409,20 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
             var maxScoreOther = totalHitsOther * 300.0;
 
             return maxScoreOther > 0 ? weightedScoreOther / maxScoreOther * 100.0 : 0;
+        }
+
+        /// <summary>
+        /// 精度からグレード文字列を算出
+        /// </summary>
+        private static string CalculateGradeFromAccuracy(double accuracy)
+        {
+            if (accuracy >= 100.0) return "SS";
+            if (accuracy >= 95.0) return "S";
+            if (accuracy >= 90.0) return "A";
+            if (accuracy >= 80.0) return "B";
+            if (accuracy >= 70.0) return "C";
+            if (accuracy > 0.0) return "D";
+            return string.Empty;
         }
 
         /// <summary>

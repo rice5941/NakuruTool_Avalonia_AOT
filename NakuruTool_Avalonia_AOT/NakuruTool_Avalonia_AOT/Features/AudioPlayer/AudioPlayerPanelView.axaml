@@ -1,0 +1,177 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:audio="using:NakuruTool_Avalonia_AOT.Features.AudioPlayer"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             x:Class="NakuruTool_Avalonia_AOT.Features.AudioPlayer.AudioPlayerPanelView"
+             x:DataType="audio:AudioPlayerPanelViewModel">
+
+    <UserControl.Resources>
+        <converters:BoolToIconKindConverter x:Key="PlayPauseIconConverter"
+                                            TrueIcon="Pause"
+                                            FalseIcon="Play"/>
+        <converters:BoolToIconKindConverter x:Key="ShuffleIconConverter"
+                                            TrueIcon="ShuffleVariant"
+                                            FalseIcon="Shuffle"/>
+        <converters:RepeatModeToIconConverter x:Key="RepeatModeToIconConverter"/>
+    </UserControl.Resources>
+
+    <!-- 水平レイアウト: 左に画像、右にコントロール -->
+    <Grid ColumnDefinitions="Auto,*" Margin="4,16">
+
+        <!-- 左側: 背景画像 (16:9固定) -->
+        <Border Grid.Column="0"
+                Width="398" Height="218"
+                CornerRadius="8"
+                ClipToBounds="True"
+                Margin="0,0,12,0"
+                VerticalAlignment="Center"
+                Background="{DynamicResource SemiGrey2}">
+            <Panel>
+                <Image Stretch="UniformToFill"
+                       Source="{Binding BackgroundImage}"
+                       IsVisible="{Binding BackgroundImage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <mi:MaterialIcon Kind="MusicBoxMultiple"
+                                 Width="48" Height="48"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Opacity="0.25"
+                                 IsVisible="{Binding BackgroundImage, Converter={x:Static ObjectConverters.IsNull}}"/>
+            </Panel>
+        </Border>
+
+        <!-- 右側: 曲情報 + コントロール -->
+        <Grid Grid.Column="1" RowDefinitions="*,auto" Margin="0,0,12,0">
+            <!-- 上部: 曲情報 -->
+            <StackPanel Grid.Row="0" Spacing="2">
+                <!-- タイトル -->
+                <TextBlock Text="{Binding CurrentTitle}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource SemiGrey9}"/>
+                <!-- バージョン -->
+                <TextBlock Text="{Binding CurrentVersion}"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource SemiGrey9}"/>
+                <!-- アーティスト + クリエイター -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding CurrentArtist}"
+                               FontSize="18"
+                               Foreground="{DynamicResource SemiGrey7}"
+                               TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentCreator}"
+                               FontSize="18"
+                               Foreground="{DynamicResource SemiGrey7}"
+                               TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- 下部: コントロール -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,Auto" VerticalAlignment="Bottom">
+
+                <!-- Row0: シークバー行 -->
+                <Grid ColumnDefinitions="40,*,40">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding CurrentPositionText}"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                    <Slider Grid.Column="1"
+                            x:Name="SeekBar"
+                            Value="{Binding CurrentPosition, Mode=TwoWay}"
+                            Minimum="0"
+                            Margin="8,0"
+                            Maximum="{Binding Duration}"
+                            VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding DurationText}"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Row1: ボタン行 -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,12,0,0">
+
+                    <!-- 中央: コントロールボタン (5つ) -->
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                Margin="0,0,16,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+
+                        <!-- Shuffle -->
+                        <Button Command="{Binding ToggleShuffleCommand}"
+                                ToolTip.Tip="{translate:Translate 'AudioPanel.Shuffle'}"
+                                Theme="{StaticResource SolidButton}"
+                                Width="40" Height="40">
+                            <mi:MaterialIcon Kind="{Binding IsShuffleEnabled, Converter={StaticResource ShuffleIconConverter}}"
+                                             Width="24" Height="24"/>
+                        </Button>
+
+                        <!-- Previous -->
+                        <Button Command="{Binding PreviousTrackCommand}"
+                                ToolTip.Tip="{translate:Translate 'AudioPanel.Previous'}"
+                                Theme="{StaticResource SolidButton}"
+                                Width="40" Height="40">
+                            <mi:MaterialIcon Kind="SkipPrevious" Width="24" Height="24"/>
+                        </Button>
+
+                        <!-- Play/Pause -->
+                        <Button Command="{Binding AudioPlayer.TogglePlayPauseCommand}"
+                                ToolTip.Tip="{translate:Translate 'AudioPanel.PlayPause'}"
+                                Theme="{StaticResource SolidButton}"
+                                Width="54" Height="54">
+                            <mi:MaterialIcon Kind="{Binding AudioPlayer.IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
+                                             Width="36" Height="36"/>
+                        </Button>
+
+                        <!-- Next -->
+                        <Button Command="{Binding NextTrackCommand}"
+                                ToolTip.Tip="{translate:Translate 'AudioPanel.Next'}"
+                                Theme="{StaticResource SolidButton}"
+                                Width="40" Height="40">
+                            <mi:MaterialIcon Kind="SkipNext" Width="24" Height="24"/>
+                        </Button>
+
+                        <!-- Repeat -->
+                        <Button Command="{Binding ToggleRepeatCommand}"
+                                ToolTip.Tip="{translate:Translate 'AudioPanel.Repeat'}"
+                                Theme="{StaticResource SolidButton}"
+                                Width="40" Height="40">
+                            <mi:MaterialIcon Kind="{Binding RepeatMode, Converter={StaticResource RepeatModeToIconConverter}}"
+                                             Width="24" Height="24"/>
+                        </Button>
+
+                    </StackPanel>
+
+                    <!-- 右側: 音量コントロール -->
+                    <StackPanel Grid.Column="2"
+                                Width="160"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Spacing="4">
+                        <mi:MaterialIcon Kind="VolumeHigh"
+                                         Width="24" Height="24"
+                                         VerticalAlignment="Center"
+                                         ToolTip.Tip="{translate:Translate 'AudioPanel.Volume'}"/>
+                        <Slider Value="{Binding AudioPlayer.Volume}"
+                                Width="132"
+                                Minimum="0"
+                                Maximum="100"
+                                VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -34,6 +34,11 @@ public interface IMapListViewModel: IDisposable
 /// </summary>
 public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 {
+    /// <summary>オーディオ再生パネルのViewModel。</summary>
+    public AudioPlayerPanelViewModel AudioPlayerPanel { get; }
+
+    private bool _isNavigating;
+
     [ObservableProperty]
     public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; } = new AvaloniaList<Beatmap>();
 
@@ -58,10 +63,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     [ObservableProperty]
     public partial ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
 
-    /// <summary>
-    /// オーディオ再生コントロール用ViewModel
-    /// </summary>
-    public AudioPlayerViewModel AudioPlayer { get; }
+    private readonly AudioPlayerViewModel _audioPlayer;
 
     public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
@@ -80,27 +82,32 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         IDatabaseService databaseService,
         MapFilterViewModel filterViewModel,
         AudioPlayerViewModel audioPlayerViewModel,
+        AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService)
     {
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;
-        AudioPlayer = audioPlayerViewModel;
+        _audioPlayer = audioPlayerViewModel;
+        AudioPlayerPanel = audioPlayerPanelViewModel;
         _settingsService = settingsService;
 
         ShowBeatmaps = _showBeatmapsList;
+
+        AudioPlayerPanel.SetNavigateCallback(NavigateToFilteredIndex);
 
         _filterViewModel.FilterChanged
             .Subscribe(_ => ApplyFilter())
             .AddTo(Disposables);
 
-        // 譜面選択時にオーディオを再生（設定でONの場合のみ）
+        // 譜面選択時にオーディオを再生
         this.ObserveProperty(nameof(SelectedBeatmap))
             .Subscribe(_ =>
             {
-                if (_settingsService.SettingsData.AutoPlayOnSelect)
-                {
-                    AudioPlayer.PlayBeatmapAudio(SelectedBeatmap);
-                }
+                if (SelectedBeatmap == null) return;
+                if (_isNavigating) return;
+
+                var index = FindBeatmapIndex(SelectedBeatmap.MD5Hash);
+                AudioPlayerPanel.PlayBeatmap(SelectedBeatmap, index);
             })
             .AddTo(Disposables);
 
@@ -117,6 +124,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         UpdateFilteredBeatmapsArray();
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+        AudioPlayerPanel.SetNavigationContext(FilteredBeatmapsArray, -1);
     }
 
     [RelayCommand(CanExecute = nameof(CanGoToNextPage))]
@@ -151,8 +159,56 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         UpdateFilteredBeatmapsArray();
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+        AudioPlayerPanel.SetNavigationContext(FilteredBeatmapsArray, -1);
     }
-    
+
+    /// <summary>
+    /// FilteredBeatmapsArray 内の指定インデックスにナビゲートする。
+    /// AudioPlayerPanelViewModelの _navigateCallback から呼び出される。
+    /// </summary>
+    public void NavigateToFilteredIndex(int filteredIndex)
+    {
+        if (filteredIndex < 0 || filteredIndex >= FilteredBeatmapsArray.Length) return;
+
+        var targetPage = (filteredIndex / Math.Max(1, PageSize)) + 1;
+        _isNavigating = true;
+        try
+        {
+            if (CurrentPage != targetPage)
+                CurrentPage = targetPage;
+            else
+                UpdateShowBeatmaps();
+
+            var indexInPage = filteredIndex % Math.Max(1, PageSize);
+            if (indexInPage < ShowBeatmaps.Count)
+                SelectedBeatmap = ShowBeatmaps[indexInPage];
+        }
+        finally
+        {
+            _isNavigating = false;
+        }
+
+        // ナビゲーション完了後に再生を呼び出す
+        if (SelectedBeatmap != null)
+        {
+            AudioPlayerPanel.PlayBeatmap(SelectedBeatmap, filteredIndex);
+        }
+    }
+
+    /// <summary>
+    /// FilteredBeatmapsArray 内で指定の MD5Hash に一致する譜面のインデックスを返す。見つからなければ -1 を返す。
+    /// </summary>
+    private int FindBeatmapIndex(string md5Hash)
+    {
+        var arr = FilteredBeatmapsArray;
+        for (var i = 0; i < arr.Length; i++)
+        {
+            if (arr[i].MD5Hash == md5Hash)
+                return i;
+        }
+        return -1;
+    }
+
     private void UpdateShowBeatmaps()
     {
         var size = Math.Max(1, PageSize);
@@ -208,7 +264,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     public override void Dispose()
     {
-        AudioPlayer.Dispose();
+        _audioPlayer.Dispose();
+        AudioPlayerPanel.Dispose();
         base.Dispose();
     }
 }

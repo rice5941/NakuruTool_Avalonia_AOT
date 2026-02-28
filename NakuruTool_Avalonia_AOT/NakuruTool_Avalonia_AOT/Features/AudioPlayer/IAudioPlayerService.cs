@@ -47,6 +47,26 @@ public interface IAudioPlayerService : IDisposable
     /// 再生/一時停止を切り替え
     /// </summary>
     void TogglePlayPause();
+
+    /// <summary>
+    /// 再生が自然終了した時に通知するObservable（手動Stop()では通知しない）
+    /// </summary>
+    Observable<Unit> PlaybackCompleted { get; }
+
+    /// <summary>
+    /// 現在の再生位置を取得（秒）
+    /// </summary>
+    double GetPosition();
+
+    /// <summary>
+    /// 曲の総再生時間を取得（秒）
+    /// </summary>
+    double GetDuration();
+
+    /// <summary>
+    /// 指定位置にシーク（秒）
+    /// </summary>
+    void Seek(double positionSeconds);
 }
 
 /// <summary>

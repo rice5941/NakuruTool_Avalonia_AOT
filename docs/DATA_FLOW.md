@@ -280,11 +280,122 @@ collection.dbのバイナリフォーマット:
 
 ---
 
-## 5. R3リアクティブチェーン一覧
+## 5. オーディオパネル再生フロー
+
+MapListViewの上部に配置される高機能オーディオパネルのデータフロー。簡易版（AudioPlayerViewModel）との切り替えは設定で永続化される。
+
+### 5.1 譜面選択→再生開始フロー
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant MLVM as MapListViewModel
+    participant APVM as AudioPlayerPanelViewModel
+    participant APS as AudioPlayerService
+    participant Rust as nakuru_audio (Rust)
+
+    User->>MLVM: DataGridで譜面選択
+    MLVM->>MLVM: OnSelectedBeatmapChanged()
+    alt IsAudioPanelMode == true
+        MLVM->>APVM: PlayBeatmap(beatmap)
+        APVM->>APVM: Title/Artist 更新
+        APVM->>APVM: LoadBackgroundImage(beatmap)
+        Note over APVM: OsuFileParser.GetBackgroundFilename()<br/>→ Bitmap読み込み
+        APVM->>APS: Play(audioFilePath)
+        APS->>Rust: nakuru_audio_play()
+        Note over Rust: Sink再生成<br/>旧Sink音量を継承
+        Rust-->>APS: 再生開始
+        APS->>APS: StartCompletionPolling()
+        Note over APS: 200msポーリング開始
+        APS-->>APVM: StateChanged → Playing
+        APVM->>APVM: IsPlaying = true
+        APVM->>APVM: 位置ポーリング開始（100ms）
+        APVM->>APVM: Duration取得（300ms遅延）
+    else IsAudioPanelMode == false
+        MLVM->>MLVM: AudioPlayer.PlayBeatmapAudio(beatmap)
+        Note over MLVM: 簡易版で再生
+    end
+```
+
+### 5.2 再生完了→次トラックフロー
+
+```mermaid
+sequenceDiagram
+    participant Rust as nakuru_audio
+    participant APS as AudioPlayerService
+    participant APVM as AudioPlayerPanelViewModel
+    participant MLVM as MapListViewModel
+
+    Rust->>Rust: Sink再生完了
+    Note over APS: 200msポーリングで<br/>state == Stopped検知
+    APS->>APS: _isManualStop == false
+    APS->>APS: _playbackCompletedSubject.OnNext()
+    APS-->>APVM: PlaybackCompleted
+
+    alt RepeatMode.One
+        APVM->>APVM: PlayBeatmap(currentBeatmap)
+    else RepeatMode.All + 末尾
+        APVM->>APVM: NextTrack() → index=0（循環）
+        APVM->>MLVM: NavigateToFilteredIndex(0)
+        MLVM->>MLVM: ページ計算→UpdateShowBeatmaps()
+    else RepeatMode.None + 末尾
+        Note over APVM: 再生停止（何もしない）
+    else 通常の次トラック
+        APVM->>APVM: NextTrack() → index+1
+        APVM->>MLVM: NavigateToFilteredIndex(newIndex)
+        MLVM->>MLVM: ページ計算→UpdateShowBeatmaps()
+    end
+```
+
+### 5.3 背景画像読み込みフロー
+
+```mermaid
+flowchart TD
+    PB["PlayBeatmap(beatmap)"] --> CF{"folderName ==<br/>_lastBgFolderName?"}
+    CF -->|Yes| SKIP["スキップ（同フォルダ最適化）"]
+    CF -->|No| GP["OsuFileParser.GetBackgroundFilename()"]
+    GP --> FE{".osuファイル存在?"}
+    FE -->|No| NB["BackgroundImage = null"]
+    FE -->|Yes| BG{"背景ファイル名取得?"}
+    BG -->|No| NB
+    BG -->|Yes| IMG["new Bitmap(bgPath)"]
+    IMG --> SET["BackgroundImage = bitmap"]
+    SET --> UPD["_lastBgFolderName = folderName"]
+```
+
+- OsuFileParserは `File.ReadLines` で.osuファイルの[Events]セクションを遅延読み込み
+- 同じフォルダ（同Beatmapset）の連続アクセスは `_lastBgFolderName` キャッシュで最適化
+- 旧Bitmapは `Dispose()` で解放
+
+### 5.4 モード切替フロー
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant MLV as MapListView
+    participant MLVM as MapListViewModel
+    participant SS as SettingsService
+    participant SD as SettingsData
+    participant APVM as AudioPlayerPanelViewModel
+
+    User->>MLV: トグルボタンクリック
+    MLV-->>MLVM: IsAudioPanelMode = !IsAudioPanelMode
+    MLVM->>MLVM: OnIsAudioPanelModeChanged()
+    MLVM->>SS: SaveSettings(sd with IsAudioPanelMode)
+    SS->>SD: Update(settings)
+    MLVM->>APVM: SetPanelActive(isActive)
+    alt isActive == false
+        APVM->>APVM: 再生停止
+    end
+```
+
+---
+
+## 6. R3リアクティブチェーン一覧
 
 ソースコードから洗い出した全てのR3購読チェーンの一覧。全購読は `AddTo(Disposables)` によりViewModel/Serviceのライフサイクルに紐づけられ、`Dispose()` 時に自動解除される。
 
-### 5.1 Subject 一覧
+### 6.1 Subject 一覧
 
 | クラス | Subject | 型 | 用途 |
 |-------|---------|---|------|
@@ -294,6 +405,7 @@ collection.dbのバイナリフォーマット:
 | `GenerateCollectionService` | `_generationProgress` | `Subject<GenerationProgress>` | コレクション生成進捗 |
 | `MapFilterViewModel` | `_filterChangedSubject` | `Subject<Unit>` | フィルタ条件変更通知 |
 | `AudioPlayerService` | `_stateSubject` | `Subject<AudioPlayerState>` | オーディオ再生状態変更通知 |
+| `AudioPlayerService` | `_playbackCompletedSubject` | `Subject<Unit>` | 再生完了の通知（自然終了時のみ） |
 | `ImportExportService` | `_progress` | `Subject<ImportExportProgress>` | エクスポート/インポート進捗通知 |
 | `ExportViewModel` | `_previewRequestedSubject` | `Subject<ImportExportBeatmapItem[]>` | エクスポートプレビュー行通知（null時は空配列） |
 | `ExportViewModel` | `_statusMessageSubject` | `Subject<string>` | エクスポート完了/失敗メッセージ通知 |
@@ -301,7 +413,7 @@ collection.dbのバイナリフォーマット:
 | `ImportViewModel` | `_statusMessageSubject` | `Subject<string>` | インポート完了/失敗メッセージ通知 |
 | `ImportViewModel` | `_importCompletedSubject` | `Subject<Unit>` | インポート成功通知（親VMの再初期化トリガー） |
 
-### 5.2 購読チェーン一覧
+### 6.2 購読チェーン一覧
 
 | # | 発行元 | 購読先 | トリガー | アクション | ライフサイクル |
 |---|-------|--------|---------|-----------|--------------|
@@ -331,8 +443,12 @@ collection.dbのバイナリフォーマット:
 | IE-9 | `ImportViewModel.SelectedImportFile` | `ImportExportPageViewModel` | Import選択変更 | 非null時に `ExportViewModel.SelectedExportCollection = null`（排他選択） | `AddTo(Disposables)` |
 | UC-1 | `SettingsData.PreferUnicode` | `MapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
 | UC-2 | `SettingsData.PreferUnicode` | `ImportExportBeatmapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
+| AP-1 | `AudioPlayerService._playbackCompletedSubject` | `AudioPlayerPanelViewModel` | 再生完了（自然終了） | リピートモードに応じた次トラック処理 | `AddTo(Disposables)` |
+| AP-2 | `AudioPlayerService._stateSubject` | `AudioPlayerPanelViewModel` | 再生状態変更 | `IsPlaying` 更新 + 位置ポーリング開始/停止 | `AddTo(Disposables)` |
+| AP-3 | `MapListViewModel.SelectedBeatmap` | `MapListViewModel` | 譜面選択変更（パネルモード時） | `AudioPlayerPanel.PlayBeatmap()` + ナビゲーションコンテキスト更新 | `AddTo(Disposables)` |
+| AP-4 | `SettingsData.IsAudioPanelMode` | `MapListViewModel` | オーディオパネルモード変更 | 設定保存 + `SetPanelActive()` | partial method |
 
-### 5.3 ライフサイクル管理
+### 6.3 ライフサイクル管理
 
 ```mermaid
 flowchart TD
@@ -362,9 +478,9 @@ flowchart TD
 
 ---
 
-## 6. 設定変更の波及
+## 7. 設定変更の波及
 
-### 6.1 OsuFolderPath変更時のDB再読み込みチェーン
+### 7.1 OsuFolderPath変更時のDB再読み込みチェーン
 
 ```mermaid
 sequenceDiagram
@@ -394,7 +510,7 @@ sequenceDiagram
     MW->>MW: IsLoadingOverlayVisible = false
 ```
 
-### 6.2 言語変更時のUI更新チェーン
+### 7.2 言語変更時のUI更新チェーン
 
 言語変更は2つの経路でUIに波及する。
 
@@ -437,7 +553,7 @@ flowchart TD
 2. `SemiTheme.Locale` に新しい `CultureInfo` を設定
 3. Semi.Avaloniaのビルトインコントロール（ダイアログ等）の言語が更新
 
-### 6.3 PreferUnicode変更時のUnicode表示切替チェーン
+### 7.3 PreferUnicode変更時のUnicode表示切替チェーン
 
 Unicode表示の切り替えは `UnicodeDisplayConverter`（IValueConverter）を通じてView層で行う。設定変更時は DataGrid の行を再構築することで Converter を再評価する。
 
@@ -464,7 +580,7 @@ flowchart TD
 - Unicode文字列が空の場合はASCII版にフォールバック
 - フィルタ検索は `PreferUnicode` 設定に関係なく常にASCII版・Unicode版の両方をOR検索
 
-### 6.4 テーマ変更時のチェーン
+### 7.4 テーマ変更時のチェーン
 
 テーマ変更はR3リアクティブチェーンを使用せず、Avaloniaの組み込み機能で直接切り替える。
 
@@ -482,13 +598,24 @@ flowchart LR
 ```
 
 テーマ変更は `Application.RequestedThemeVariant` のセッターがAvalonia内部でUI全体のスタイル再評価をトリガーするため、明示的な通知チェーンは不要。`UnregisterFollowSystemTheme()` でシステムのテーマ追従を解除する。
+
+### 7.5 IsAudioPanelMode変更時のチェーン
+
+オーディオパネルモードの切り替えは`MapListViewModel.OnIsAudioPanelModeChanged()`で処理される。R3リアクティブチェーンではなく、CommunityToolkit.Mvvmの`partial method`パターンを使用。
+
+1. `IsAudioPanelMode` 変更 → `OnIsAudioPanelModeChanged()` 発火
+2. 現在の設定を `ISettingsService` から取得し `IsAudioPanelMode` を更新して保存
+3. `AudioPlayerPanel.SetPanelActive(value)` を呼び出し
+4. パネル無効化時は再生を停止
+5. View側では `IsVisible` バインディングでパネルの表示/非表示を切り替え
+
 ---
 
-## 7. ImportExportフロー
+## 8. ImportExportフロー
 
 ImportExportページでは、コレクションをJSONファイルにエクスポート・インポートする。MapListモジュールと同様の親子View/ViewModel構成（**親仲介パターン**）を採用し、子VMが Subject で通知し親VMがオーケストレーションする。
 
-### 7.1 エクスポートフロー
+### 8.1 エクスポートフロー
 
 ```mermaid
 sequenceDiagram
@@ -528,7 +655,7 @@ sequenceDiagram
     EVM->>EVM: IsProcessing = false（UIスレッド）
 ```
 
-### 7.2 インポート選択→プレビュー表示フロー
+### 8.2 インポート選択→プレビュー表示フロー
 
 ```mermaid
 sequenceDiagram
@@ -549,7 +676,7 @@ sequenceDiagram
     BLVM-->>UI: ShowBeatmaps 更新（Exists列 表示）
 ```
 
-### 7.3 インポート実行→再初期化フロー
+### 8.3 インポート実行→再初期化フロー
 
 ```mermaid
 sequenceDiagram
@@ -586,7 +713,7 @@ sequenceDiagram
     IVM->>IVM: IsProcessing = false（UIスレッド）
 ```
 
-### 7.4 排他選択フロー
+### 8.4 排他選択フロー
 
 Export選択とImport選択は同時に存在できない。親VMがR3で監視し、片方が選択されたら逆側をnullクリアする。
 
@@ -603,7 +730,7 @@ flowchart TD
     EAR2 -->|SetPreviewRows([], isImport: false)| BLVM
 ```
 
-### 7.5 フォルダ構造
+### 8.5 フォルダ構造
 
 | フォルダ | 用途 | 作成タイミング |
 |---------|------|--------------|

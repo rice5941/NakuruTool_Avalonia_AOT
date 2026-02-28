@@ -29,7 +29,7 @@ namespace NakuruTool_Avalonia_AOT.Tests;
 public class MainWindowViewScreenshotTests
 {
     /// <summary>
-    /// スクリーンショット保存先ディレクトリ
+    /// スクリーンショットの保存ディレクトリ
     /// </summary>
     private static string ScreenshotsDirectory => 
         Path.Combine(AppContext.BaseDirectory, "Screenshots");
@@ -76,7 +76,7 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを待機
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -89,7 +89,7 @@ public class MainWindowViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // MapListViewPageのDataGridを設定
+        // MapListViewPageのDataGridを設宁E
         SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
 
         // スクリーンショットを撮影
@@ -150,7 +150,7 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを待機
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -163,7 +163,7 @@ public class MainWindowViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // TabControlを取得してMapListタブを選択
+        // TabControlを取得してMapListタブを選抁E
         var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
         if (tabControl != null)
         {
@@ -172,7 +172,7 @@ public class MainWindowViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // MapListViewPageのDataGridを設定
+        // MapListViewPageのDataGridを設宁E
         SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
 
         // スクリーンショットを撮影
@@ -241,7 +241,7 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを待機
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -305,7 +305,7 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを待機
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -369,7 +369,7 @@ public class MainWindowViewScreenshotTests
                 KeyCount = 7,
                 Status = BeatmapStatus.Ranked,
                 Title = "テスト曲1 - Test Song 1",
-                Artist = "テストアーティスト1",
+                Artist = "テストアーティスト",
                 Version = "Hard",
                 Creator = "TestMapper1",
                 BPM = 180.0,
@@ -380,6 +380,7 @@ public class MainWindowViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddMonths(-1),
                 FolderName = "test_folder_1",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1001,
                 BeatmapId = 10001,
                 BestScore = 985000,
@@ -404,6 +405,7 @@ public class MainWindowViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddDays(-14),
                 FolderName = "test_folder_2",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1002,
                 BeatmapId = 10002,
                 BestScore = 970000,
@@ -428,6 +430,7 @@ public class MainWindowViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddDays(-10),
                 FolderName = "test_folder_3",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1003,
                 BeatmapId = 10003,
                 BestScore = 0,
@@ -452,6 +455,7 @@ public class MainWindowViewScreenshotTests
                 LastModifiedTime = DateTime.Now,
                 FolderName = "test_folder_4",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1004,
                 BeatmapId = 10004,
                 BestScore = 920000,
@@ -476,6 +480,7 @@ public class MainWindowViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddHours(-2),
                 FolderName = "test_folder_5",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1005,
                 BeatmapId = 10005,
                 BestScore = 999000,
@@ -553,11 +558,20 @@ public class MockFilterPresetService : IFilterPresetService
 /// </summary>
 public class MockMapListPageViewModel : MapListPageViewModel
 {
+    private static AudioPlayerPanelViewModel CreatePanelViewModel()
+    {
+        var service = new MockAudioPlayerService();
+        var settingsService = new MockSettingsService();
+        var audioVm = new MockAudioPlayerViewModel();
+        return new AudioPlayerPanelViewModel(service, audioVm, settingsService);
+    }
+
     public MockMapListPageViewModel() : base(
         new MockDatabaseService(),
         new MockGenerateCollectionService(),
         new MockFilterPresetService(),
         new MockAudioPlayerViewModel(),
+        CreatePanelViewModel(),
         new MockSettingsService())
     {
     }
@@ -599,6 +613,7 @@ public class MockMapListViewModel : IMapListViewModel
     }
     public Beatmap[] FilteredBeatmapsArray { get; private set; } = Array.Empty<Beatmap>();
     public Beatmap? SelectedBeatmap { get; set; }
+    public ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
 
     public void Initialize()
     {
@@ -750,6 +765,10 @@ public class MockAudioPlayerService : IAudioPlayerService
         else
             Resume();
     }
+    public Observable<Unit> PlaybackCompleted { get; } = Observable.Empty<Unit>();
+    public double GetPosition() => 0;
+    public double GetDuration() => 0;
+    public void Seek(double positionSeconds) { }
     public void Dispose() { _stateChanged.Dispose(); }
 }
 

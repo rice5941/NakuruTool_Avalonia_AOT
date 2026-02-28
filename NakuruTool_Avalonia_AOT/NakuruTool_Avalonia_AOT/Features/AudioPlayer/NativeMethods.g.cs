@@ -73,6 +73,25 @@ namespace NakuruTool_Avalonia_AOT.Features.AudioPlayer
         internal static extern float nakuru_audio_get_volume(AudioPlayer* player);
 
         /// <summary>
+        ///  現在の再生位置を取得 (秒単位)
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "nakuru_audio_get_position", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern double nakuru_audio_get_position(AudioPlayer* player);
+
+        /// <summary>
+        ///  現在の曲の総再生時間を取得 (秒単位)
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "nakuru_audio_get_duration", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern double nakuru_audio_get_duration(AudioPlayer* player);
+
+        /// <summary>
+        ///  指定した位置にシーク (秒単位)
+        ///  ファイルを再オープンしてデコーダーに同期シークした新しいSinkに差し替える
+        /// </summary>
+        [DllImport(__DllName, EntryPoint = "nakuru_audio_seek", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern void nakuru_audio_seek(AudioPlayer* player, double position_secs);
+
+        /// <summary>
         ///  現在の状態を取得
         /// </summary>
         [DllImport(__DllName, EntryPoint = "nakuru_audio_get_state", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

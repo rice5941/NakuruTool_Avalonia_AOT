@@ -8,6 +8,7 @@
              xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
              xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
+             xmlns:audio="using:NakuruTool_Avalonia_AOT.Features.AudioPlayer"
              x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListView"
              x:DataType="MapList:MapListViewModel">
 
@@ -16,9 +17,6 @@
         <converters:BoolToIconKindConverter x:Key="PlayedIconConverter"
                                             TrueIcon="CheckboxMarked"
                                             FalseIcon="CheckboxBlankOutline"/>
-        <converters:BoolToIconKindConverter x:Key="PlayPauseIconConverter"
-                                            TrueIcon="Pause"
-                                            FalseIcon="Play"/>
         <converters:BoolToBrushConverter x:Key="PlayedBrushConverter"
                                          TrueBrush="#4CAF50"
                                          FalseBrush="#9E9E9E"/>
@@ -114,286 +112,265 @@
 
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,auto">
-        <!-- ヘッダー: 総件数表示 -->
-        <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}" 
-                BorderBrush="{DynamicResource SemiGrey3}" 
-                BorderThickness="1,1,1,0"
-                CornerRadius="4,4,0,0"
-                Padding="12,8">
-            <Grid>
-                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
-                    <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
-                    <TextBlock Text="{translate:Translate 'MapList.TotalCount'}" VerticalAlignment="Center" FontSize="14"/>
-                    <Border CornerRadius="12" Padding="12,4">
-                        <TextBlock Text="{Binding TotalCount}" 
-                                   VerticalAlignment="Center" 
-                                   FontWeight="Bold"
-                                   FontSize="13"/>
-                    </Border>
-                    <TextBlock Text="{translate:Translate 'MapList.FilteredCount'}" VerticalAlignment="Center" FontSize="14"/>
-                    <Border CornerRadius="12" Padding="12,4">
-                        <TextBlock Text="{Binding FilteredCount}" 
-                                   VerticalAlignment="Center" 
-                                   FontWeight="Bold"
-                                   FontSize="13"/>
-                    </Border>
-                </StackPanel>
 
-                <!-- Mod切替（ヘッダー右端） -->
-                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <mi:MaterialIcon Kind="Speedometer" Width="20" Height="20"
-                                     Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
-                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
-                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
-                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
-                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
-                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
-                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
+
+        <!-- Row 0: オーディオパネル (カード) -->
+        <Border Grid.Row="0"
+                BorderThickness="1" CornerRadius="4"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                Background="{DynamicResource SemiGrey0}"
+                Margin="0,0,0,8">
+            <audio:AudioPlayerPanelView DataContext="{Binding AudioPlayerPanel}"/>
         </Border>
 
-        <DataGrid Grid.Row="1"
-                  x:Name="MapListDataGrid"
-                  ItemsSource="{Binding ShowBeatmaps}"
-                  SelectedItem="{Binding SelectedBeatmap, Mode=TwoWay}"
-                  IsReadOnly="True"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="False"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column"
-                  SelectionMode="Single">
-            <DataGrid.Columns>
-                
-                <!-- 難易度値 -->
-                <DataGridTemplateColumn Width="95">
-                    <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{translate:Translate 'MapList.Difficulty'}" />
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
-                                    <TextBlock Text="{translate:Translate 'MapList.Star'}" Classes="numeric-value"/>
-                                    <TextBlock Text="{Binding Difficulty, StringFormat={}{0:F2}}" Classes="numeric-value"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- 曲情報グループ -->
-                <DataGridTemplateColumn Width="*" MinWidth="300">
-                    <DataGridTemplateColumn.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <mi:MaterialIcon Kind="Music" Width="16" Height="16"/>
-                            <TextBlock Text="{translate:Translate 'MapList.Title'}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Spacing="2" Margin="4,0">
-                                <!-- タイトル（プライマリ） -->
-                                <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Title}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <!-- バージョン（難易度名） -->
-                                    <TextBlock Text="{Binding Version}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
-                                <!-- アーティスト/マッパー -->
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Artist}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Creator}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- BPM -->
-                <DataGridTemplateColumn Width="80">
-                    <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{translate:Translate 'MapList.BPM'}" />
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding BPM, StringFormat={}{0:F0}}" 
-                                       Classes="numeric-value"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- LN率 -->
-                <DataGridTemplateColumn Width="95">
-                    <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{translate:Translate 'MapList.LongNoteRate'}" 
-                                   HorizontalAlignment="Center"/>
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding LongNoteRate, StringFormat={}{0:P2}}" 
-                                       Classes="numeric-value"
-                                       HorizontalAlignment="Center"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <!-- スコア情報グループ -->
-                <DataGridTemplateColumn Width="140">
-                    <DataGridTemplateColumn.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <mi:MaterialIcon Kind="TrophyVariant" Width="16" Height="16"/>
-                            <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0">
-                                <!-- グレード -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
-                                           Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}" 
-                                           Classes="grade-value"
-                                           Foreground="{Binding Grade, Converter={StaticResource GradeToBrushConverter}}"
-                                           VerticalAlignment="Center"/>
-                                           
-                                <!-- スコア -->
-                                <TextBlock Grid.Row="0" Grid.Column="2" 
-                                           Text="{Binding BestScore, Converter={StaticResource ScoreConverter}}" 
-                                           Classes="primary-value" 
-                                           HorizontalAlignment="Left"/>
-                                <!-- 精度 -->
-                                <TextBlock Grid.Row="1" Grid.Column="2" 
-                                           Text="{Binding BestAccuracy, Converter={StaticResource AccuracyConverter}}" 
-                                           Classes="primary-value" 
-                                           HorizontalAlignment="Left"/>
-                            </Grid>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- 履歴グループ -->
-                <DataGridTemplateColumn Width="205">
-                    <DataGridTemplateColumn.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <mi:MaterialIcon Kind="History" Width="16" Height="16"/>
-                            <TextBlock Text="{translate:Translate 'MapList.History'}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="auto,8,*" RowDefinitions="auto,auto,auto">
-                                <!-- プレイ回数 -->
-                                <TextBlock Grid.Row="0" Grid.Column="0"
-                                           Text="{translate:Translate 'MapList.PlayCount'}" Classes="group-label"/>
-                                <TextBlock Grid.Row="0" Grid.Column="2"
-                                           Text="{Binding PlayCount, StringFormat={}{0}}" Classes="group-value"/>
-                                <!-- 最終プレイ日時 -->
-                                <TextBlock Grid.Row="1" Grid.Column="0"
-                                           Text="{translate:Translate 'MapList.LastPlayed'}" Classes="group-label"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2"
-                                           Text="{Binding LastPlayed, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd'}" 
-                                           Classes="group-value"/>
-                                <!-- 最終更新日時 -->
-                                <TextBlock Grid.Row="2" Grid.Column="0"
-                                           Text="{translate:Translate 'MapList.LastModifiedTime'}" Classes="group-label"/>
-                                <TextBlock Grid.Row="2" Grid.Column="2"
-                                           Text="{Binding LastModifiedTime, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd'}" 
-                                           Classes="group-value"/>
-                            </Grid>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- プレイ済みチェック -->
-                <DataGridTemplateColumn Width="95">
-                    <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{translate:Translate 'MapList.IsPlayed'}" 
-                                   HorizontalAlignment="Center"/>
-                    </DataGridTemplateColumn.Header>
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <mi:MaterialIcon Width="24" Height="24"
-                                                 Kind="{Binding IsPlayed, Converter={StaticResource PlayedIconConverter}}"
-                                                 Foreground="{Binding IsPlayed, Converter={StaticResource PlayedBrushConverter}}"/>
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        
-        <!-- ページネーション -->
-        <Border Grid.Row="2"
-                Background="{DynamicResource SemiGrey1}"
-                BorderBrush="{DynamicResource SemiGrey3}"
-                BorderThickness="1,0,1,1"
-                CornerRadius="0,0,4,4"
-                Padding="12">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
-                <Button Command="{Binding PreviousPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
-                    <mi:MaterialIcon Kind="ChevronLeft" Height="32" Width="32"/>
-                </Button>
-                <Border Background="{DynamicResource SemiGrey2}"
-                        CornerRadius="6"
-                        Padding="16,8">
-                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding CurrentPage}"
-                                   FontWeight="Bold"
-                                   FontSize="16"
-                                   Foreground="{DynamicResource SemiBluePrimary}"/>
-                        <TextBlock Text="/" FontSize="16" FontWeight="Bold" />
-                        <TextBlock Text="{Binding FilteredPages}" FontSize="16" FontWeight="Bold"/>
+        <!-- Row 1: リストパネル (header + DataGrid + pagination) -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*,Auto">
+
+            <!-- ヘッダー: 総件数表示 -->
+            <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}" 
+                    BorderBrush="{DynamicResource SemiGrey3}" 
+                    BorderThickness="1,1,1,0"
+                    CornerRadius="4,4,0,0"
+                    Padding="12,8">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                        <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                        <TextBlock Text="{translate:Translate 'MapList.TotalCount'}" VerticalAlignment="Center" FontSize="14"/>
+                        <Border CornerRadius="12" Padding="12,4">
+                            <TextBlock Text="{Binding TotalCount}" 
+                                       VerticalAlignment="Center" 
+                                       FontWeight="Bold"
+                                       FontSize="13"/>
+                        </Border>
+                        <TextBlock Text="{translate:Translate 'MapList.FilteredCount'}" VerticalAlignment="Center" FontSize="14"/>
+                        <Border CornerRadius="12" Padding="12,4">
+                            <TextBlock Text="{Binding FilteredCount}" 
+                                       VerticalAlignment="Center" 
+                                       FontWeight="Bold"
+                                       FontSize="13"/>
+                        </Border>
                     </StackPanel>
-                </Border>
-                <Button Command="{Binding NextPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
-                    <mi:MaterialIcon Kind="ChevronRight" Height="32" Width="32"/>
-                </Button>
-                <ComboBox Width="80" ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize, Mode=TwoWay}" TextElement.FontSize="16" TextElement.FontWeight="Bold" VerticalAlignment="Center"/>
-            </StackPanel>
-        </Border>
 
-        <!-- オーディオ再生コントロール（オーバーレイ） -->
-        <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Margin="8,0,0,0"
-                Background="#DD1A1A1A"
-                BorderBrush="{DynamicResource SemiGrey3}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="12">
-            <StackPanel Spacing="8">
-                <!-- 再生コントロールボタン -->
-                <Button Command="{Binding AudioPlayer.TogglePlayPauseCommand}"
-                        Width="48" Height="48"
-                        HorizontalAlignment="Center"
-                        Theme="{StaticResource SolidButton}">
-                    <mi:MaterialIcon Kind="{Binding AudioPlayer.IsPlaying, Converter={StaticResource PlayPauseIconConverter}}"
-                                     Width="28" Height="28"/>
-                </Button>
+                    <!-- Mod切替（ヘッダー右端） -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <mi:MaterialIcon Kind="Speedometer" Width="20" Height="20"
+                                         Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
+                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
+                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
+                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
+                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
+                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
+                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
 
-                <!-- 音量スライダー -->
-                <StackPanel Spacing="4">
-                    <mi:MaterialIcon Kind="VolumeHigh"
-                                     Width="24" Height="24"
-                                     HorizontalAlignment="Center"/>
-                    <Slider Value="{Binding AudioPlayer.Volume}"
-                            Minimum="0" Maximum="100"
-                            Orientation="Vertical"
-                            Height="100"
-                            HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding AudioPlayer.Volume, StringFormat={}{0}%}"
-                               FontSize="11"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource SemiGrey7}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <DataGrid Grid.Row="1"
+                      x:Name="MapListDataGrid"
+                      ItemsSource="{Binding ShowBeatmaps}"
+                      SelectedItem="{Binding SelectedBeatmap, Mode=TwoWay}"
+                      IsReadOnly="True"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                
+                    <!-- 難易度値 -->
+                    <DataGridTemplateColumn Width="95">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.Difficulty'}" />
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
+                                        <TextBlock Text="{translate:Translate 'MapList.Star'}" Classes="numeric-value"/>
+                                        <TextBlock Text="{Binding Difficulty, StringFormat={}{0:F2}}" Classes="numeric-value"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                
+                    <!-- 曲情報グループ -->
+                    <DataGridTemplateColumn Width="*" MinWidth="300">
+                        <DataGridTemplateColumn.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="Music" Width="16" Height="16"/>
+                                <TextBlock Text="{translate:Translate 'MapList.Title'}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Spacing="2" Margin="4,0">
+                                    <!-- タイトル（プライマリ） -->
+                                    <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Title}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <!-- バージョン（難易度名） -->
+                                        <TextBlock Text="{Binding Version}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <!-- アーティスト/マッパー -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Artist}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Creator}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                
+                    <!-- BPM -->
+                    <DataGridTemplateColumn Width="80">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.BPM'}" />
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding BPM, StringFormat={}{0:F0}}" 
+                                           Classes="numeric-value"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                
+                    <!-- LN率 -->
+                    <DataGridTemplateColumn Width="95">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.LongNoteRate'}" 
+                                       HorizontalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding LongNoteRate, StringFormat={}{0:P2}}" 
+                                           Classes="numeric-value"
+                                           HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <!-- スコア情報グループ -->
+                    <DataGridTemplateColumn Width="140">
+                        <DataGridTemplateColumn.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="TrophyVariant" Width="16" Height="16"/>
+                                <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0">
+                                    <!-- グレード -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                                               Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}" 
+                                               Classes="grade-value"
+                                               Foreground="{Binding Grade, Converter={StaticResource GradeToBrushConverter}}"
+                                               VerticalAlignment="Center"/>
+                                           
+                                    <!-- スコア -->
+                                    <TextBlock Grid.Row="0" Grid.Column="2" 
+                                               Text="{Binding BestScore, Converter={StaticResource ScoreConverter}}" 
+                                               Classes="primary-value" 
+                                               HorizontalAlignment="Left"/>
+                                    <!-- 精度 -->
+                                    <TextBlock Grid.Row="1" Grid.Column="2" 
+                                               Text="{Binding BestAccuracy, Converter={StaticResource AccuracyConverter}}" 
+                                               Classes="primary-value" 
+                                               HorizontalAlignment="Left"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                
+                    <!-- 履歴グループ -->
+                    <DataGridTemplateColumn Width="205">
+                        <DataGridTemplateColumn.Header>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="History" Width="16" Height="16"/>
+                                <TextBlock Text="{translate:Translate 'MapList.History'}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="auto,8,*" RowDefinitions="auto,auto,auto">
+                                    <!-- プレイ回数 -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                               Text="{translate:Translate 'MapList.PlayCount'}" Classes="group-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2"
+                                               Text="{Binding PlayCount, StringFormat={}{0}}" Classes="group-value"/>
+                                    <!-- 最終プレイ日時 -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                               Text="{translate:Translate 'MapList.LastPlayed'}" Classes="group-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2"
+                                               Text="{Binding LastPlayed, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd'}" 
+                                               Classes="group-value"/>
+                                    <!-- 最終更新日時 -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                               Text="{translate:Translate 'MapList.LastModifiedTime'}" Classes="group-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2"
+                                               Text="{Binding LastModifiedTime, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd'}" 
+                                               Classes="group-value"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                
+                    <!-- プレイ済みチェック -->
+                    <DataGridTemplateColumn Width="95">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.IsPlayed'}" 
+                                       HorizontalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <mi:MaterialIcon Width="24" Height="24"
+                                                     Kind="{Binding IsPlayed, Converter={StaticResource PlayedIconConverter}}"
+                                                     Foreground="{Binding IsPlayed, Converter={StaticResource PlayedBrushConverter}}"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        
+            <!-- ページネーション -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource SemiGrey1}"
+                    BorderBrush="{DynamicResource SemiGrey3}"
+                    BorderThickness="1,0,1,1"
+                    CornerRadius="0,0,4,4"
+                    Padding="12">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                    <Button Command="{Binding PreviousPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronLeft" Height="32" Width="32"/>
+                    </Button>
+                    <Border Background="{DynamicResource SemiGrey2}"
+                            CornerRadius="6"
+                            Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentPage}"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="/" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding FilteredPages}" FontSize="16" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Button Command="{Binding NextPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                        <mi:MaterialIcon Kind="ChevronRight" Height="32" Width="32"/>
+                    </Button>
+                    <ComboBox Width="80" ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize, Mode=TwoWay}" TextElement.FontSize="16" TextElement.FontWeight="Bold" VerticalAlignment="Center"/>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
+
+        </Grid>
     </Grid>
 
 </UserControl>

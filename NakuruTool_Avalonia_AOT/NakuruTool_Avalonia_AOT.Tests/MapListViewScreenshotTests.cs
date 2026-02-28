@@ -11,32 +11,32 @@ using Xunit;
 namespace NakuruTool_Avalonia_AOT.Tests;
 
 /// <summary>
-/// MapListViewのスクリーンショチE��チE��チE
+/// MapListViewのスクリーンショットテスト
 /// </summary>
 public class MapListViewScreenshotTests
 {
     /// <summary>
-    /// スクリーンショチE��保存�EチE��レクトリ
+    /// スクリーンショットの保存ディレクトリ
     /// </summary>
     private static string ScreenshotsDirectory => 
         Path.Combine(AppContext.BaseDirectory, "Screenshots");
 
     /// <summary>
-    /// MapListViewの空の状態�EスクリーンショチE��を撮影
+    /// MapListViewの空の状態のスクリーンショットを撮影
     /// </summary>
     [AvaloniaFact]
     public void CaptureMapListView_Empty()
     {
-        // モチE��ViewModelを作�E�E�空のチE�Eタ�E�E
+        // モックViewModelを作成（空のデータ）
         var mockViewModel = new MockMapListViewModel();
 
-        // MapListViewを作�E
+        // MapListViewを作成
         var MapListView = new MapListView
         {
             DataContext = mockViewModel
         };
 
-        // WindowにセチE��
+        // Windowにセット
         var window = new Window
         {
             Width = 1280,
@@ -47,47 +47,47 @@ public class MapListViewScreenshotTests
         // ウィンドウを表示
         window.Show();
 
-        // UIスレチE��のジョブを完亁E��せ、レンダリングを征E��E
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-        // スクリーンショチE��を撮影
+        // スクリーンショットを撮影
         var frame = window.CaptureRenderedFrame();
 
-        // チE��レクトリを作�E
+        // ディレクトリを作成
         Directory.CreateDirectory(ScreenshotsDirectory);
 
-        // ファイルに保孁E
+        // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_Empty.png");
         frame?.Save(filePath);
 
-        // ファイルが作�Eされたことを確誁E
+        // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         window.Close();
     }
 
     /// <summary>
-    /// MapListViewにチE�Eタがある状態�EスクリーンショチE��を撮影
+    /// MapListViewにデータがある状態のスクリーンショットを撮影
     /// </summary>
     [AvaloniaFact]
     public void CaptureMapListView_WithData()
     {
-        // モチE��ViewModelを作�E�E�テストデータあり�E�E
+        // モックViewModelを作成（テストデータあり）
         var mockViewModel = new MockMapListViewModel();
         var testData = CreateTestBeatmaps();
         mockViewModel.SetTestData(testData);
 
-        // ���Eタが正しく設定されてぁE��ことを確誁E
+        // データが正しく設定されていることを確認
         Assert.Equal(testData.Count, mockViewModel.ShowBeatmaps.Count);
 
-        // MapListViewを作�E
+        // MapListViewを作成
         var MapListView = new MapListView
         {
             DataContext = mockViewModel
         };
 
-        // WindowにコチE��
+        // WindowにContentをセット
         var window = new Window
         {
             Width = 1280,
@@ -98,11 +98,11 @@ public class MapListViewScreenshotTests
         // ウィンドウを表示
         window.Show();
 
-        // UIスレチE��のジョブを完亁E��せ、レンダリングを征E��E
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-        // DataGridが正しくバインドされてぁE��ことを確誁E
+        // DataGridが正しくバインドされていることを確認
         var dataGrid = MapListView.FindControl<DataGrid>("MapListDataGrid");
         Assert.NotNull(dataGrid);
         
@@ -111,7 +111,7 @@ public class MapListViewScreenshotTests
         Assert.NotNull(viewModel);
         Assert.Equal(testData.Count, viewModel.ShowBeatmaps.Count);
         
-        // ItemsSourceがnullの場合（コンパイル済みバインチE��ングの問題）、直接設宁E
+        // ItemsSourceがnullの場合（コンパイル済みバインディングの問題）、直接設定
         if (dataGrid.ItemsSource == null)
         {
             dataGrid.ItemsSource = viewModel.ShowBeatmaps;
@@ -122,24 +122,24 @@ public class MapListViewScreenshotTests
         Assert.NotNull(dataGrid.ItemsSource);
         Assert.Equal(testData.Count, dataGrid.ItemsSource.Cast<object>().Count());
 
-        // スクリーンショチE��を撮影
+        // スクリーンショットを撮影
         var frame = window.CaptureRenderedFrame();
 
-        // チE��レクトリを作�E
+        // ディレクトリを作成
         Directory.CreateDirectory(ScreenshotsDirectory);
 
-        // ファイルに保孁E
+        // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_WithData.png");
         frame?.Save(filePath);
 
-        // ファイルが作�Eされたことを確誁E
+        // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         window.Close();
     }
 
     /// <summary>
-    /// 異なるウィンドウサイズでのスクリーンショチE��を撮影
+    /// 異なるウィンドウサイズでのスクリーンショットを撮影
     /// </summary>
     [AvaloniaTheory]
     [InlineData(800, 600, "Small")]
@@ -147,17 +147,17 @@ public class MapListViewScreenshotTests
     [InlineData(1920, 1080, "FullHD")]
     public void CaptureMapListView_DifferentSizes(int width, int height, string sizeName)
     {
-        // モチE��ViewModelを作�E
+        // モックViewModelを作成
         var mockViewModel = new MockMapListViewModel();
         mockViewModel.SetTestData(CreateTestBeatmaps());
 
-        // MapListViewを作�E
+        // MapListViewを作成
         var MapListView = new MapListView
         {
             DataContext = mockViewModel
         };
 
-        // WindowにセチE��
+        // Windowにセット
         var window = new Window
         {
             Width = width,
@@ -168,11 +168,11 @@ public class MapListViewScreenshotTests
         // ウィンドウを表示
         window.Show();
 
-        // UIスレチE��のジョブを完亁E��せ、レンダリングを征E��E
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-        // DataGridのItemsSourceを直接設定（コンパイル済みバインチE��ングの問題対策！E
+        // DataGridのItemsSourceを直接設定（コンパイル済みバインディングの問題対策）
         var dataGrid = MapListView.FindControl<DataGrid>("MapListDataGrid");
         if (dataGrid != null && dataGrid.ItemsSource == null)
         {
@@ -181,54 +181,54 @@ public class MapListViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // スクリーンショチE��を撮影
+        // スクリーンショットを撮影
         var frame = window.CaptureRenderedFrame();
 
-        // チE��レクトリを作�E
+        // ディレクトリを作成
         Directory.CreateDirectory(ScreenshotsDirectory);
 
-        // ファイルに保孁E
+        // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, $"MapListView_{sizeName}_{width}x{height}.png");
         frame?.Save(filePath);
 
-        // ファイルが作�Eされたことを確誁E
+        // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         window.Close();
     }
 
     /// <summary>
-    /// ペ�Eジ送りが動作して2ペ�Eジ目が表示されることを確誁E
+    /// ページ送りが動作して2ページ目が表示されることを確認
     /// </summary>
     [AvaloniaFact]
     public void CaptureMapListView_Pagination_Page2()
     {
-        // ペ�Eジ送りをテストするために多くのチE�Eタを作�E�E�EageSize=5で3ペ�Eジ刁E��E
+        // ページ送りをテストするために多くのデータを作成（PageSize=5で3ページ分）
         var mockViewModel = new MockMapListViewModel();
         var testData = CreateManyTestBeatmaps(15);
-        mockViewModel.PageSize = 5; // 1ペ�Eジ5件
+        mockViewModel.PageSize = 5; // 1ページ5件
         mockViewModel.SetTestData(testData);
 
-        // 初期状態！Eペ�Eジ目�E�を確誁E
+        // 初期状態（1ページ目）を確認
         Assert.Equal(1, mockViewModel.CurrentPage);
         Assert.Equal(3, mockViewModel.FilteredPages);
         Assert.Equal(5, mockViewModel.ShowBeatmaps.Count);
 
-        // 2ペ�Eジ目に移勁E
+        // 2ページ目に移動
         mockViewModel.CurrentPage = 2;
 
-        // 2ペ�Eジ目のチE�Eタが表示されてぁE��ことを確誁E
+        // 2ページ目のデータが表示されていることを確認
         Assert.Equal(2, mockViewModel.CurrentPage);
         Assert.Equal(5, mockViewModel.ShowBeatmaps.Count);
-        Assert.Equal("test6", mockViewModel.ShowBeatmaps[0].MD5Hash); // 6番目のチE�Eタ
+        Assert.Equal("test6", mockViewModel.ShowBeatmaps[0].MD5Hash); // 6番目のデータ
 
-        // MapListViewを作�E
+        // MapListViewを作成
         var MapListView = new MapListView
         {
             DataContext = mockViewModel
         };
 
-        // WindowにセチE��
+        // Windowにセット
         var window = new Window
         {
             Width = 1280,
@@ -239,7 +239,7 @@ public class MapListViewScreenshotTests
         // ウィンドウを表示
         window.Show();
 
-        // UIスレチE��のジョブを完亁E��せ、レンダリングを征E��E
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -252,24 +252,24 @@ public class MapListViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // スクリーンショチE��を撮影
+        // スクリーンショットを撮影
         var frame = window.CaptureRenderedFrame();
 
-        // チE��レクトリを作�E
+        // ディレクトリを作成
         Directory.CreateDirectory(ScreenshotsDirectory);
 
-        // ファイルに保孁E
+        // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_Pagination_Page2.png");
         frame?.Save(filePath);
 
-        // ファイルが作�Eされたことを確誁E
+        // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         window.Close();
     }
 
     /// <summary>
-    /// ペ�Eジ送り - 1ペ�Eジ目と2ペ�Eジ目を比輁E��るスクリーンショチE��
+    /// ページ送り - 1ページ目と2ページ目を比較するスクリーンショット
     /// </summary>
     [AvaloniaTheory]
     [InlineData(1, "Page1")]
@@ -277,22 +277,22 @@ public class MapListViewScreenshotTests
     [InlineData(3, "Page3")]
     public void CaptureMapListView_Pagination_Pages(int pageNumber, string pageName)
     {
-        // ペ�Eジ送りをテストするために多くのチE�Eタを作�E
+        // ページ送りをテストするために多くのデータを作成
         var mockViewModel = new MockMapListViewModel();
         var testData = CreateManyTestBeatmaps(15);
         mockViewModel.PageSize = 5;
         mockViewModel.SetTestData(testData);
 
-        // 持E���Eージに移勁E
+        // 指定ページに移動
         mockViewModel.CurrentPage = pageNumber;
 
-        // MapListViewを作�E
+        // MapListViewを作成
         var MapListView = new MapListView
         {
             DataContext = mockViewModel
         };
 
-        // WindowにセチE��
+        // Windowにセット
         var window = new Window
         {
             Width = 1280,
@@ -303,7 +303,7 @@ public class MapListViewScreenshotTests
         // ウィンドウを表示
         window.Show();
 
-        // UIスレチE��のジョブを完亁E��せ、レンダリングを征E��E
+        // UIスレッドのジョブを完了させ、レンダリングを完了
         Dispatcher.UIThread.RunJobs();
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -316,24 +316,24 @@ public class MapListViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // スクリーンショチE��を撮影
+        // スクリーンショットを撮影
         var frame = window.CaptureRenderedFrame();
 
-        // チE��レクトリを作�E
+        // ディレクトリを作成
         Directory.CreateDirectory(ScreenshotsDirectory);
 
-        // ファイルに保孁E
+        // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, $"MapListView_Pagination_{pageName}.png");
         frame?.Save(filePath);
 
-        // ファイルが作�Eされたことを確誁E
+        // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         window.Close();
     }
 
     /// <summary>
-    /// 多くのチE��ト用BeatmapチE�Eタを作�E
+    /// 多くのテスト用BeatmapデータをCreate
     /// </summary>
     private static List<Beatmap> CreateManyTestBeatmaps(int count)
     {
@@ -348,7 +348,7 @@ public class MapListViewScreenshotTests
                 MD5Hash = $"test{i}",
                 KeyCount = i % 2 == 0 ? 7 : 4,
                 Status = statuses[i % statuses.Length],
-                Title = $"Test Song #{i:D2} - チE��ト曲{i}",
+                Title = $"Test Song #{i:D2} - テスト曲{i}",
                 Artist = $"Artist {i}",
                 Version = i switch
                 {
@@ -365,6 +365,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddDays(-i * 2),
                 FolderName = $"folder_{i}",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1000 + i,
                 BeatmapId = 10000 + i,
                 BestScore = i % 3 != 0 ? 900000 + (i * 1000) : 0,
@@ -378,7 +379,7 @@ public class MapListViewScreenshotTests
     }
 
     /// <summary>
-    /// チE��ト用のBeatmapチE�Eタを作�E
+    /// テスト用のBeatmapデータを作成
     /// </summary>
     private static List<Beatmap> CreateTestBeatmaps()
     {
@@ -389,8 +390,8 @@ public class MapListViewScreenshotTests
                 MD5Hash = "test1",
                 KeyCount = 7,
                 Status = BeatmapStatus.Ranked,
-                Title = "チE��ト曲1 - Test Song 1",
-                Artist = "チE��トアーチE��スチE",
+                Title = "テスト曲1 - Test Song 1",
+                Artist = "テストアーティスト",
                 Version = "Hard",
                 Creator = "TestMapper1",
                 BPM = 180.0,
@@ -401,6 +402,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddMonths(-1),
                 FolderName = "test_folder_1",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1001,
                 BeatmapId = 10001,
                 BestScore = 985000,
@@ -425,6 +427,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddDays(-14),
                 FolderName = "test_folder_2",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1002,
                 BeatmapId = 10002,
                 BestScore = 970000,
@@ -449,6 +452,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddDays(-10),
                 FolderName = "test_folder_3",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1003,
                 BeatmapId = 10003,
                 BestScore = 0,
@@ -473,6 +477,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now,
                 FolderName = "test_folder_4",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1004,
                 BeatmapId = 10004,
                 BestScore = 920000,
@@ -497,6 +502,7 @@ public class MapListViewScreenshotTests
                 LastModifiedTime = DateTime.Now.AddHours(-2),
                 FolderName = "test_folder_5",
                 AudioFilename = "audio.mp3",
+                OsuFileName = "test.osu",
                 BeatmapSetId = 1005,
                 BeatmapId = 10005,
                 BestScore = 999000,

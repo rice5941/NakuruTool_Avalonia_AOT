@@ -192,5 +192,14 @@
     "Status.BulkProgress": "{0}/{1} Processing: {2}",
     "Status.BulkCompleted": "Batch complete: {0} succeeded / {1} failed",
     "Status.BulkFailed": "Batch generation error: {0}"
+  },
+  "AudioPanel": {
+    "Shuffle": "Shuffle",
+    "Previous": "Previous Track",
+    "PlayPause": "Play/Pause",
+    "Next": "Next Track",
+    "Repeat": "Repeat",
+    "Toggle": "Toggle Audio Panel",
+    "Volume": "Volume"
   }
 }

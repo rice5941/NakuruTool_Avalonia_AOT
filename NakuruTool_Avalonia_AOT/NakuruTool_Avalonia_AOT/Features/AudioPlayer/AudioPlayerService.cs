@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using R3;
 using System;
 using System.Diagnostics;
@@ -13,11 +14,14 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
 {
     private AudioPlayer* _playerHandle;
     private readonly Subject<AudioPlayerState> _stateSubject = new();
+    private readonly Subject<Unit> _playbackCompletedSubject = new();
     private AudioPlayerState _currentState;
-    private readonly CompositeDisposable _disposables = [];
     private bool _disposed;
+    private IDisposable? _completionPoller;
+    private bool _isManualStop;
 
     public Observable<AudioPlayerState> StateChanged => _stateSubject;
+    public Observable<Unit> PlaybackCompleted => _playbackCompletedSubject;
     public AudioPlayerState CurrentState => _currentState;
 
     public int Volume
@@ -63,6 +67,7 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
             return;
         }
 
+        _isManualStop = false;
         unsafe
         {
             var utf8Bytes = Encoding.UTF8.GetBytes(filePath);
@@ -76,6 +81,7 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
                 else
                 {
                     SetState(AudioPlayerState.Playing);
+                    StartCompletionPolling();
                 }
             }
         }
@@ -104,11 +110,69 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
 
     public void Stop()
     {
+        _isManualStop = true;
+        StopCompletionPolling();
         unsafe
         {
             NativeMethods.nakuru_audio_stop(_playerHandle);
             SetState(AudioPlayerState.Stopped);
         }
+    }
+
+    public double GetPosition()
+    {
+        unsafe
+        {
+            return NativeMethods.nakuru_audio_get_position(_playerHandle);
+        }
+    }
+
+    public double GetDuration()
+    {
+        unsafe
+        {
+            return NativeMethods.nakuru_audio_get_duration(_playerHandle);
+        }
+    }
+
+    public void Seek(double positionSeconds)
+    {
+        unsafe
+        {
+            NativeMethods.nakuru_audio_seek(_playerHandle, positionSeconds);
+        }
+    }
+
+    private void StartCompletionPolling()
+    {
+        StopCompletionPolling();
+        _completionPoller = Observable.Interval(TimeSpan.FromMilliseconds(200))
+            .Subscribe(_ =>
+            {
+                if (_currentState != AudioPlayerState.Playing) return;
+
+                NativeAudioPlayerState nativeState;
+                unsafe
+                {
+                    nativeState = NativeMethods.nakuru_audio_get_state(_playerHandle);
+                }
+
+                if (nativeState == NativeAudioPlayerState.Stopped && !_isManualStop)
+                {
+                    StopCompletionPolling();
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        SetState(AudioPlayerState.Stopped);
+                        _playbackCompletedSubject.OnNext(Unit.Default);
+                    });
+                }
+            });
+    }
+
+    private void StopCompletionPolling()
+    {
+        _completionPoller?.Dispose();
+        _completionPoller = null;
     }
 
     public void TogglePlayPause()
@@ -128,6 +192,8 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
         if (_disposed) return;
         _disposed = true;
 
+        StopCompletionPolling();
+
         unsafe
         {
             if (_playerHandle != null)
@@ -137,7 +203,7 @@ public sealed unsafe class AudioPlayerService : IAudioPlayerService
             }
         }
 
-        _disposables.Dispose();
         _stateSubject.Dispose();
+        _playbackCompletedSubject.Dispose();
     }
 }

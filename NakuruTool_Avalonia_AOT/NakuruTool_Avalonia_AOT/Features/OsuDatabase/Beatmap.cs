@@ -37,6 +37,8 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public DateTime? LastModifiedTime { get; init; }
         public required string FolderName { get; init; }
         public required string AudioFilename { get; init; }
+        /// <summary>.osuファイル名（例: "Artist - Title (Creator) [Difficulty].osu"）</summary>
+        public required string OsuFileName { get; init; }
         public int BeatmapSetId { get; init; }
         public int BeatmapId { get; init; }
         public int BestScore { get; init; }

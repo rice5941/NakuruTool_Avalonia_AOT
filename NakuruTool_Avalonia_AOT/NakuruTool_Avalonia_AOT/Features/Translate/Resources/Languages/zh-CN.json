@@ -192,5 +192,14 @@
     "Status.BulkProgress": "{0}/{1} 处理中: {2}",
     "Status.BulkCompleted": "批量完成: 成功 {0} / 失败 {1}",
     "Status.BulkFailed": "批量生成错误: {0}"
+  },
+  "AudioPanel": {
+    "Shuffle": "随机播放",
+    "Previous": "上一首",
+    "PlayPause": "播放/暂停",
+    "Next": "下一首",
+    "Repeat": "重复播放",
+    "Toggle": "切换音频面板",
+    "Volume": "音量"
   }
 }

@@ -406,7 +406,7 @@ public sealed class OsuDbParser : IDisposable
             string difficulty = ReadStringFromBuffer(buffer, ref pos);
             string audioFilename = ReadStringFromBuffer(buffer, ref pos);
             string md5Hash = ReadStringFromBuffer(buffer, ref pos);
-            ReadStringFromBuffer(buffer, ref pos); // fileName (skip)
+            string osuFileName = ReadStringFromBuffer(buffer, ref pos);
 
             byte rankedStatus = buffer[pos++];
             ushort circlesCount = ReadUInt16FromBuffer(buffer, ref pos);
@@ -505,6 +505,7 @@ public sealed class OsuDbParser : IDisposable
                 LastModifiedTime = lastModifiedTime == DateTime.MinValue ? null : lastModifiedTime,
                 FolderName = folderName,
                 AudioFilename = audioFilename,
+                OsuFileName = osuFileName,
                 Grade = ConvertGradeToString(maniaGrade),
                 KeyCount = keyCount,
                 LongNoteRate = longNoteRate,

@@ -69,12 +69,13 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         IGenerateCollectionService generateCollectionService,
         IFilterPresetService presetService,
         AudioPlayerViewModel audioPlayerViewModel,
+        AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService)
     {
         _generateCollectionService = generateCollectionService;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
-        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, settingsService);
+        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService);
         PresetEditorViewModel = new PresetEditorViewModel(presetService, databaseService, generateCollectionService);
 
         // MapFilterViewModelにToggle命令を中継するコマンドを注入

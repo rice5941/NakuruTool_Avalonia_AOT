@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 [dependencies]
 rodio = "0.21"
 parking_lot = "0.12"
+symphonia = { version = "0.5.4", default-features = false, features = ["mp3"] }
 
 [build-dependencies]
 csbindgen = "1.9"

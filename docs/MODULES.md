@@ -79,7 +79,7 @@
 #### 依存モジュール
 
 - **OsuDatabase** — `IDatabaseService`, `IGenerateCollectionService`
-- **AudioPlayer** — `AudioPlayerViewModel`
+- **AudioPlayer** — `AudioPlayerViewModel`, `AudioPlayerPanelViewModel`（高機能再生パネルとしてMapListViewModelに渡す）
 - **Shared** — `ViewModelBase`
 - **Translate** — コレクション生成結果メッセージの多言語化
 
@@ -125,6 +125,9 @@
 - フィルタ済み譜面配列（`FilteredBeatmapsArray`）の管理
 - ページング処理（表示用部分配列 `ShowBeatmaps` の管理）
 - 譜面選択時のオーディオ自動再生
+- オーディオパネルモードの管理と設定永続化
+- フィルタ済み譜面配列のナビゲーションコンテキスト提供（AudioPlayerPanelViewModelへ）
+- 前後トラック移動時のページ遷移とスクロール
 
 #### データ構造
 
@@ -139,6 +142,8 @@
 | `PageSize` | `int` | 1ページあたりの表示件数（デフォルト: 20） |
 | `SelectedBeatmap` | `Beatmap?` | 選択中の譜面 |
 | `AudioPlayer` | `AudioPlayerViewModel` | オーディオ再生コントロール |
+| `AudioPlayerPanel` | `AudioPlayerPanelViewModel` | 高機能オーディオパネル |
+| `IsAudioPanelMode` | `bool` | オーディオパネル表示モード（設定に永続化） |
 
 #### ページング仕様
 
@@ -156,6 +161,9 @@
 
 - `SelectedBeatmap` プロパティの変更をR3の `ObserveProperty` で監視
 - 変更時に `AudioPlayer.PlayBeatmapAudio(SelectedBeatmap)` を呼び出し、自動的にプレビュー再生
+- `IsAudioPanelMode` が `true` の場合、選択変更時に `AudioPlayerPanel.PlayBeatmap()` を呼び出し
+- `AudioPlayerPanel.NavigateToFilteredIndex` コールバック経由でページ遷移を実行
+- `ApplyFilter()` 呼び出し時に `AudioPlayerPanel.SetNavigationContext()` でフィルタ結果を連携
 
 ---
 
@@ -658,12 +666,19 @@ DB読み込み進捗表示専用のViewModel。
 | `AudioPlayerService.cs` | サービス | Rust FFIを介した再生実装 |
 | `AudioPlayerViewModel.cs` | ViewModel | 再生コントロールUI管理 |
 | `NativeMethods.g.cs` | 自動生成コード | csbindgenが生成したP/Invokeバインディング |
+| `AudioPlayerPanelViewModel.cs` | ViewModel | 高機能再生パネルのUI管理（シーク、前後トラック、シャッフル、リピート） |
+| `AudioPlayerPanelView.axaml` | View | 高機能再生パネルのレイアウト |
+| `AudioPlayerPanelView.axaml.cs` | CodeBehind | シークバーのドラッグ操作ハンドリング |
+| `OsuFileParser.cs` | ユーティリティ | .osuファイルの[Events]セクションから背景画像ファイル名を取得 |
 
 ### 概要
 
 - osu!の譜面オーディオファイルのプレビュー再生機能を提供するモジュール
 - Rustネイティブライブラリ（rodio）とC#をFFI（P/Invoke）で橋渡しし、低レベルなオーディオ再生を実現
 - 再生・一時停止・停止・音量制御の操作と、再生状態の変更通知をR3で管理
+- 簡易版（AudioPlayerViewModel）と高機能版（AudioPlayerPanelViewModel）の2つの再生UIモードを提供
+- 高機能版はシークバー、前後トラック移動、シャッフル再生、リピートモード（None/All/One）、背景画像表示を含む
+- モード切替は設定に永続化され、MapListViewの上部パネルとして表示
 
 ### 依存モジュール
 
@@ -692,6 +707,10 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 | `Resume()` | `void` | 再開 |
 | `Stop()` | `void` | 停止 |
 | `TogglePlayPause()` | `void` | 再生/一時停止トグル |
+| `PlaybackCompleted` | `Observable<Unit>` | 再生完了通知 |
+| `GetPosition()` | `double` | 現在の再生位置（秒） |
+| `GetDuration()` | `double` | 楽曲の総再生時間（秒） |
+| `Seek(double)` | `void` | 指定位置へシーク |
 
 ### AudioPlayerState（enum）
 
@@ -709,6 +728,10 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 - `Play()` ではファイルパスをUTF-8バイト列に変換し、fixedポインタでRustに渡す
 - R3 `Subject<AudioPlayerState>` で状態変更を通知
 - `Dispose()` で `nakuru_audio_destroy()` を呼びネイティブリソースを解放
+- 200msポーリングで再生完了を検知し、`_playbackCompletedSubject` を通じてUIスレッドに通知
+- `_isManualStop` フラグで手動停止と自然完了を区別
+- Rust側ではSinkを再生成することで新規再生を実現（`Sink::connect_new`）
+- 新規Sinkに既存の音量設定を自動継承
 
 ### AudioPlayerViewModel
 
@@ -721,12 +744,87 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 - `PlayBeatmapAudio(Beatmap?)` — osu!フォルダパス + `Songs/{FolderName}/{AudioFilename}` のパスを構築して再生
 - `TogglePlayPauseCommand`, `StopAudioCommand` コマンドを提供
 
+### AudioPlayerPanelViewModel
+
+高機能オーディオ再生パネルのViewModel。シークバー、前後トラック、シャッフル、リピートモードを管理する。
+
+#### RepeatMode（enum）
+
+| 値 | 概要 |
+|---|------|
+| `None` | リピートなし |
+| `All` | 全曲リピート |
+| `One` | 1曲リピート |
+
+#### 主要プロパティ
+
+| プロパティ | 型 | 概要 |
+|-----------|---|------|
+| `Title` | `string` | 再生中の曲名 |
+| `Artist` | `string` | アーティスト名 |
+| `Position` | `double` | 現在の再生位置（秒） |
+| `Duration` | `double` | 楽曲の総再生時間（秒） |
+| `PositionText` | `string` | 位置テキスト（mm:ss / mm:ss 形式） |
+| `IsPlaying` | `bool` | 再生中フラグ |
+| `IsSeeking` | `bool` | シーク操作中フラグ（ポーリング位置更新を一時停止） |
+| `IsShuffleEnabled` | `bool` | シャッフルON/OFF |
+| `CurrentRepeatMode` | `RepeatMode` | 現在のリピートモード |
+| `BackgroundImage` | `Bitmap?` | 背景画像 |
+
+#### 主要コマンド
+
+| コマンド | 概要 |
+|---------|---------|
+| `TogglePlayPauseCommand` | 再生/一時停止の切り替え |
+| `NextTrackCommand` | 次のトラックへ移動（シャッフル時はランダム選択） |
+| `PreviousTrackCommand` | 3秒以上再生時は先頭に戻る、3秒未満は前のトラックへ |
+| `ToggleShuffleCommand` | シャッフルのON/OFF切り替え |
+| `CycleRepeatModeCommand` | リピートモードのサイクル（None → All → One → None） |
+| `SeekCommand` | 指定位置へシーク |
+
+#### 外部連携メソッド
+
+| メソッド | 概要 |
+|---------|---------|
+| `PlayBeatmap(Beatmap)` | 指定譜面のオーディオを再生し、タイトル・背景画像を更新 |
+| `SetNavigationContext(Beatmap[], int)` | フィルタ済み譜面配列と現在のページサイズを設定 |
+| `SetPanelActive(bool)` | パネルの有効/無効を切り替え（無効時は再生停止） |
+
+#### R3チェーン
+
+- `IAudioPlayerService.StateChanged` → `IsPlaying` 更新 + 位置ポーリングの開始/停止
+- `IAudioPlayerService.PlaybackCompleted` → リピート/シャッフルに応じた次トラック処理
+- 位置ポーリング: 再生中は100msごとに `GetPosition()` で位置更新（`IsSeeking` 時はスキップ）
+- Duration取得は再生開始後300ms遅延（Rust側のsource.total_duration()確定待ち）
+
+#### ナビゲーション動作
+
+- `NextTrack`: シャッフル時はRandom、通常時は番号+1。RepeatAll時は末尾から先頭に循環
+- `PreviousTrack`: 再生位置3秒以上なら先頭に戻る、3秒未満なら前トラック。RepeatAll時は先頭から末尾に循環
+- `NavigateToFilteredIndex`: MapListViewModelに曲IDのインデックスからページを計算してジャンプ要求
+
+### OsuFileParser
+
+.osuファイルの[Events]セクションを解析し、背景画像のファイル名を取得する静的ユーティリティクラス。
+
+| メソッド | 概要 |
+|---------|---------|
+| `GetBackgroundFilename(string osuFilePath)` | 指定.osuファイルの[Events]セクションから `0,0,"filename"` 行を検索し、背景画像ファイル名を返す。見つからない場合はnull |
+
+- ファイルは `File.ReadLines` で1行ずつ遅延読み込み（メモリ効率）
+- `[Events]` セクション内の `0,0,"..."` パターンのみ処理
+- 他の `[` セクションに到達したら探索を終了
+
 ### nakuru_audio（Rust側）
 
 - **言語**: Rust
 - **主要クレート**: rodio（オーディオ再生）
 - **ビルド**: csbindgenでC#バインディングを自動生成
-- **公開API**: `nakuru_audio_create`, `nakuru_audio_destroy`, `nakuru_audio_play`, `nakuru_audio_pause`, `nakuru_audio_resume`, `nakuru_audio_stop`, `nakuru_audio_set_volume`, `nakuru_audio_get_volume`, `nakuru_audio_get_state`, `nakuru_audio_set_state_callback`
+- **公開API**: `nakuru_audio_create`, `nakuru_audio_destroy`, `nakuru_audio_play`, `nakuru_audio_pause`, `nakuru_audio_resume`, `nakuru_audio_stop`, `nakuru_audio_set_volume`, `nakuru_audio_get_volume`, `nakuru_audio_get_state`, `nakuru_audio_set_state_callback`, `nakuru_audio_get_position`, `nakuru_audio_get_duration`, `nakuru_audio_seek`
+- `AudioPlayer` 構造体に `_stream` (OutputStream) と `duration` (f64) フィールドを追加
+- `nakuru_audio_play` はSinkを `Sink::connect_new` で再生成し、旧Sinkの音量を新Sinkに自動継承
+- `duration` は `source.total_duration()` から取得（取得不可の場合は0.0）
+- `nakuru_audio_seek` は不正値（NaN, Infinity, 負値）をガード
 
 ---
 
@@ -784,6 +882,7 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 | `OsuFolderPath` | `string` | `""` | osu!フォルダパス |
 | `LanguageKey` | `string` | `"ja-JP"` | 言語コード |
 | `PreferUnicode` | `bool` | `false` | Unicode表示優先フラグ |
+| `IsAudioPanelMode` | `bool` | `false` | オーディオパネルモードの永続化フラグ |
 
 - JSON Source Generatorとの互換性のため、`[ObservableProperty]` ではなく手動の `SetProperty` パターンを使用
 - `Update(SettingsData)` メソッドで既存インスタンスのプロパティを一括更新
@@ -951,6 +1050,17 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `DrainTimeConverter` | `DrainTimeConverter.cs` | `mm:ss` 形式 ⇔ 秒数の変換ユーティリティ |
 | `ZeroToStringConverter` | `ZeroToStringConverter.cs` | 0値（int/double）を `"-"` に変換 |
 | `UnicodeDisplayConverter` | `UnicodeDisplayConverter.cs` | `PreferUnicode`設定に基づいて`Beatmap`/`ImportExportBeatmapItem`のTitle/ArtistのUnicode版/ASCII版を切り替え。`SettingsService.Current`から設定値を参照。Unicodeが空の場合はASCII版にフォールバック |
+| `RepeatModeToIconConverter` | `RepeatModeToIconConverter.cs` | `AudioPlayerPanelViewModel.RepeatMode` を `MaterialIconKind` に変換。None→RepeatOff、All→Repeat、One→RepeatOnce |
+
+#### RepeatModeToIconConverter
+
+`AudioPlayerPanelViewModel.RepeatMode` を `MaterialIconKind` に変換するIValueConverter。
+
+| 入力値 | 出力 |
+|-------|------|
+| `RepeatMode.None` | `MaterialIconKind.RepeatOff` |
+| `RepeatMode.All` | `MaterialIconKind.Repeat` |
+| `RepeatMode.One` | `MaterialIconKind.RepeatOnce` |
 
 ---
 

@@ -12,6 +12,7 @@ public class CollectionExchangeData
 }
 
 /// <summary>JSON内の1 beatmap</summary>
+
 public class CollectionExchangeBeatmap
 {
     public string Title { get; set; } = string.Empty;
@@ -25,6 +26,9 @@ public class CollectionExchangeBeatmap
 
     public string Md5 { get; set; } = string.Empty;
 
+    /// <summary>.osuファイル名</summary>
+    public string OsuFileName { get; set; } = string.Empty;
+
     /// <summary>Beatmap → DTO変換（エクスポート時）</summary>
     public static CollectionExchangeBeatmap FromBeatmap(Beatmap beatmap) => new()
     {
@@ -34,7 +38,8 @@ public class CollectionExchangeBeatmap
         Creator = beatmap.Creator,
         Cs = (double)beatmap.KeyCount,
         BeatmapsetId = beatmap.BeatmapSetId,
-        Md5 = beatmap.MD5Hash
+        Md5 = beatmap.MD5Hash,
+        OsuFileName = beatmap.OsuFileName
     };
 }
 

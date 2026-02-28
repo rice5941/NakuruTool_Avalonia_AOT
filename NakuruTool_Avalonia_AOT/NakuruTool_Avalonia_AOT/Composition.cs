@@ -19,6 +19,7 @@ partial class Composition
         .Bind<IMapListViewModel>().As(Singleton).To<MapListViewModel>()
         .Bind<MapListPageViewModel>().As(Singleton).To<MapListPageViewModel>()
         .Bind<AudioPlayerViewModel>().As(Singleton).To<AudioPlayerViewModel>()
+        .Bind<AudioPlayerPanelViewModel>().As(Singleton).To<AudioPlayerPanelViewModel>()
         .Bind<ILicensesViewModel>().As(Singleton).To<LicensesViewModel>()
         .Bind<ImportExportPageViewModel>().As(Singleton).To<ImportExportPageViewModel>()
 

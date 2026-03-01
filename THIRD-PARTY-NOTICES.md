@@ -138,13 +138,24 @@ parking_lotは以下のライセンスのいずれかを選択できます：
 
 ---
 
+### symphonia
+- **Version**: 0.5.4
+- **License**: Mozilla Public License 2.0 (MPL-2.0)
+- **Repository**: https://github.com/pdeljanov/Symphonia
+- **Copyright**: Copyright (c) Philip Deljanov
+
+Pure Rustによるオーディオデコーディングライブラリ。MP3デコードのために直接使用しています。
+
+MPL-2.0のソースコードは上記リポジトリで公開されています。
+
+---
+
 ## 間接的な依存関係
 
 上記のライブラリは、さらに以下のような依存関係を持っています：
 
-### Rustエコシステム（rodio経由）
-- **cpal**: Apache License 2.0 - クロスプラットフォームオーディオI/Oライブラリ
-- **symphonia**: MPL-2.0 - オーディオデコーディングライブラリ
+### Rustエコシステム（cpal経由 / rodio経由）
+- **cpal**: Apache License 2.0 - クロスプラットフォームオーディオI/Oライブラリ（rodio経由）
 
 ### .NETエコシステム
 - **SkiaSharp**: MIT License - 2Dグラフィックスライブラリ（Avalonia経由）

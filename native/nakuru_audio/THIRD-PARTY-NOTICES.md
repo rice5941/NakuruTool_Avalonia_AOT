@@ -23,8 +23,9 @@ at your option.
 ## symphonia
 
 - **License**: MPL-2.0
-- **Repository**: https://github.com/pdewacht/symphonia
-- Used by rodio for audio decoding
+- **Repository**: https://github.com/pdeljanov/Symphonia
+- **Copyright**: Copyright (c) Philip Deljanov
+- Used directly for audio decoding (MP3)
 
 ## parking_lot
 

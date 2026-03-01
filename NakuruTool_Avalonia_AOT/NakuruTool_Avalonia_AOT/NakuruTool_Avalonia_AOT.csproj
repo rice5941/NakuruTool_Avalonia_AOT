@@ -9,6 +9,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 	<LangVersion>preview</LangVersion>
+	<AssemblyName>NakuruTool</AssemblyName>
+	<AssemblyTitle>NakuruTool</AssemblyTitle>
+	<ApplicationIcon>Assets\Nakurage-dot.ico</ApplicationIcon>
   </PropertyGroup>
 
   <!-- NativeAOT Settings (Release構成でのみ有効) -->
@@ -38,6 +41,10 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Features\Translate\Resources\Languages\*.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Content Include="Assets\Nakurage-dot.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.10" />

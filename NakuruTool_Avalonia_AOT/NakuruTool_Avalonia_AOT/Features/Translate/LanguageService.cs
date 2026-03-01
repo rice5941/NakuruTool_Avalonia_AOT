@@ -126,7 +126,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
             try
             {
                 // NativeAOT対応：アセンブリ名を直接指定
-                const string assemblyName = "NakuruTool_Avalonia_AOT";
+                const string assemblyName = "NakuruTool";
                 var uri = new Uri($"avares://{assemblyName}/Features/Translate/Resources/Languages/{languageCode}.json");
 
                 string jsonContent;

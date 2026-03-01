@@ -13,7 +13,8 @@
         xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
         x:Class="NakuruTool_Avalonia_AOT.Features.MainWindow.MainWindowView"
         x:DataType="mainWindow:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Nakurage-dot.ico"
+        Title="{translate:Translate 'App.Name'}"
         MinWidth="800"
         MinHeight="500">
 
@@ -67,72 +68,80 @@
             </Border>
 
             <!-- メインコンテンツ -->
-            <TabControl
-                Name="MainTab"
-                Grid.Row="1"
-                Margin="8,0"
-                Padding="20,0,0,0"
-                TabStripPlacement="Left"
-                SelectedIndex="{Binding SelectedTabIndex}"
-                Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
-                Theme="{DynamicResource ScrollLineTabControl}">
-                <TabControl.Styles>
-                    <Style Selector=".Dismiss /template/ ScrollViewer#PART_ScrollViewer">
-                        <Setter Property="IsVisible" Value="False"/>
-                    </Style>
-                    <Style Selector="ScrollViewer#PART_ScrollViewer">
-						<Setter Property="MinWidth" Value="230"/>
-                    </Style>
-                </TabControl.Styles>
+            <Panel Grid.Row="1">
+                <TabControl
+                    Name="MainTab"
+                    Margin="8,0"
+                    Padding="20,0,0,0"
+                    TabStripPlacement="Left"
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
+                    Theme="{DynamicResource ScrollLineTabControl}">
+                    <TabControl.Styles>
+                        <Style Selector=".Dismiss /template/ ScrollViewer#PART_ScrollViewer">
+                            <Setter Property="IsVisible" Value="False"/>
+                        </Style>
+                        <Style Selector="ScrollViewer#PART_ScrollViewer">
+						    <Setter Property="MinWidth" Value="230"/>
+                        </Style>
+                    </TabControl.Styles>
 
-                <!-- メイン -->
-                <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Main'}" />
+                    <!-- メイン -->
+                    <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Main'}" />
                 
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Theme="{StaticResource PageStackPanel}">
-                            <mi:MaterialIcon Kind="Search" Width="20" Height="20"/>
-                            <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <mapList:MapListPageView DataContext="{Binding MapListPageViewModel}"/>
-                </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="Search" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.MapList'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <mapList:MapListPageView DataContext="{Binding MapListPageViewModel}"/>
+                    </TabItem>
                 
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Theme="{StaticResource PageStackPanel}">
-                            <mi:MaterialIcon Kind="ImportExport" Width="20" Height="20"/>
-                            <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <importExport:ImportExportPageView DataContext="{Binding ImportExportPageViewModel}"/>
-                </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="ImportExport" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <importExport:ImportExportPageView DataContext="{Binding ImportExportPageViewModel}"/>
+                    </TabItem>
 
-                <!-- システム -->
-                <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Systems'}" />
+                    <!-- システム -->
+                    <TabItem Theme="{StaticResource CategoryTabItem}" Header="{translate:Translate 'Menu.Systems'}" />
 
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Theme="{StaticResource PageStackPanel}">
-                            <mi:MaterialIcon Kind="Cog" Width="20" Height="20"/>
-                            <TextBlock Text="{translate:Translate 'Menu.Settings'}" Theme="{StaticResource PageTextBlock}"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <settings:SettingsPage DataContext="{Binding SettingsViewModel}"/>
-                </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="Cog" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.Settings'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <settings:SettingsPage DataContext="{Binding SettingsViewModel}"/>
+                    </TabItem>
 
                 
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Theme="{StaticResource PageStackPanel}">
-                            <mi:MaterialIcon Kind="License" Width="20" Height="20"/>
-                            <TextBlock Text="{translate:Translate 'Menu.Licenses'}" Theme="{StaticResource PageTextBlock}"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <licenses:LicensesPage DataContext="{Binding LicensesViewModel}"/>
-                </TabItem>
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="License" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.Licenses'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <licenses:LicensesPage DataContext="{Binding LicensesViewModel}"/>
+                    </TabItem>
 
-            </TabControl>
+                </TabControl>
+                <Image Source="/Assets/Nakurage-dot.ico"
+                       Width="240"
+                       Height="240"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Bottom"
+                       Margin="0,0,0,16"
+                       IsHitTestVisible="False"/>
+            </Panel>
         </Grid>
 
         <!-- オーバーレイ（半透明背景） -->

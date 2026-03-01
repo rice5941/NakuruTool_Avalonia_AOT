@@ -86,6 +86,7 @@
     "Value": "Value",
     "ValueMin": "Min",
     "ValueMax": "Max",
+    "IncludeBoundary": "Include boundary",
     "AddCondition": "Add Condition",
     "RemoveCondition": "Remove Condition",
     "ClearConditions": "Clear All",

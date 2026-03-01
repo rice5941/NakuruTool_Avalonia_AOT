@@ -201,8 +201,13 @@
                                           Margin="0,0,0,8">
                                         
                                         <!-- 最小値 -->
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMin'}"/>
+                                        <StackPanel Grid.Column="0" Spacing="8">
+                                            <StackPanel Orientation="Vertical" Spacing="2">
+                                                <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMin'}"/>
+                                                <CheckBox Content="{translate:Translate 'MapFilter.IncludeBoundary'}"
+                                                          IsChecked="{Binding MinBoundaryType, Converter={x:Static converters:BoundaryTypeInclusiveToBoolConverter.Instance}, Mode=TwoWay}"
+                                                          FontSize="11"/>
+                                            </StackPanel>
                                             
                                             <!-- 数値最小値 -->
                                             <TextBox Classes="filter-input"
@@ -222,8 +227,13 @@
                                         </StackPanel>
                                         
                                         <!-- 最大値 -->
-                                        <StackPanel Grid.Column="2">
-                                            <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMax'}"/>
+                                        <StackPanel Grid.Column="2" Spacing="8">
+                                            <StackPanel Orientation="Vertical" Spacing="2">
+                                                <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ValueMax'}"/>
+                                                <CheckBox Content="{translate:Translate 'MapFilter.IncludeBoundary'}"
+                                                          IsChecked="{Binding MaxBoundaryType, Converter={x:Static converters:BoundaryTypeInclusiveToBoolConverter.Instance}, Mode=TwoWay}"
+                                                          FontSize="11"/>
+                                            </StackPanel>
                                             
                                             <!-- 数値最大値 -->
                                             <TextBox Classes="filter-input"

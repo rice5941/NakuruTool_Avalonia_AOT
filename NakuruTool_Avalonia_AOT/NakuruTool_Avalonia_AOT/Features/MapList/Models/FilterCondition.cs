@@ -22,6 +22,22 @@ public enum ComparisonType
 }
 
 /// <summary>
+/// 範囲比較の境界タイプ
+/// </summary>
+public enum RangeBoundaryType
+{
+    /// <summary>
+    /// 以上/以下（≤）
+    /// </summary>
+    Inclusive,
+
+    /// <summary>
+    /// より大きい/未満（&lt;）
+    /// </summary>
+    Exclusive
+}
+
+/// <summary>
 /// フィルタ対象のプロパティ
 /// </summary>
 public enum FilterTarget
@@ -236,6 +252,23 @@ public partial class FilterCondition : ObservableObject
     private ModCategory _scoreModCategory = ModCategory.NoMod;
 
     /// <summary>
+    /// 範囲比較時の最小値側の境界タイプ（≤ or <）
+    /// </summary>
+    [ObservableProperty]
+    private RangeBoundaryType _minBoundaryType = RangeBoundaryType.Inclusive;
+
+    /// <summary>
+    /// 範囲比較時の最大値側の境界タイプ（≤ or <）
+    /// </summary>
+    [ObservableProperty]
+    private RangeBoundaryType _maxBoundaryType = RangeBoundaryType.Inclusive;
+
+    /// <summary>
+    /// 利用可能なRangeBoundaryType一覧（ComboBoxのItemsSource用）
+    /// </summary>
+    public static RangeBoundaryType[] BoundaryTypes { get; } = Enum.GetValues<RangeBoundaryType>();
+
+    /// <summary>
     /// 日付型の最小値（CalendarDatePicker用）
     /// </summary>
     public DateTime? DateValue
@@ -376,6 +409,8 @@ public partial class FilterCondition : ObservableObject
         Value = string.Empty;
         ValueMax = string.Empty;
         CollectionValue = string.Empty;
+        MinBoundaryType = RangeBoundaryType.Inclusive;
+        MaxBoundaryType = RangeBoundaryType.Inclusive;
     }
 
     partial void OnComparisonTypeChanged(ComparisonType value)
@@ -450,11 +485,13 @@ public partial class FilterCondition : ObservableObject
         }
         else
         {
+            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
             if (string.IsNullOrEmpty(ValueMax) || !int.TryParse(ValueMax, out var max))
             {
-                return value >= min;
+                return minOk;
             }
-            return value >= min && value <= max;
+            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
+            return minOk && maxOk;
         }
     }
 
@@ -469,11 +506,13 @@ public partial class FilterCondition : ObservableObject
         }
         else
         {
+            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
             if (string.IsNullOrEmpty(ValueMax) || !double.TryParse(ValueMax, out var max))
             {
-                return value >= min;
+                return minOk;
             }
-            return value >= min && value <= max;
+            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
+            return minOk && maxOk;
         }
     }
 
@@ -493,14 +532,15 @@ public partial class FilterCondition : ObservableObject
         }
         else
         {
-            double max;
+            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
             if (string.IsNullOrEmpty(ValueMax) || !double.TryParse(ValueMax, out var inputMax))
             {
-                return value >= min;
+                return minOk;
             }
             
-            max = inputMax / 100.0;
-            return value >= min && value <= max;
+            var max = inputMax / 100.0;
+            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
+            return minOk && maxOk;
         }
     }
 
@@ -518,17 +558,19 @@ public partial class FilterCondition : ObservableObject
         }
         else
         {
+            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value.Value.Date >= min.Date : value.Value.Date > min.Date;
             if (string.IsNullOrWhiteSpace(ValueMax))
             {
-                return value.Value.Date >= min.Date;
+                return minOk;
             }
             
             if (!DateTime.TryParse(ValueMax, out var max))
             {
-                return value.Value.Date >= min.Date;
+                return minOk;
             }
             
-            return value.Value.Date >= min.Date && value.Value.Date <= max.Date;
+            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value.Value.Date <= max.Date : value.Value.Date < max.Date;
+            return minOk && maxOk;
         }
     }
 
@@ -546,11 +588,13 @@ public partial class FilterCondition : ObservableObject
         }
         else
         {
+            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? valueSeconds >= min : valueSeconds > min;
             if (string.IsNullOrEmpty(ValueMax) || !DrainTimeConverter.TryParseToSeconds(ValueMax, out var max))
             {
-                return valueSeconds >= min;
+                return minOk;
             }
-            return valueSeconds >= min && valueSeconds <= max;
+            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? valueSeconds <= max : valueSeconds < max;
+            return minOk && maxOk;
         }
     }
 }

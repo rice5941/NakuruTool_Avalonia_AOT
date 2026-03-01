@@ -62,6 +62,16 @@ public class FilterConditionData
     public string ScoreModCategory { get; set; } = string.Empty;
 
     /// <summary>
+    /// 範囲比較時の最小値側の境界タイプ（文字列で保存）
+    /// </summary>
+    public string MinBoundaryType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 範囲比較時の最大値側の境界タイプ（文字列で保存）
+    /// </summary>
+    public string MaxBoundaryType { get; set; } = string.Empty;
+
+    /// <summary>
     /// FilterConditionからデータを作成
     /// </summary>
     public static FilterConditionData FromFilterCondition(FilterCondition condition)
@@ -75,7 +85,9 @@ public class FilterConditionData
             StatusValue = condition.StatusValue.ToString(),
             BoolValue = condition.BoolValue,
             CollectionValue = condition.CollectionValue,
-            ScoreModCategory = condition.ScoreModCategory.ToString()
+            ScoreModCategory = condition.ScoreModCategory.ToString(),
+            MinBoundaryType = condition.MinBoundaryType.ToString(),
+            MaxBoundaryType = condition.MaxBoundaryType.ToString()
         };
     }
 
@@ -89,6 +101,8 @@ public class FilterConditionData
         var comparisonType = Enum.TryParse<ComparisonType>(ComparisonType, out var ct) ? ct : Models.ComparisonType.Equals;
         var statusValue = Enum.TryParse<BeatmapStatus>(StatusValue, out var sv) ? sv : BeatmapStatus.None;
         var scoreModCategory = Enum.TryParse<OsuDatabase.ModCategory>(ScoreModCategory, out var smc) ? smc : OsuDatabase.ModCategory.NoMod;
+        var minBoundaryType = Enum.TryParse<RangeBoundaryType>(MinBoundaryType, out var mbt) ? mbt : Models.RangeBoundaryType.Inclusive;
+        var maxBoundaryType = Enum.TryParse<RangeBoundaryType>(MaxBoundaryType, out var mxbt) ? mxbt : Models.RangeBoundaryType.Inclusive;
 
         return new FilterCondition
         {
@@ -99,7 +113,9 @@ public class FilterConditionData
             StatusValue = statusValue,
             BoolValue = BoolValue,
             CollectionValue = CollectionValue,
-            ScoreModCategory = scoreModCategory
+            ScoreModCategory = scoreModCategory,
+            MinBoundaryType = minBoundaryType,
+            MaxBoundaryType = maxBoundaryType
         };
     }
 }

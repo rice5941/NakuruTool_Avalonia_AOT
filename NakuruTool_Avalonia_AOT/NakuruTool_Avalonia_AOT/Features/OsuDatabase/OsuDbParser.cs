@@ -483,7 +483,7 @@ public sealed class OsuDbParser : IDisposable
             int totalNotes = circlesCount + slidersCount + spinnersCount;
             if (totalNotes > 0)
             {
-                longNoteRate = (double)slidersCount / totalNotes;
+                longNoteRate = Math.Round((double)slidersCount / totalNotes, 4);
             }
 
             return new Beatmap
@@ -618,11 +618,11 @@ public sealed class OsuDbParser : IDisposable
             {
                 if (beatLength > 0)
                 {
-                    bpm = 60000.0 / beatLength;
+                    bpm = Math.Round(60000.0 / beatLength, 0);
                 }
             }
         }
-
+        
         return bpm;
     }
 

@@ -86,6 +86,7 @@
     "Value": "値",
     "ValueMin": "最小値",
     "ValueMax": "最大値",
+    "IncludeBoundary": "境界値を含む",
     "AddCondition": "条件を追加",
     "RemoveCondition": "条件を削除",
     "ClearConditions": "すべてクリア",

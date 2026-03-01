@@ -86,6 +86,7 @@
     "Value": "值",
     "ValueMin": "最小值",
     "ValueMax": "最大值",
+    "IncludeBoundary": "包含边界值",
     "AddCondition": "添加条件",
     "RemoveCondition": "删除条件",
     "ClearConditions": "全部清除",

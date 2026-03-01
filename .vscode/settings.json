@@ -2,6 +2,9 @@
     "chat.tools.terminal.autoApprove": {
         "Set-Content": true,
         "ConvertTo-Json": true,
-        "Get-Item": true
+        "Get-Item": true,
+        "Push-Location": true,
+        "Pop-Location": true,
+        "Show-Lines": true,
     }
 }

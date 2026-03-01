@@ -16,7 +16,7 @@
 - R3を使ったイベント監視のライフサイクル管理を心がけてください。
   R3の拡張クラスはR3Extensionsにまとめてあります。適宜更新してください。
 - 実装は#tool:agent/runSubagent サブエージェントにまかせてください。
-agentName: _sub_Architect_opus
+agentName: _sub_Implement
 
 # 設計資料（docs/）
 

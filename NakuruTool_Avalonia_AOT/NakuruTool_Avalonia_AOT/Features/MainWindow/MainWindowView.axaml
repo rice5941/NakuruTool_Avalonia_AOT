@@ -134,13 +134,6 @@
                     </TabItem>
 
                 </TabControl>
-                <Image Source="/Assets/Nakurage-dot.ico"
-                       Width="240"
-                       Height="240"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Bottom"
-                       Margin="0,0,0,16"
-                       IsHitTestVisible="False"/>
             </Panel>
         </Grid>
 

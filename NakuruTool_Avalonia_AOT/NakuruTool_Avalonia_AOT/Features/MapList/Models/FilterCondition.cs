@@ -48,6 +48,7 @@ public enum FilterTarget
     Version,
     Artist,
     Creator,
+    TitleVersionArtistCreator,
     BPM,
     Difficulty,
     LongNoteRate,
@@ -79,6 +80,7 @@ public static class FilterTargetInfo
         FilterTarget.Artist => false,
         FilterTarget.Version => false,
         FilterTarget.Creator => false,
+        FilterTarget.TitleVersionArtistCreator => false,
         FilterTarget.BPM => true,
         FilterTarget.Difficulty => true,
         FilterTarget.LongNoteRate => true,
@@ -106,6 +108,7 @@ public static class FilterTargetInfo
         FilterTarget.Artist => true,
         FilterTarget.Version => true,
         FilterTarget.Creator => true,
+        FilterTarget.TitleVersionArtistCreator => true,
         FilterTarget.BPM => true,
         FilterTarget.Difficulty => false,
         FilterTarget.LongNoteRate => false,
@@ -163,6 +166,7 @@ public static class FilterTargetInfo
         FilterTarget.Artist => true,
         FilterTarget.Version => true,
         FilterTarget.Creator => true,
+        FilterTarget.TitleVersionArtistCreator => true,
         _ => false
     };
 
@@ -451,6 +455,7 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.Artist => MatchesString(beatmap.Artist) || MatchesString(beatmap.ArtistUnicode),
             FilterTarget.Version => MatchesString(beatmap.Version),
             FilterTarget.Creator => MatchesString(beatmap.Creator),
+            FilterTarget.TitleVersionArtistCreator => MatchesString(beatmap.Title) || MatchesString(beatmap.TitleUnicode) || MatchesString(beatmap.Version) || MatchesString(beatmap.Artist) || MatchesString(beatmap.ArtistUnicode) || MatchesString(beatmap.Creator),
             FilterTarget.BPM => MatchesDouble(beatmap.BPM),
             FilterTarget.Difficulty => MatchesDouble(beatmap.Difficulty),
             FilterTarget.LongNoteRate => MatchesLongNoteRate(beatmap.LongNoteRate),

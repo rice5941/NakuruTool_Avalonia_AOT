@@ -69,6 +69,7 @@
     "Target.Artist": "艺术家",
     "Target.Version": "难度名",
     "Target.Creator": "创建者",
+    "Target.TitleVersionArtistCreator": "曲名/难度/艺术家/作者",
     "Target.BPM": "BPM",
     "Target.Difficulty": "星级 (★)",
     "Target.LongNoteRate": "LN 率",

@@ -69,6 +69,7 @@
     "Target.Artist": "Artist",
     "Target.Version": "Difficulty",
     "Target.Creator": "Creator",
+    "Target.TitleVersionArtistCreator": "Title/Diff/Artist/Creator",
     "Target.BPM": "BPM",
     "Target.Difficulty": "Difficulty (★)",
     "Target.LongNoteRate": "LN Rate",

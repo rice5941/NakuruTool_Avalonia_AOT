@@ -134,7 +134,8 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     /// <summary>
     /// 指定した Beatmap を再生し、パネルの表示内容をすべて更新する。
     /// </summary>
-    public void PlayBeatmap(Beatmap beatmap, int trackIndex)
+    /// <param name="autoPlay">true のとき実際に再生を開始する。false のときは曲情報・背景画像の更新のみ行う。</param>
+    public void PlayBeatmap(Beatmap beatmap, int trackIndex, bool autoPlay = true)
     {
         _currentBeatmap = beatmap;
         _currentTrackIndex = trackIndex;
@@ -154,6 +155,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         LoadBackgroundImage(beatmap);
 
         // 再生開始 (再生制御は AudioPlayerViewModel 経由)
+        // Duration取得のため常に再生を開始し、autoPlay=false の場合は即停止する
         AudioPlayer.PlayBeatmapAudio(beatmap);
 
         // 位置・時間リセット
@@ -163,6 +165,12 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         var dur = _audioPlayerService.GetDuration();
         Duration = dur;
         DurationText = FormatTime(dur);
+
+        if (!autoPlay)
+        {
+            // 自動再生が無効の場合は即停止する
+            _audioPlayerService.Stop();
+        }
     }
 
     // ---- ナビゲーションコンテキスト更新 ----
@@ -188,6 +196,26 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     }
 
     // ---- コマンド ----
+
+    /// <summary>
+    /// 再生／一時停止を切り替える。停止中かつ現在曲が設定されている場合は再生を開始する。
+    /// </summary>
+    [RelayCommand]
+    private void TogglePlayPause()
+    {
+        if (_audioPlayerService.CurrentState == AudioPlayerState.Stopped && _currentBeatmap != null)
+        {
+            // 停止中の場合は現在の曲を先頭から再生する
+            AudioPlayer.PlayBeatmapAudio(_currentBeatmap);
+            var dur = _audioPlayerService.GetDuration();
+            Duration = dur;
+            DurationText = FormatTime(dur);
+        }
+        else
+        {
+            _audioPlayerService.TogglePlayPause();
+        }
+    }
 
     /// <summary>次の曲へ移動する。シャッフル時はランダム選択、通常時はインデックス+1。</summary>
     [RelayCommand]

@@ -125,7 +125,7 @@
                         </Button>
 
                         <!-- Play/Pause -->
-                        <Button Command="{Binding AudioPlayer.TogglePlayPauseCommand}"
+                        <Button Command="{Binding TogglePlayPauseCommand}"
                                 ToolTip.Tip="{translate:Translate 'AudioPanel.PlayPause'}"
                                 Theme="{StaticResource SolidButton}"
                                 Width="54" Height="54">

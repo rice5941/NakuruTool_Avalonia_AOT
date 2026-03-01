@@ -107,7 +107,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
                 if (_isNavigating) return;
 
                 var index = FindBeatmapIndex(SelectedBeatmap.MD5Hash);
-                AudioPlayerPanel.PlayBeatmap(SelectedBeatmap, index);
+                AudioPlayerPanel.PlayBeatmap(SelectedBeatmap, index, _settingsService.SettingsData.AutoPlayOnSelect);
             })
             .AddTo(Disposables);
 

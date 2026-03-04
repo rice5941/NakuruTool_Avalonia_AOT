@@ -48,6 +48,21 @@ if ($LASTEXITCODE -eq 0) {
     } else {
         Write-Host "  No .pdb files found" -ForegroundColor DarkGray
     }
+
+    # バージョン番号を .csproj から取得してバージョン付きフォルダにコピー
+    $csprojPath = Join-Path $projectDir "NakuruTool_Avalonia_AOT.csproj"
+    $xml = [xml](Get-Content $csprojPath -Encoding UTF8)
+    $version = $xml.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+    if ($version) {
+        $versionedDir = Join-Path $PSScriptRoot "NakuruTool_$version"
+        if (Test-Path $versionedDir) {
+            Remove-Item -Path $versionedDir -Recurse -Force
+        }
+        Copy-Item -Path $publishDir -Destination $versionedDir -Recurse -Force
+        Write-Host "  Copied to: $versionedDir" -ForegroundColor Cyan
+    } else {
+        Write-Host "  Warning: Version not found in .csproj, skipping versioned folder creation." -ForegroundColor Yellow
+    }
 } else {
     Write-Host "`nPublish failed with exit code $LASTEXITCODE" -ForegroundColor Red
     Pop-Location

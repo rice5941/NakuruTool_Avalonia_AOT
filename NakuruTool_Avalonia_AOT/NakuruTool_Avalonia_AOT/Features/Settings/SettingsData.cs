@@ -18,7 +18,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         // Jsonシリアライズ使用時は[ObservableProperty]使用不可
         private string _osuFolderPath = string.Empty;
         private string _languageKey = "ja-JP";
-        private int _audioVolume = 50;
+        private int _audioVolume = 10;
         private bool _autoPlayOnSelect = true;
         private bool _preferUnicode = false;
 

@@ -96,6 +96,12 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     private readonly List<int> _shuffleHistory = new();
     private int _shuffleIndex = -1;
 
+    /// <summary>ランダム再生で既に再生された曲のインデックス。重複防止用。</summary>
+    private readonly HashSet<int> _playedIndices = new();
+
+    /// <summary>GetNextShuffleIndex 内で候補を収集する再利用バッファ。毎回のアロケーションを回避する。</summary>
+    private readonly List<int> _shuffleCandidates = new();
+
     private Action<int>? _navigateCallback;
 
     /// <summary>前回ロード成功した背景画像の OsuFileName。同ファイルの重複ロードを回避する（成功時のみ更新）。</summary>
@@ -184,6 +190,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         _currentTrackIndex = currentIndex;
         _shuffleHistory.Clear();
         _shuffleIndex = -1;
+        _playedIndices.Clear();
         _lastBgOsuFileName = null; // フィルタ変更時は背景キャッシュもリセット
     }
 
@@ -217,7 +224,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         }
     }
 
-    /// <summary>次の曲へ移動する。シャッフル時はランダム選択、通常時はインデックス+1。</summary>
+    /// <summary>次の曲へ移動する。シャッフル時はランダム選択、通常時はインデックス+1（非再生可能曲をスキップ）。</summary>
     [RelayCommand]
     private void NextTrack()
     {
@@ -230,20 +237,27 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         }
         else
         {
+            // 再生可能な次の曲が見つかるまでスキップ
             nextIndex = _currentTrackIndex + 1;
-            if (nextIndex >= _filteredBeatmaps.Length)
+            bool found = false;
+            for (int i = 0; i < _filteredBeatmaps.Length; i++, nextIndex++)
             {
-                if (RepeatMode == RepeatMode.All)
-                    nextIndex = 0; // 先頭に循環
-                else
-                    return; // RepeatMode.None / RepeatMode.One: 末尾で停止
+                if (nextIndex >= _filteredBeatmaps.Length)
+                {
+                    if (RepeatMode == RepeatMode.All)
+                        nextIndex = 0;
+                    else
+                        return;
+                }
+                if (IsPlayableBeatmap(_filteredBeatmaps[nextIndex])) { found = true; break; }
             }
+            if (!found) return;
         }
 
         NavigateToTrack(nextIndex);
     }
 
-    /// <summary>前の曲へ移動する。3秒以上再生済みなら現在曲の先頭に戻る。</summary>
+    /// <summary>前の曲へ移動する。3秒以上再生済みなら現在曲の先頭に戻る。通常時は非再生可能曲をスキップ。</summary>
     [RelayCommand]
     private void PreviousTrack()
     {
@@ -265,14 +279,21 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         }
         else
         {
+            // 再生可能な前の曲が見つかるまでスキップ
             prevIndex = _currentTrackIndex - 1;
-            if (prevIndex < 0)
+            bool found = false;
+            for (int i = 0; i < _filteredBeatmaps.Length; i++, prevIndex--)
             {
-                if (RepeatMode == RepeatMode.All)
-                    prevIndex = _filteredBeatmaps.Length - 1; // 末尾に循環
-                else
-                    return; // RepeatMode.None / RepeatMode.One: 先頭で停止
+                if (prevIndex < 0)
+                {
+                    if (RepeatMode == RepeatMode.All)
+                        prevIndex = _filteredBeatmaps.Length - 1;
+                    else
+                        return;
+                }
+                if (IsPlayableBeatmap(_filteredBeatmaps[prevIndex])) { found = true; break; }
             }
+            if (!found) return;
         }
 
         NavigateToTrack(prevIndex);
@@ -298,6 +319,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         IsShuffleEnabled = !IsShuffleEnabled;
         _shuffleHistory.Clear();
         _shuffleIndex = -1;
+        _playedIndices.Clear();
     }
 
     /// <summary>シークバードラッグ完了時に現在位置をサービスに反映する。</summary>
@@ -418,23 +440,60 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
             return _shuffleHistory[_shuffleIndex];
         }
 
-        // 新しいランダムインデックスを生成
-        int next;
-        if (_filteredBeatmaps.Length >= 2)
+        // 現在曲を再生済みとしてマーク
+        _playedIndices.Add(_currentTrackIndex);
+
+        // AudioFilenameが空でなく、まだ再生されていないインデックスを候補として収集（再利用バッファ）
+        _shuffleCandidates.Clear();
+        CollectCandidates(_shuffleCandidates);
+
+        // 候補が無い場合
+        if (_shuffleCandidates.Count == 0)
         {
-            do
+            if (RepeatMode == RepeatMode.All)
             {
-                next = Random.Shared.Next(_filteredBeatmaps.Length);
-            } while (next == _currentTrackIndex);
+                // 全リピート時: 再生済みフラグをリセットして再収集
+                _playedIndices.Clear();
+                _playedIndices.Add(_currentTrackIndex);
+                CollectCandidates(_shuffleCandidates);
+            }
+
+            // それでも候補がなければ現在のインデックスを返す
+            if (_shuffleCandidates.Count == 0)
+                return _currentTrackIndex;
         }
-        else
-        {
-            next = Random.Shared.Next(_filteredBeatmaps.Length);
-        }
+
+        // 候補からランダムに選択
+        int next = _shuffleCandidates[Random.Shared.Next(_shuffleCandidates.Count)];
 
         _shuffleHistory.Add(next);
         _shuffleIndex = _shuffleHistory.Count - 1;
         return next;
+    }
+
+    /// <summary>
+    /// AudioFilename が空でなく、まだ再生されていないインデックスを <paramref name="result"/> に追加する。
+    /// 呼び出し前に result.Clear() 済みであること。
+    /// </summary>
+    private void CollectCandidates(List<int> result)
+    {
+        for (int i = 0; i < _filteredBeatmaps.Length; i++)
+        {
+            if (_playedIndices.Contains(i)) continue;
+            if (!IsPlayableBeatmap(_filteredBeatmaps[i])) continue;
+            result.Add(i);
+        }
+    }
+
+    /// <summary>
+    /// AudioFilename が .ogg または .mp3 であれば再生可能と判定する。
+    /// </summary>
+    private static bool IsPlayableBeatmap(Beatmap beatmap)
+    {
+        if (string.IsNullOrEmpty(beatmap.AudioFilename)) return false;
+        var ext = Path.GetExtension(beatmap.AudioFilename.AsSpan());
+        return ext.Equals(".ogg", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".mp3", StringComparison.OrdinalIgnoreCase);
     }
 
     private int GetPreviousShuffleIndex()

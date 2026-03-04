@@ -730,7 +730,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
 {
     public string OsuFolderPath { get; set; } = @"C:\osu!";
     public string LanguageKey { get; set; } = "ja-JP";
-    public int AudioVolume { get; set; } = 50;
+    public int AudioVolume { get; set; } = 10;
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
 }

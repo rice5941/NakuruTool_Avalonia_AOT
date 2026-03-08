@@ -29,8 +29,8 @@ if ($LASTEXITCODE -eq 0) {
     $publishDir = Join-Path $projectDir "bin\Release\net10.0\win-x64\publish"
     $exeFile = Join-Path $publishDir "NakuruTool_Avalonia_AOT.exe"
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
-    $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.md"
-    $userGuideDestination = Join-Path $publishDir "USER_GUIDE.md"
+    $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.url"
+    $userGuideDestination = Join-Path $publishDir "USER_GUIDE.url"
     $presetsSource = Join-Path $PSScriptRoot "presets"
     $presetsDestination = Join-Path $publishDir "presets"
 
@@ -43,13 +43,12 @@ if ($LASTEXITCODE -eq 0) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
-
     # 配布用のユーザーガイドを同梱
     if (Test-Path $userGuideSource) {
         Copy-Item -Path $userGuideSource -Destination $userGuideDestination -Force
-        Write-Host "  Included USER_GUIDE.md" -ForegroundColor DarkGray
+        Write-Host "  Included USER_GUIDE" -ForegroundColor DarkGray
     } else {
-        Write-Host "  Warning: USER_GUIDE.md not found, skipping." -ForegroundColor Yellow
+        Write-Host "  Warning: USER_GUIDE not found, skipping." -ForegroundColor Yellow
     }
 
     # 配布用のプリセットを同梱

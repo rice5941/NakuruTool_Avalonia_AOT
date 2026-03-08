@@ -27,7 +27,7 @@ if ($LASTEXITCODE -eq 0) {
 
     # ファイルサイズを表示
     $publishDir = Join-Path $projectDir "bin\Release\net10.0\win-x64\publish"
-    $exeFile = Join-Path $publishDir "NakuruTool_Avalonia_AOT.exe"
+    $exeFile = Join-Path $publishDir "NakuruTool.exe"
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
     $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.url"
     $userGuideDestination = Join-Path $publishDir "USER_GUIDE.url"
@@ -36,7 +36,7 @@ if ($LASTEXITCODE -eq 0) {
 
     if (Test-Path $exeFile) {
         $exeSize = (Get-Item $exeFile).Length / 1MB
-        Write-Host "  NakuruTool_Avalonia_AOT.exe: $([math]::Round($exeSize, 1)) MB" -ForegroundColor White
+        Write-Host "  NakuruTool.exe: $([math]::Round($exeSize, 1)) MB" -ForegroundColor White
     }
 
     if (Test-Path $dllFile) {

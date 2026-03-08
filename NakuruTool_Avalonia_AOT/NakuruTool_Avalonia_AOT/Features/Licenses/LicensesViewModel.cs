@@ -1061,7 +1061,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "Avalonia",
-                Version = "11.3.10",
+                Version = "11.3.12",
                 LicenseType = "MIT",
                 Url = "https://github.com/AvaloniaUI/Avalonia",
                 Copyright = "Copyright (c) AvaloniaUI OÜ",
@@ -1088,7 +1088,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "Semi.Avalonia",
-                Version = "11.3.7.1",
+                Version = "11.3.7.3",
                 LicenseType = "MIT",
                 Url = "https://github.com/irihitech/Semi.Avalonia",
                 Copyright = "Copyright (c) 2022 IRIHI Technology",
@@ -1097,7 +1097,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "Pure.DI",
-                Version = "2.2.15",
+                Version = "2.3.3",
                 LicenseType = "MIT",
                 Url = "https://github.com/DevTeam/Pure.DI",
                 Copyright = "Copyright (c) 2024 Nikolay Pianikov",
@@ -1115,7 +1115,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "ZLinq",
-                Version = "1.5.4",
+                Version = "1.5.5",
                 LicenseType = "MIT",
                 Url = "https://github.com/Cysharp/ZLinq",
                 Copyright = "Copyright (c) Yoshifumi Kawai / Copyright (c) Cysharp, Inc.",
@@ -1124,7 +1124,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "HotAvalonia",
-                Version = "3.0.2",
+                Version = "3.1.0",
                 LicenseType = "MIT",
                 Url = "https://github.com/Kir-Antipov/HotAvalonia",
                 Copyright = "Copyright (c) 2023-2026 Kira NT",
@@ -1133,7 +1133,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             new LicenseItem
             {
                 PackageName = "symphonia",
-                Version = "0.5.4",
+                Version = "0.5.5",
                 LicenseType = "MPL-2.0",
                 Url = "https://github.com/pdeljanov/Symphonia",
                 Copyright = "Copyright (c) Philip Deljanov",

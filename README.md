@@ -6,6 +6,8 @@ osu! beatmapコレクション編集ツール
 
 NakuruToolは、osu!のbeatmapコレクションを管理するためのデスクトップアプリケーションです。collection.dbファイルの読み込み・編集・書き込みに対応しています。
 
+配布版のご利用方法は [USER_GUIDE.md](USER_GUIDE.md) を参照してください。
+
 ## 技術スタック
 
 - **UI Framework**: Avalonia UI 11.3.10

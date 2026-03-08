@@ -29,6 +29,8 @@ if ($LASTEXITCODE -eq 0) {
     $publishDir = Join-Path $projectDir "bin\Release\net10.0\win-x64\publish"
     $exeFile = Join-Path $publishDir "NakuruTool_Avalonia_AOT.exe"
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
+    $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.md"
+    $userGuideDestination = Join-Path $publishDir "USER_GUIDE.md"
 
     if (Test-Path $exeFile) {
         $exeSize = (Get-Item $exeFile).Length / 1MB
@@ -38,6 +40,14 @@ if ($LASTEXITCODE -eq 0) {
     if (Test-Path $dllFile) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
+    }
+
+    # 配布用のユーザーガイドを同梱
+    if (Test-Path $userGuideSource) {
+        Copy-Item -Path $userGuideSource -Destination $userGuideDestination -Force
+        Write-Host "  Included USER_GUIDE.md" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: USER_GUIDE.md not found, skipping." -ForegroundColor Yellow
     }
 
     # pdbファイルを削除

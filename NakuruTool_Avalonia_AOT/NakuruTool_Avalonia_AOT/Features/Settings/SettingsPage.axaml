@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:Settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
@@ -14,7 +15,13 @@
             Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.Language'}">
 				<StackPanel Spacing="12">
-					<ComboBox Width="120" ItemsSource="{Binding LanguageKeys}" SelectedItem="{Binding SelectedLanguageKey}"/>
+                    <ComboBox MinWidth="200" ItemsSource="{Binding LanguageKeys}" SelectedItem="{Binding SelectedLanguageKey}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ., Converter={x:Static converters:LanguageCodeToNativeNameConverter.Instance}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 				</StackPanel>
         </HeaderedContentControl>
 		

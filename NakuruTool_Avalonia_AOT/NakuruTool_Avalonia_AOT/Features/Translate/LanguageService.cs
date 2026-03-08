@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -15,6 +16,46 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
     /// </summary>
     public class LanguageService : INotifyPropertyChanged
     {
+        public const string DefaultLanguageCode = "ja-JP";
+
+        private sealed class LanguageDefinition
+        {
+            public LanguageDefinition(string code, string nativeName, string isoLanguageName)
+            {
+                Code = code;
+                NativeName = nativeName;
+                IsoLanguageName = isoLanguageName;
+            }
+
+            public string Code { get; }
+
+            public string NativeName { get; }
+
+            public string IsoLanguageName { get; }
+        }
+
+        private static readonly LanguageDefinition[] SupportedLanguages =
+        [
+            new("ja-JP", "日本語", "ja"),
+            new("en-US", "English", "en"),
+            new("zh-CN", "简体中文", "zh"),
+            new("ko-KR", "한국어", "ko"),
+            new("th-TH", "ไทย", "th"),
+            new("vi-VN", "Tiếng Việt", "vi"),
+            new("id-ID", "Bahasa Indonesia", "id"),
+            new("fil-PH", "Filipino", "fil"),
+            new("pt-BR", "Português (Brasil)", "pt"),
+            new("es-ES", "Español (España)", "es"),
+            new("ru-RU", "Русский", "ru"),
+            new("fr-FR", "Français", "fr"),
+            new("de-DE", "Deutsch", "de"),
+            new("ms-MY", "Bahasa Melayu", "ms")
+        ];
+
+        private static readonly Dictionary<string, string> SupportedLanguageDisplayNames = CreateSupportedLanguageDisplayNames();
+
+        private static readonly Dictionary<string, string> SupportedLanguageAliases = CreateSupportedLanguageAliases();
+
         /// <summary>
         /// シングルトンインスタンス
         /// </summary>
@@ -23,12 +64,12 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
         /// <summary>
         /// 現在の言語コード
         /// </summary>
-        private string _currentLanguage = "ja-JP";
+        private string _currentLanguage = string.Empty;
 
         /// <summary>
         /// 言語リソースのディクショナリ
         /// </summary>
-        private Dictionary<string, string> _resources = new Dictionary<string, string>();
+        private Dictionary<string, string> _resources = new(StringComparer.Ordinal);
 
         /// <summary>
         /// 言語変更イベント
@@ -40,12 +81,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public List<string> AvailableLanguages { get; } = new List<string>
-        {
-            "ja-JP", // 日本語
-            "en-US", // 英語
-            "zh-CN", // 中国語（簡体字）
-        };
+        public List<string> AvailableLanguages { get; } = CreateAvailableLanguages();
 
         /// <summary>
         /// 現在の言語コード
@@ -73,26 +109,77 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
         /// </summary>
         private LanguageService()
         {
-            // デフォルト言語（日本語）を読み込み
-            LoadLanguage("ja-JP");
+            ApplyLanguage(DefaultLanguageCode, raiseEvent: false);
         }
 
         /// <summary>
         /// 言語を変更する
         /// </summary>
-        /// <param name="languageCode">言語コード（例: "ja-JP", "en-US", "zh-CN"）</param>
+        /// <param name="languageCode">言語コード</param>
         public void ChangeLanguage(string languageCode)
         {
-            if (string.IsNullOrEmpty(languageCode) || _currentLanguage == languageCode)
+            ApplyLanguage(languageCode, raiseEvent: true);
+        }
+
+        public string NormalizeLanguageCode(string? languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(languageCode))
             {
-                return;
+                return DefaultLanguageCode;
             }
 
-            LoadLanguage(languageCode);
-            CurrentLanguage = languageCode;
+            foreach (var supportedLanguage in SupportedLanguages)
+            {
+                if (string.Equals(supportedLanguage.Code, languageCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    return supportedLanguage.Code;
+                }
+            }
 
-            // 言語変更イベントを発火
-            LanguageChanged?.Invoke(this, EventArgs.Empty);
+            if (SupportedLanguageAliases.TryGetValue(languageCode, out var aliasedLanguageCode))
+            {
+                return aliasedLanguageCode;
+            }
+
+            try
+            {
+                var culture = CultureInfo.GetCultureInfo(languageCode);
+
+                if (SupportedLanguageDisplayNames.ContainsKey(culture.Name))
+                {
+                    return culture.Name;
+                }
+
+                if (SupportedLanguageAliases.TryGetValue(culture.Name, out aliasedLanguageCode))
+                {
+                    return aliasedLanguageCode;
+                }
+
+                foreach (var supportedLanguage in SupportedLanguages)
+                {
+                    if (string.Equals(supportedLanguage.IsoLanguageName, culture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(supportedLanguage.IsoLanguageName, culture.ThreeLetterISOLanguageName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return supportedLanguage.Code;
+                    }
+                }
+            }
+            catch (CultureNotFoundException)
+            {
+            }
+
+            return DefaultLanguageCode;
+        }
+
+        public string GetLanguageDisplayName(string? languageCode)
+        {
+            var normalizedLanguageCode = NormalizeLanguageCode(languageCode);
+            if (SupportedLanguageDisplayNames.TryGetValue(normalizedLanguageCode, out var displayName))
+            {
+                return displayName;
+            }
+
+            return SupportedLanguageDisplayNames[DefaultLanguageCode];
         }
 
         /// <summary>
@@ -112,60 +199,102 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
                 return value;
             }
 
-            // キーが見つからない場合はキーをそのまま返す（デバッグ用）
             System.Diagnostics.Debug.WriteLine($"Translation key not found: {key}");
             return $"[{key}]";
         }
 
-        /// <summary>
-        /// 言語リソースを読み込む
-        /// </summary>
-        /// <param name="languageCode">言語コード</param>
-        private void LoadLanguage(string languageCode)
+        private void ApplyLanguage(string languageCode, bool raiseEvent)
         {
+            var normalizedLanguageCode = NormalizeLanguageCode(languageCode);
+            if (string.Equals(_currentLanguage, normalizedLanguageCode, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _resources = LoadLanguageResources(normalizedLanguageCode);
+            CurrentLanguage = normalizedLanguageCode;
+
+            if (raiseEvent)
+            {
+                LanguageChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private Dictionary<string, string> LoadLanguageResources(string languageCode)
+        {
+            var mergedResources = new Dictionary<string, string>(StringComparer.Ordinal);
+            string? lastError = default;
+
+            if (TryLoadFlattenedLanguage(DefaultLanguageCode, out var defaultResources, out var defaultError))
+            {
+                MergeResources(mergedResources, defaultResources);
+            }
+            else
+            {
+                lastError = defaultError;
+            }
+
+            Dictionary<string, string> languageResources = new(StringComparer.Ordinal);
+            string? languageError = null;
+            if (!string.Equals(languageCode, DefaultLanguageCode, StringComparison.Ordinal) &&
+                TryLoadFlattenedLanguage(languageCode, out languageResources, out languageError))
+            {
+                MergeResources(mergedResources, languageResources);
+            }
+            else if (!string.Equals(languageCode, DefaultLanguageCode, StringComparison.Ordinal) && string.IsNullOrEmpty(languageError) == false)
+            {
+                lastError = languageError;
+            }
+
+            LastError = lastError;
+            if (string.IsNullOrEmpty(lastError) == false)
+            {
+                Console.WriteLine(lastError);
+            }
+
+            Console.WriteLine($"Language loaded: {languageCode}, Keys: {mergedResources.Count}");
+            return mergedResources;
+        }
+
+        private static bool TryLoadFlattenedLanguage(string languageCode, out Dictionary<string, string> resources, out string? errorMessage)
+        {
+            resources = new Dictionary<string, string>(StringComparer.Ordinal);
+            errorMessage = null;
+
             try
             {
-                // NativeAOT対応：アセンブリ名を直接指定
                 const string assemblyName = "NakuruTool";
                 var uri = new Uri($"avares://{assemblyName}/Features/Translate/Resources/Languages/{languageCode}.json");
 
-                string jsonContent;
-                try
-                {
-                    // AvaloniaのAssetLoaderでリソースファイルを読み込む（UTF-8エンコーディングを明示）
-                    using var stream = AssetLoader.Open(uri);
-                    using var reader = new StreamReader(stream, Encoding.UTF8);
-                    jsonContent = reader.ReadToEnd();
-                }
-                catch (Exception ex) when (ex is FileNotFoundException or InvalidOperationException)
-                {
-                    LastError = $"Language file not found: {uri} - {ex.Message}";
-                    Console.WriteLine(LastError);
-                    // ファイルが見つからない場合はデフォルト（日本語）を試す
-                    if (languageCode != "ja-JP")
-                    {
-                        LoadLanguage("ja-JP"); // 再帰的にデフォルトを読み込む
-                    }
-                    return;
-                }
-
-                // JSONをディクショナリにデシリアライズ（NativeAOT対応のSource Generator使用）
+                using var stream = AssetLoader.Open(uri);
+                using var reader = new StreamReader(stream, Encoding.UTF8);
+                var jsonContent = reader.ReadToEnd();
                 var jsonData = JsonSerializer.Deserialize(jsonContent, LanguageJsonContext.Default.DictionaryStringJsonElement);
 
-                // フラットなディクショナリに変換
-                _resources.Clear();
                 if (jsonData != null)
                 {
-                    FlattenDictionary(jsonData, string.Empty);
+                    FlattenDictionary(jsonData, string.Empty, resources);
                 }
 
-                LastError = null;
-                Console.WriteLine($"Language loaded: {languageCode}, Keys: {_resources.Count}");
+                return true;
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or InvalidOperationException)
+            {
+                errorMessage = $"Language file not found: {languageCode}.json - {ex.Message}";
+                return false;
             }
             catch (Exception ex)
             {
-                LastError = $"Failed to load language '{languageCode}': {ex.Message}";
-                Console.WriteLine(LastError);
+                errorMessage = $"Failed to load language '{languageCode}': {ex.Message}";
+                return false;
+            }
+        }
+
+        private static void MergeResources(Dictionary<string, string> target, Dictionary<string, string> source)
+        {
+            foreach (var resource in source)
+            {
+                target[resource.Key] = resource.Value;
             }
         }
 
@@ -174,7 +303,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
         /// </summary>
         /// <param name="data">JSONデータ</param>
         /// <param name="prefix">キーのプレフィックス</param>
-        private void FlattenDictionary(Dictionary<string, JsonElement> data, string prefix)
+        private static void FlattenDictionary(Dictionary<string, JsonElement> data, string prefix, Dictionary<string, string> target)
         {
             if (data == null) return;
 
@@ -187,23 +316,66 @@ namespace NakuruTool_Avalonia_AOT.Features.Translate
 
                 if (kvp.Value.ValueKind == JsonValueKind.Object)
                 {
-                    // ネストされたオブジェクトを再帰的に処理
                     var nestedDict = new Dictionary<string, JsonElement>();
                     foreach (var prop in kvp.Value.EnumerateObject())
                     {
                         nestedDict[prop.Name] = prop.Value;
                     }
-                    FlattenDictionary(nestedDict, fullKey);
+
+                    FlattenDictionary(nestedDict, fullKey, target);
                 }
                 else if (kvp.Value.ValueKind == JsonValueKind.String)
                 {
-                    _resources[fullKey] = kvp.Value.GetString() ?? string.Empty;
+                    target[fullKey] = kvp.Value.GetString() ?? string.Empty;
                 }
                 else if (kvp.Value.ValueKind != JsonValueKind.Null && kvp.Value.ValueKind != JsonValueKind.Undefined)
                 {
-                    _resources[fullKey] = kvp.Value.ToString();
+                    target[fullKey] = kvp.Value.ToString();
                 }
             }
+        }
+
+        private static Dictionary<string, string> CreateSupportedLanguageDisplayNames()
+        {
+            var displayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var language in SupportedLanguages)
+            {
+                displayNames[language.Code] = language.NativeName;
+            }
+
+            return displayNames;
+        }
+
+        private static Dictionary<string, string> CreateSupportedLanguageAliases()
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["ja"] = "ja-JP",
+                ["en"] = "en-US",
+                ["zh"] = "zh-CN",
+                ["ko"] = "ko-KR",
+                ["th"] = "th-TH",
+                ["vi"] = "vi-VN",
+                ["id"] = "id-ID",
+                ["fil"] = "fil-PH",
+                ["pt"] = "pt-BR",
+                ["es"] = "es-ES",
+                ["ru"] = "ru-RU",
+                ["fr"] = "fr-FR",
+                ["de"] = "de-DE",
+                ["ms"] = "ms-MY"
+            };
+        }
+
+        private static List<string> CreateAvailableLanguages()
+        {
+            var languages = new List<string>(SupportedLanguages.Length);
+            foreach (var language in SupportedLanguages)
+            {
+                languages.Add(language.Code);
+            }
+
+            return languages;
         }
 
         /// <summary>

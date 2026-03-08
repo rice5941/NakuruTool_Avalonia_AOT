@@ -11,23 +11,48 @@ namespace NakuruTool_Avalonia_AOT
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
-            
+
             var languageService = LanguageService.Instance;
-            // 初期言語をSemiThemeに反映
-            UpdateSemiThemeLocale(languageService.CurrentLanguage);
-            
-            // 言語変更イベントをサブスクライブ
+            ApplyLanguageCulture(languageService.CurrentLanguage);
+
             languageService.LanguageChanged += (_, _) =>
             {
-                UpdateSemiThemeLocale(languageService.CurrentLanguage);
+                ApplyLanguageCulture(languageService.CurrentLanguage);
             };
         }
-        
+
         /// <summary>
-        /// SemiThemeのLocaleを更新する
+        /// 險隱槫､画峩縺ｫ蠢懊§縺ｦ繧｢繝励Μ蜈ｨ菴薙�ｮ繧ｫ繝ｫ繝√Ε繧呈峩譁ｰ縺吶ｋ
         /// </summary>
-        /// <param name="languageCode">言語コード</param>
-        private void UpdateSemiThemeLocale(string languageCode)
+        private static void ApplyLanguageCulture(string languageCode)
+        {
+            var normalizedLanguageCode = LanguageService.Instance.NormalizeLanguageCode(languageCode);
+            CultureInfo culture;
+
+            try
+            {
+                culture = CultureInfo.GetCultureInfo(normalizedLanguageCode);
+            }
+            catch (CultureNotFoundException)
+            {
+                culture = CultureInfo.GetCultureInfo(LanguageService.DefaultLanguageCode);
+            }
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+            if (Current is App app)
+            {
+                app.UpdateSemiThemeLocale(culture);
+            }
+        }
+
+        /// <summary>
+        /// SemiTheme 縺ｮ Locale 繧呈峩譁ｰ縺吶ｋ
+        /// </summary>
+        private void UpdateSemiThemeLocale(CultureInfo culture)
         {
             if (Styles.Count > 0)
             {
@@ -35,27 +60,24 @@ namespace NakuruTool_Avalonia_AOT
                 {
                     if (style is Semi.Avalonia.SemiTheme semiTheme)
                     {
-                        semiTheme.Locale = new CultureInfo(languageCode);
+                        semiTheme.Locale = culture;
                         break;
                     }
                 }
             }
         }
-        
+
         public override void OnFrameworkInitializationCompleted()
         {
-            // Pure.DIのCompositionクラスをインスタンス化
             var composition = new Composition();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // DIコンテナからMainWindow（と依存するViewModel）を一括生成
                 desktop.MainWindow = composition.MainWindow;
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
-                // モバイル/Web等の場合も同様に解決可能（別途Root定義が必要）
-                // singleViewPlatform.MainView = new MainView { DataContext = composition.MainViewModel };
+                _ = singleViewPlatform;
             }
 
             base.OnFrameworkInitializationCompleted();

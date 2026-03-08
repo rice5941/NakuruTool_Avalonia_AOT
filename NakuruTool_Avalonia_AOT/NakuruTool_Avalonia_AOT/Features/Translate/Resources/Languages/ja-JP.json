@@ -11,7 +11,7 @@
     "Licenses": "ライセンス"
   },
   "Settings": {
-    "Language": "言語",
+    "Language": "Language/言語",
     "Theme": "テーマ",
     "OsuFolderPath": "osu!フォルダパス",
     "ChooseOsuPath": "osu!.exeを選択",

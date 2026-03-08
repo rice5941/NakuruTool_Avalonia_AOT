@@ -52,6 +52,7 @@ public sealed class SettingsService : ISettingsService
         _settingsPath = Path.Combine(settingsFolder, "settings.json");
 
         var settingsData = LoadSettings();
+    settingsData.LanguageKey = LanguageService.Instance.NormalizeLanguageCode(settingsData.LanguageKey);
         SettingsData = settingsData;
 
         LanguageService.Instance.ChangeLanguage(SettingsData.LanguageKey);
@@ -93,6 +94,8 @@ public sealed class SettingsService : ISettingsService
     public bool SaveSettings(SettingsData settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
+
+        settings.LanguageKey = LanguageService.Instance.NormalizeLanguageCode(settings.LanguageKey);
 
         if (SettingsData is SettingsData impl)
         {

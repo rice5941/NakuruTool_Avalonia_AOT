@@ -1,6 +1,6 @@
 # データフローと状態管理
 
-> osu! beatmapコレクション編集ツール「NakuruTool」におけるデータの流れ、R3リアクティブチェーン、状態管理の全体像を解説する。
+> NakuruToolにおけるデータの流れ、R3リアクティブチェーン、状態管理の全体像を解説する。
 
 関連ドキュメント: [ARCHITECTURE.md](ARCHITECTURE.md) | [MODULES.md](MODULES.md) | [BUILD.md](BUILD.md)
 

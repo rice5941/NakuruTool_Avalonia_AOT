@@ -1,9 +1,9 @@
 {
   "App": {
-    "Name": "NakuruTool -Osu! CollectionManager-"
+    "Name": "NakuruTool -Osu!mania BeatmapManager-"
   },
   "Menu": {
-    "Main": "Principal",
+    "Main": "Menu Principal",
     "MapList": "Liste des beatmaps",
     "ImportExport": "Importer/Exporter",
     "Systems": "Système",

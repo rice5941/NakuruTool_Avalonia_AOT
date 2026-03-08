@@ -6,7 +6,7 @@ osu!mania beatmap管理ツール
 
 NakuruToolは、osu!のbeatmapを管理するためのデスクトップアプリケーションです。collection.dbファイルの読み込み・編集・書き込みに対応しています。
 
-配布版のご利用方法は [USER_GUIDE.md](USER_GUIDE.md) を参照してください。
+使用方法は [USER_GUIDE.md](USER_GUIDE.md) を参照してください。
 
 ## 技術スタック
 

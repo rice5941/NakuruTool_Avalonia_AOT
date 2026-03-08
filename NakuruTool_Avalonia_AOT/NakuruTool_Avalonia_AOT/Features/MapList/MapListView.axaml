@@ -25,6 +25,7 @@
         <converters:ScoreConverter x:Key="ScoreConverter"/>
         <converters:AccuracyConverter x:Key="AccuracyConverter"/>
         <converters:ModCategoryToStringConverter x:Key="ModCategoryToStringConverter"/>
+        <converters:ScoreSystemCategoryToStringConverter x:Key="ScoreSystemCategoryToStringConverter"/>
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
@@ -152,20 +153,39 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Mod切替（ヘッダー右端） -->
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <mi:MaterialIcon Kind="Speedometer" Width="20" Height="20"
-                                         Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
-                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
-                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
-                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
-                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-                        <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
-                                     IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
-                                     Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
-
+                    <!-- Mod切替・スコアシステム切替（ヘッダー右端） -->
+                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- スコアシステム選択グループ -->
+                        <Border BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="ScoreboardOutline" Width="18" Height="18"
+                                                 Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.Default'}"
+                                             IsChecked="{Binding SelectedScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.Default}}"
+                                             Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.ScoreV2'}"
+                                             IsChecked="{Binding SelectedScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.ScoreV2}}"
+                                             Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- 区切り -->
+                        <Border Width="1" Background="{DynamicResource SemiGrey4}" Margin="4,2"/>
+                        <!-- スピードMod選択グループ -->
+                        <Border BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <mi:MaterialIcon Kind="Speedometer" Width="18" Height="18"
+                                                 Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
+                                             IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
+                                             Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
+                                             IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
+                                             Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
+                                             IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
+                                             Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Grid>
             </Border>

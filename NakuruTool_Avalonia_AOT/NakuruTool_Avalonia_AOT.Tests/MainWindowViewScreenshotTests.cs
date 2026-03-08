@@ -614,6 +614,7 @@ public class MockMapListViewModel : IMapListViewModel
     public Beatmap[] FilteredBeatmapsArray { get; private set; } = Array.Empty<Beatmap>();
     public Beatmap? SelectedBeatmap { get; set; }
     public ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
+    public ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
 
     public void Initialize()
     {

@@ -56,7 +56,10 @@
     "ModSwitcher": "Mod切换",
     "ModCategory.NoMod": "无Mod",
     "ModCategory.HalfTime": "HT",
-    "ModCategory.DoubleTime": "DT/NC"
+    "ModCategory.DoubleTime": "DT/NC",
+    "ScoreSystemSwitcher": "分数系统",
+    "ScoreSystem.Default": "v1(default)",
+    "ScoreSystem.ScoreV2": "v2"
   },
   "MapFilter": {
     "Title": "筛选条件",
@@ -97,7 +100,8 @@
     "EnterMaxNumber": "输入最大值",
     "Yes": "是",
     "No": "否",
-    "ModCategory": "Mod"
+    "ModCategory": "Mod",
+    "ScoreSystem": "分数系统"
   },
   "Collection": {
     "GenerateCollection": "生成收藏夹",

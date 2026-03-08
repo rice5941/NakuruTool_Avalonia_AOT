@@ -56,7 +56,10 @@
     "ModSwitcher": "Mod Switch",
     "ModCategory.NoMod": "NoMod",
     "ModCategory.HalfTime": "HT",
-    "ModCategory.DoubleTime": "DT/NC"
+    "ModCategory.DoubleTime": "DT/NC",
+    "ScoreSystemSwitcher": "Score System",
+    "ScoreSystem.Default": "v1(default)",
+    "ScoreSystem.ScoreV2": "v2"
   },
   "MapFilter": {
     "Title": "Filter Conditions",
@@ -97,7 +100,8 @@
     "EnterMaxNumber": "Enter max value",
     "Yes": "Yes",
     "No": "No",
-    "ModCategory": "Mod"
+    "ModCategory": "Mod",
+    "ScoreSystem": "Score System"
   },
   "Collection": {
     "GenerateCollection": "Generate Collection",

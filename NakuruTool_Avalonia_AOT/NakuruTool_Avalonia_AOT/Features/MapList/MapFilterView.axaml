@@ -138,6 +138,15 @@
                                 <!-- Mod選択（BestScore/BestAccuracy時のみ表示） -->
                                 <StackPanel Grid.Row="2" Margin="0,0,0,8"
                                             IsVisible="{Binding IsScoreOrAccTarget}">
+                                    <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ScoreSystem'}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,0,0,6">
+                                        <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.Default'}"
+                                                     IsChecked="{Binding ScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.Default}}"
+                                                     FontSize="13"/>
+                                        <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.ScoreV2'}"
+                                                     IsChecked="{Binding ScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.ScoreV2}}"
+                                                     FontSize="13"/>
+                                    </StackPanel>
                                     <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ModCategory'}"/>
                                     <ComboBox Classes="filter-combobox"
                                               ItemsSource="{x:Static models:FilterCondition.ModCategories}"

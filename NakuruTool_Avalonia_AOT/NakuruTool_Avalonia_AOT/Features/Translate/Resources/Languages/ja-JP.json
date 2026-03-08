@@ -56,7 +56,10 @@
     "ModSwitcher": "mod切替",
     "ModCategory.NoMod": "通常",
     "ModCategory.HalfTime": "HT",
-    "ModCategory.DoubleTime": "DT/NC"
+    "ModCategory.DoubleTime": "DT/NC",
+    "ScoreSystemSwitcher": "スコアシステム",
+    "ScoreSystem.Default": "v1(default)",
+    "ScoreSystem.ScoreV2": "v2"
   },
   "MapFilter": {
     "Title": "フィルタ条件",
@@ -97,7 +100,8 @@
     "EnterMaxNumber": "最大値を入力",
     "Yes": "はい",
     "No": "いいえ",
-    "ModCategory": "Mod"
+    "ModCategory": "Mod",
+    "ScoreSystem": "スコアシステム"
   },
   "Collection": {
     "GenerateCollection": "コレクション生成",

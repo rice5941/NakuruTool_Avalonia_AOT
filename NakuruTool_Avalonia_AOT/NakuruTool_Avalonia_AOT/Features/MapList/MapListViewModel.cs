@@ -24,6 +24,7 @@ public interface IMapListViewModel: IDisposable
     IAvaloniaReadOnlyList<int> PageSizes { get; }
     Beatmap? SelectedBeatmap { get; set; }
     ModCategory SelectedModCategory { get; set; }
+    ScoreSystemCategory SelectedScoreSystemCategory { get; set; }
     void Initialize();
     void ApplyFilter();
     Beatmap[] FilteredBeatmapsArray { get; }
@@ -62,6 +63,9 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     [ObservableProperty]
     public partial ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
+
+    [ObservableProperty]
+    public partial ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
 
     private readonly AudioPlayerViewModel _audioPlayer;
 
@@ -221,15 +225,16 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         if (take > 0)
         {
             var mod = SelectedModCategory;
+            var scoreSystem = SelectedScoreSystemCategory;
             var span = FilteredBeatmapsArray.AsSpan(skip, take);
             foreach (var beatmap in span)
             {
-                // 選択されたmod区分に応じてBestScore/BestAccuracy/Gradeを差し替え
+                // 選択されたスコアシステム・mod区分に応じてBestScore/BestAccuracy/Gradeを差し替え
                 var displayed = beatmap with
                 {
-                    BestScore = beatmap.GetBestScore(mod),
-                    BestAccuracy = beatmap.GetBestAccuracy(mod),
-                    Grade = beatmap.GetGrade(mod)
+                    BestScore = beatmap.GetBestScore(scoreSystem, mod),
+                    BestAccuracy = beatmap.GetBestAccuracy(scoreSystem, mod),
+                    Grade = beatmap.GetGrade(scoreSystem, mod)
                 };
                 _showBeatmapsList.Add(displayed);
             }
@@ -258,6 +263,11 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     }
 
     partial void OnSelectedModCategoryChanged(ModCategory value)
+    {
+        UpdateShowBeatmaps();
+    }
+
+    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value)
     {
         UpdateShowBeatmaps();
     }

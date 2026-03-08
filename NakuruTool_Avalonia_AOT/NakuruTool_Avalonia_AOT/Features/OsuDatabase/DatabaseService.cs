@@ -5,8 +5,11 @@ using R3;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ZLinq;
+
+[assembly: InternalsVisibleTo("NakuruTool_Avalonia_AOT.Tests")]
 
 namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
 {
@@ -261,9 +264,13 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                     double bestAccuracy = 0;
                     int playCount = scoreList.Count;
 
-                    // Mod別値
+                    // v1 (Default) Mod別値
                     int bestScoreNoMod = 0, bestScoreHT = 0, bestScoreDT = 0;
                     double bestAccNoMod = 0, bestAccHT = 0, bestAccDT = 0;
+
+                    // ScoreV2 Mod別値
+                    int bestScoreV2NoMod = 0, bestScoreV2HT = 0, bestScoreV2DT = 0;
+                    double bestAccV2NoMod = 0, bestAccV2HT = 0, bestAccV2DT = 0;
 
                     foreach (var score in scoreList)
                     {
@@ -274,22 +281,46 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                         if (replayScore > bestScore) bestScore = replayScore;
                         if (acc > bestAccuracy) bestAccuracy = acc;
 
-                        // Mod別に振り分け
                         var modCategory = OsuMods.Categorize(score.Mods);
-                        switch (modCategory)
+                        var scoreSystem = OsuMods.CategorizeScoreSystem(score.Mods);
+
+                        if (scoreSystem == ScoreSystemCategory.ScoreV2)
                         {
-                            case ModCategory.HalfTime:
-                                if (replayScore > bestScoreHT) bestScoreHT = replayScore;
-                                if (acc > bestAccHT) bestAccHT = acc;
-                                break;
-                            case ModCategory.DoubleTime:
-                                if (replayScore > bestScoreDT) bestScoreDT = replayScore;
-                                if (acc > bestAccDT) bestAccDT = acc;
-                                break;
-                            default:
-                                if (replayScore > bestScoreNoMod) bestScoreNoMod = replayScore;
-                                if (acc > bestAccNoMod) bestAccNoMod = acc;
-                                break;
+                            // ScoreV2 バケット
+                            switch (modCategory)
+                            {
+                                case ModCategory.HalfTime:
+                                    if (replayScore > bestScoreV2HT) bestScoreV2HT = replayScore;
+                                    if (acc > bestAccV2HT) bestAccV2HT = acc;
+                                    break;
+                                case ModCategory.DoubleTime:
+                                    if (replayScore > bestScoreV2DT) bestScoreV2DT = replayScore;
+                                    if (acc > bestAccV2DT) bestAccV2DT = acc;
+                                    break;
+                                default:
+                                    if (replayScore > bestScoreV2NoMod) bestScoreV2NoMod = replayScore;
+                                    if (acc > bestAccV2NoMod) bestAccV2NoMod = acc;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // Default (v1) バケット
+                            switch (modCategory)
+                            {
+                                case ModCategory.HalfTime:
+                                    if (replayScore > bestScoreHT) bestScoreHT = replayScore;
+                                    if (acc > bestAccHT) bestAccHT = acc;
+                                    break;
+                                case ModCategory.DoubleTime:
+                                    if (replayScore > bestScoreDT) bestScoreDT = replayScore;
+                                    if (acc > bestAccDT) bestAccDT = acc;
+                                    break;
+                                default:
+                                    if (replayScore > bestScoreNoMod) bestScoreNoMod = replayScore;
+                                    if (acc > bestAccNoMod) bestAccNoMod = acc;
+                                    break;
+                            }
                         }
                     }
 
@@ -306,7 +337,16 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
                         GradeHT = CalculateGradeFromAccuracy(bestAccHT),
                         BestScoreDT = bestScoreDT,
                         BestAccuracyDT = bestAccDT,
-                        GradeDT = CalculateGradeFromAccuracy(bestAccDT)
+                        GradeDT = CalculateGradeFromAccuracy(bestAccDT),
+                        BestScoreV2NoMod = bestScoreV2NoMod,
+                        BestAccuracyV2NoMod = bestAccV2NoMod,
+                        GradeV2NoMod = CalculateGradeFromAccuracy(bestAccV2NoMod),
+                        BestScoreV2HT = bestScoreV2HT,
+                        BestAccuracyV2HT = bestAccV2HT,
+                        GradeV2HT = CalculateGradeFromAccuracy(bestAccV2HT),
+                        BestScoreV2DT = bestScoreV2DT,
+                        BestAccuracyV2DT = bestAccV2DT,
+                        GradeV2DT = CalculateGradeFromAccuracy(bestAccV2DT)
                     };
                 }
 
@@ -382,7 +422,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         /// <summary>
         /// スコアから精度を計算
         /// </summary>
-        private double CalculateAccuracy(ScoreData score)
+        internal static double CalculateAccuracy(ScoreData score)
         {
             // Ruleset: 0 = osu!, 1 = Taiko, 2 = Catch, 3 = Mania
             if (score.Ruleset == 3) // Mania
@@ -392,14 +432,26 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
 
                 if (totalHits == 0) return 0;
 
-                var weightedScore = (score.Count300 + score.CountGeki) * 300.0 +
-                                   score.CountKatu * 200.0 +
-                                   score.Count100 * 100.0 +
-                                   score.Count50 * 50.0;
+                // ScoreV2 mania: CountGeki = レインボー300 (305点扱い)、分母も305基準
+                bool isScoreV2 = (score.Mods & OsuMods.ScoreV2) != 0;
+                if (isScoreV2)
+                {
+                    var weightedScore = score.CountGeki * 305.0 +
+                                       score.Count300 * 300.0 +
+                                       score.CountKatu * 200.0 +
+                                       score.Count100 * 100.0 +
+                                       score.Count50 * 50.0;
+                    var maxScore = totalHits * 305.0;
+                    return maxScore > 0 ? weightedScore / maxScore * 100.0 : 0;
+                }
 
-                var maxScore = totalHits * 300.0;
-
-                return maxScore > 0 ? weightedScore / maxScore * 100.0 : 0;
+                // ScoreV1 mania: CountGeki と Count300 は同等の300点扱い
+                var weightedScoreV1 = (score.Count300 + score.CountGeki) * 300.0 +
+                                     score.CountKatu * 200.0 +
+                                     score.Count100 * 100.0 +
+                                     score.Count50 * 50.0;
+                var maxScoreV1 = totalHits * 300.0;
+                return maxScoreV1 > 0 ? weightedScoreV1 / maxScoreV1 * 100.0 : 0;
             }
 
             var totalHitsOther = score.Count300 + score.Count100 + score.Count50 + score.CountMiss;

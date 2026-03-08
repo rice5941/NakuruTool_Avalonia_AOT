@@ -213,6 +213,11 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     public static ModCategory[] ModCategories => Enum.GetValues<ModCategory>();
 
+    /// <summary>
+    /// 利用可能なScoreSystemCategory一覧（ComboBoxのItemsSource用）
+    /// </summary>
+    public static ScoreSystemCategory[] ScoreSystemCategories => Enum.GetValues<ScoreSystemCategory>();
+
     [ObservableProperty]
     private FilterTarget _target = FilterTarget.KeyCount;
 
@@ -254,6 +259,12 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     [ObservableProperty]
     private ModCategory _scoreModCategory = ModCategory.NoMod;
+
+    /// <summary>
+    /// スコア/精度フィルタ用のスコアシステム区分（BestScore/BestAccuracy対象時のみ使用）
+    /// </summary>
+    [ObservableProperty]
+    private ScoreSystemCategory _scoreSystemCategory = ScoreSystemCategory.Default;
 
     /// <summary>
     /// 範囲比較時の最小値側の境界タイプ（≤ or <）
@@ -459,8 +470,8 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.BPM => MatchesDouble(beatmap.BPM),
             FilterTarget.Difficulty => MatchesDouble(beatmap.Difficulty),
             FilterTarget.LongNoteRate => MatchesLongNoteRate(beatmap.LongNoteRate),
-            FilterTarget.BestAccuracy => MatchesDouble(beatmap.GetBestAccuracy(ScoreModCategory)),
-            FilterTarget.BestScore => MatchesNumeric(beatmap.GetBestScore(ScoreModCategory)),
+            FilterTarget.BestAccuracy => MatchesDouble(beatmap.GetBestAccuracy(ScoreSystemCategory, ScoreModCategory)),
+            FilterTarget.BestScore => MatchesNumeric(beatmap.GetBestScore(ScoreSystemCategory, ScoreModCategory)),
             FilterTarget.IsPlayed => beatmap.IsPlayed == BoolValue,
             FilterTarget.LastPlayed => MatchesDateTime(beatmap.LastPlayed),
             FilterTarget.LastModifiedTime => MatchesDateTime(beatmap.LastModifiedTime),

@@ -52,7 +52,7 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         /// <summary>曲の長さ（秒単位）</summary>
         public int DrainTimeSeconds { get; init; }
 
-        // Mod別スコア・精度・グレード
+        // v1 (Default) Mod別スコア・精度・グレード
         public int BestScoreNoMod { get; init; }
         public double BestAccuracyNoMod { get; init; }
         public string GradeNoMod { get; init; } = string.Empty;
@@ -63,28 +63,57 @@ namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase
         public double BestAccuracyDT { get; init; }
         public string GradeDT { get; init; } = string.Empty;
 
-        /// <summary>指定modの最高スコアを取得</summary>
-        public int GetBestScore(ModCategory mod) => mod switch
+        // ScoreV2 Mod別スコア・精度・グレード
+        public int BestScoreV2NoMod { get; init; }
+        public double BestAccuracyV2NoMod { get; init; }
+        public string GradeV2NoMod { get; init; } = string.Empty;
+        public int BestScoreV2HT { get; init; }
+        public double BestAccuracyV2HT { get; init; }
+        public string GradeV2HT { get; init; } = string.Empty;
+        public int BestScoreV2DT { get; init; }
+        public double BestAccuracyV2DT { get; init; }
+        public string GradeV2DT { get; init; } = string.Empty;
+
+        /// <summary>スコアシステム・mod 2軸で最高スコアを取得</summary>
+        public int GetBestScore(ScoreSystemCategory system, ModCategory mod) => (system, mod) switch
         {
-            ModCategory.HalfTime => BestScoreHT,
-            ModCategory.DoubleTime => BestScoreDT,
-            _ => BestScoreNoMod
+            (ScoreSystemCategory.ScoreV2, ModCategory.HalfTime)   => BestScoreV2HT,
+            (ScoreSystemCategory.ScoreV2, ModCategory.DoubleTime)  => BestScoreV2DT,
+            (ScoreSystemCategory.ScoreV2, _)                       => BestScoreV2NoMod,
+            (_, ModCategory.HalfTime)                              => BestScoreHT,
+            (_, ModCategory.DoubleTime)                            => BestScoreDT,
+            _                                                      => BestScoreNoMod
         };
 
-        /// <summary>指定modの最高精度を取得</summary>
-        public double GetBestAccuracy(ModCategory mod) => mod switch
+        /// <summary>スコアシステム・mod 2軸で最高精度を取得</summary>
+        public double GetBestAccuracy(ScoreSystemCategory system, ModCategory mod) => (system, mod) switch
         {
-            ModCategory.HalfTime => BestAccuracyHT,
-            ModCategory.DoubleTime => BestAccuracyDT,
-            _ => BestAccuracyNoMod
+            (ScoreSystemCategory.ScoreV2, ModCategory.HalfTime)   => BestAccuracyV2HT,
+            (ScoreSystemCategory.ScoreV2, ModCategory.DoubleTime)  => BestAccuracyV2DT,
+            (ScoreSystemCategory.ScoreV2, _)                       => BestAccuracyV2NoMod,
+            (_, ModCategory.HalfTime)                              => BestAccuracyHT,
+            (_, ModCategory.DoubleTime)                            => BestAccuracyDT,
+            _                                                      => BestAccuracyNoMod
         };
 
-        /// <summary>指定modのグレードを取得</summary>
-        public string GetGrade(ModCategory mod) => mod switch
+        /// <summary>スコアシステム・mod 2軸でグレードを取得</summary>
+        public string GetGrade(ScoreSystemCategory system, ModCategory mod) => (system, mod) switch
         {
-            ModCategory.HalfTime => GradeHT,
-            ModCategory.DoubleTime => GradeDT,
-            _ => GradeNoMod
+            (ScoreSystemCategory.ScoreV2, ModCategory.HalfTime)   => GradeV2HT,
+            (ScoreSystemCategory.ScoreV2, ModCategory.DoubleTime)  => GradeV2DT,
+            (ScoreSystemCategory.ScoreV2, _)                       => GradeV2NoMod,
+            (_, ModCategory.HalfTime)                              => GradeHT,
+            (_, ModCategory.DoubleTime)                            => GradeDT,
+            _                                                      => GradeNoMod
         };
+
+        /// <summary>指定modの最高スコアを取得（後方互換: Default システム）</summary>
+        public int GetBestScore(ModCategory mod) => GetBestScore(ScoreSystemCategory.Default, mod);
+
+        /// <summary>指定modの最高精度を取得（後方互換: Default システム）</summary>
+        public double GetBestAccuracy(ModCategory mod) => GetBestAccuracy(ScoreSystemCategory.Default, mod);
+
+        /// <summary>指定modのグレードを取得（後方互換: Default システム）</summary>
+        public string GetGrade(ModCategory mod) => GetGrade(ScoreSystemCategory.Default, mod);
     }
 }

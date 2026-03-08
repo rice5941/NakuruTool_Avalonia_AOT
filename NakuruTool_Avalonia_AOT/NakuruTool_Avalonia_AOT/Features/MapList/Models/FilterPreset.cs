@@ -62,6 +62,11 @@ public class FilterConditionData
     public string ScoreModCategory { get; set; } = string.Empty;
 
     /// <summary>
+    /// スコア/精度フィルタ用のスコアシステム区分（文字列で保存）
+    /// </summary>
+    public string ScoreSystemCategory { get; set; } = string.Empty;
+
+    /// <summary>
     /// 範囲比較時の最小値側の境界タイプ（文字列で保存）
     /// </summary>
     public string MinBoundaryType { get; set; } = string.Empty;
@@ -86,6 +91,7 @@ public class FilterConditionData
             BoolValue = condition.BoolValue,
             CollectionValue = condition.CollectionValue,
             ScoreModCategory = condition.ScoreModCategory.ToString(),
+            ScoreSystemCategory = condition.ScoreSystemCategory.ToString(),
             MinBoundaryType = condition.MinBoundaryType.ToString(),
             MaxBoundaryType = condition.MaxBoundaryType.ToString()
         };
@@ -101,6 +107,7 @@ public class FilterConditionData
         var comparisonType = Enum.TryParse<ComparisonType>(ComparisonType, out var ct) ? ct : Models.ComparisonType.Equals;
         var statusValue = Enum.TryParse<BeatmapStatus>(StatusValue, out var sv) ? sv : BeatmapStatus.None;
         var scoreModCategory = Enum.TryParse<OsuDatabase.ModCategory>(ScoreModCategory, out var smc) ? smc : OsuDatabase.ModCategory.NoMod;
+        var scoreSystemCategory = Enum.TryParse<OsuDatabase.ScoreSystemCategory>(ScoreSystemCategory, out var ssc) ? ssc : OsuDatabase.ScoreSystemCategory.Default;
         var minBoundaryType = Enum.TryParse<RangeBoundaryType>(MinBoundaryType, out var mbt) ? mbt : Models.RangeBoundaryType.Inclusive;
         var maxBoundaryType = Enum.TryParse<RangeBoundaryType>(MaxBoundaryType, out var mxbt) ? mxbt : Models.RangeBoundaryType.Inclusive;
 
@@ -114,6 +121,7 @@ public class FilterConditionData
             BoolValue = BoolValue,
             CollectionValue = CollectionValue,
             ScoreModCategory = scoreModCategory,
+            ScoreSystemCategory = scoreSystemCategory,
             MinBoundaryType = minBoundaryType,
             MaxBoundaryType = maxBoundaryType
         };

@@ -225,7 +225,6 @@
                     <DataGridTemplateColumn Width="*" MinWidth="300">
                         <DataGridTemplateColumn.Header>
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <mi:MaterialIcon Kind="Music" Width="16" Height="16"/>
                                 <TextBlock Text="{translate:Translate 'MapList.Title'}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataGridTemplateColumn.Header>
@@ -279,7 +278,6 @@
                     <DataGridTemplateColumn Width="140">
                         <DataGridTemplateColumn.Header>
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <mi:MaterialIcon Kind="TrophyVariant" Width="16" Height="16"/>
                                 <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataGridTemplateColumn.Header>
@@ -312,7 +310,6 @@
                     <DataGridTemplateColumn Width="205">
                         <DataGridTemplateColumn.Header>
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <mi:MaterialIcon Kind="History" Width="16" Height="16"/>
                                 <TextBlock Text="{translate:Translate 'MapList.History'}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataGridTemplateColumn.Header>

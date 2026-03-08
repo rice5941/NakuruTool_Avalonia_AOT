@@ -136,12 +136,6 @@
 
 <img width="1119" height="150" alt="image" src="https://github.com/user-attachments/assets/1fe0a51a-b1d4-49d6-b6bf-d3d788e9e482" />
 
-## ライセンス
-
-1. ライセンス タブを開きます。
-2. アプリで使用しているオープンソースライセンスの一覧を確認します。
-3. 詳しく確認したい項目があれば 全文を表示 を開きます。
-
 ## 復旧方法
 
 - 本アプリの起動時にアプリ本体と同じ場所の backups フォルダにcollection.dbのバックアップを作成しています。もしcollection.dbが破損した場合、backupsフォルダからcollection.dbを上書きしてください。

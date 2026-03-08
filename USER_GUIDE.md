@@ -20,7 +20,7 @@
 3. 選択時自動再生 と Unicode表示を優先 を好みに合わせて切り替えます。
 4. 読み込みが終わったら beatmap一覧 に戻って操作を始めます。
 
-まず osu! フォルダを設定しないと、beatmap一覧、コレクション生成、インポートの一部機能を正しく使えません。
+<img width="1119" height="150" alt="image" src="https://github.com/user-attachments/assets/1fe0a51a-b1d4-49d6-b6bf-d3d788e9e482" />
 
 ## 画面構成
 
@@ -29,7 +29,6 @@
 3. beatmap一覧 では、左側でフィルタ、右側で譜面一覧を確認します。
 4. インポート/エクスポート では、左側でファイルやコレクションを選び、右側で内容を確認します。
 5. 起動直後は、osu!.db、collection.db、scores.db の読み込みが完了するまで待ってから操作してください。
-
 ## beatmap一覧の見方
 
 1. 一覧上部の map数 で読み込んだ総数、絞込後 で現在の対象件数を確認します。
@@ -41,6 +40,8 @@
 7. 一覧下部の左右ボタン、ページ番号、件数切替でページを移動します。
 
 譜面を選ぶと、選択時自動再生 がオンのときは音声プレビューが始まります。
+
+<img width="1906" height="1016" alt="image" src="https://github.com/user-attachments/assets/988e7d69-c9a2-45ac-bd9b-543ee51a0544" />
 
 ## オーディオパネルの使い方
 
@@ -54,6 +55,8 @@
 
 前の曲 は、3秒以上再生している場合は前の譜面へ移動せず、現在の曲の先頭に戻ります。
 
+<img width="1306" height="258" alt="image" src="https://github.com/user-attachments/assets/5bba2dbe-c58e-4dc2-9c83-5fa819271d1f" />
+
 ## フィルタの使い方
 
 1. beatmap一覧 の左側にある フィルタ条件 を確認します。
@@ -63,6 +66,8 @@
 5. 複数の条件はすべて AND 条件で組み合わされます。
 6. 不要な条件は各条件の削除ボタンで外し、全部消したいときは すべてクリア を使います。
 7. 保存済み条件を使うときは プリセット を選び、解除したいときは (なし) を選びます。
+
+<img width="331" height="783" alt="image" src="https://github.com/user-attachments/assets/e8e2fce0-76c4-497d-9d48-08836b9a2818" />
 
 ## プリセットの使い方
 
@@ -75,6 +80,10 @@
 
 保存したプリセットは、アプリ本体と同じ場所の presets フォルダに保存されます。
 
+<img width="465" height="493" alt="image" src="https://github.com/user-attachments/assets/d59bf6e0-524e-42e2-af5e-3da1276e488d" />
+
+<img width="1306" height="925" alt="image" src="https://github.com/user-attachments/assets/ee6b8936-0f8a-418f-9462-b9fb2a70682a" />
+
 ## コレクション生成
 
 1. beatmap一覧 で必要なフィルタ条件を設定します。
@@ -86,7 +95,11 @@
 
 同名コレクションを生成すると、既存の同名コレクションが上書きされます。残したいコレクションがある場合は別の名前を使ってください。
 
+<img width="331" height="139" alt="image" src="https://github.com/user-attachments/assets/5fef9f90-1864-4de4-ae68-8e44d8a108a3" />
+
 ## インポート/エクスポート
+
+<img width="1634" height="923" alt="image" src="https://github.com/user-attachments/assets/f02e357c-735d-4639-90eb-cc61ae278c57" />
 
 ### エクスポート
 
@@ -95,6 +108,8 @@
 3. 必要に応じて リロード、すべて選択、すべて解除 を使います。
 4. エクスポート実行 を押します。
 5. 完了したファイルは exports フォルダに保存されます。
+
+<img width="820" height="463" alt="image" src="https://github.com/user-attachments/assets/7d30fba7-459d-4a65-a468-dca340ce774e" />
 
 ### インポート
 
@@ -108,6 +123,8 @@
 
 インポート用ファイルはアプリ本体と同じ場所の imports フォルダ、エクスポート結果はアプリ本体と同じ場所の exports フォルダを使います。
 
+<img width="821" height="460" alt="image" src="https://github.com/user-attachments/assets/9458988f-8386-47cb-8d7d-a8c51b86fe81" />
+
 ## 設定
 
 1. 設定 タブを開きます。
@@ -116,6 +133,8 @@
 4. osu!フォルダパス で現在の設定を確認し、必要なら osu!.exeを選択 で変更します。
 5. 選択時自動再生 をオンにすると、譜面選択時にプレビュー再生しやすくなります。
 6. Unicode表示を優先 をオンにすると、曲名やアーティスト名を Unicode で表示できます。日本語や韓国語の表記を優先したい場合に有効です。
+
+<img width="1119" height="150" alt="image" src="https://github.com/user-attachments/assets/1fe0a51a-b1d4-49d6-b6bf-d3d788e9e482" />
 
 ## ライセンス
 

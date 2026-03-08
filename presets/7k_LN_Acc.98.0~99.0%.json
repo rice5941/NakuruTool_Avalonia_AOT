@@ -1,0 +1,45 @@
+{
+  "name": "7k_LN_Acc.98.0~99.0%",
+  "collectionName": "7k_LN_Acc.98.0~99.0%",
+  "conditions": [
+    {
+      "target": "KeyCount",
+      "comparisonType": "Equals",
+      "value": "7",
+      "valueMax": "",
+      "statusValue": "Ranked",
+      "boolValue": true,
+      "collectionValue": "",
+      "scoreModCategory": "NoMod",
+      "scoreSystemCategory": "Default",
+      "minBoundaryType": "Inclusive",
+      "maxBoundaryType": "Inclusive"
+    },
+    {
+      "target": "LongNoteRate",
+      "comparisonType": "Range",
+      "value": "20",
+      "valueMax": "100",
+      "statusValue": "Ranked",
+      "boolValue": true,
+      "collectionValue": "",
+      "scoreModCategory": "NoMod",
+      "scoreSystemCategory": "Default",
+      "minBoundaryType": "Inclusive",
+      "maxBoundaryType": "Inclusive"
+    },
+    {
+      "target": "BestAccuracy",
+      "comparisonType": "Range",
+      "value": "98",
+      "valueMax": "99",
+      "statusValue": "Ranked",
+      "boolValue": true,
+      "collectionValue": "",
+      "scoreModCategory": "NoMod",
+      "scoreSystemCategory": "Default",
+      "minBoundaryType": "Inclusive",
+      "maxBoundaryType": "Exclusive"
+    }
+  ]
+}

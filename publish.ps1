@@ -31,6 +31,8 @@ if ($LASTEXITCODE -eq 0) {
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
     $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.md"
     $userGuideDestination = Join-Path $publishDir "USER_GUIDE.md"
+    $presetsSource = Join-Path $PSScriptRoot "presets"
+    $presetsDestination = Join-Path $publishDir "presets"
 
     if (Test-Path $exeFile) {
         $exeSize = (Get-Item $exeFile).Length / 1MB
@@ -48,6 +50,18 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "  Included USER_GUIDE.md" -ForegroundColor DarkGray
     } else {
         Write-Host "  Warning: USER_GUIDE.md not found, skipping." -ForegroundColor Yellow
+    }
+
+    # 配布用のプリセットを同梱
+    if (Test-Path $presetsSource) {
+        if (Test-Path $presetsDestination) {
+            Remove-Item -Path $presetsDestination -Recurse -Force
+        }
+
+        Copy-Item -LiteralPath $presetsSource -Destination $presetsDestination -Recurse -Force
+        Write-Host "  Included presets folder" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: presets folder not found, skipping." -ForegroundColor Yellow
     }
 
     # pdbファイルを削除

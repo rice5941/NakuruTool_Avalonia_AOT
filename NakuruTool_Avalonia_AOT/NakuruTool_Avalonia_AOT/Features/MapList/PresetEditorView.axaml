@@ -230,11 +230,11 @@
                                                         IsVisible="{Binding !IsCollectionType}">
                                                 <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.ComparisonType'}"/>
                                                 <StackPanel Orientation="Horizontal" Spacing="24">
-                                                    <RadioButton Content="="
+                                                    <RadioButton Content="{translate:Translate 'MapFilter.ComparisonType.Equals'}"
                                                                  IsChecked="{Binding ComparisonType, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static models:ComparisonType.Equals}}"
                                                                  IsEnabled="{Binding SupportsEquals}"
                                                                  GroupName="{Binding Id}"/>
-                                                    <RadioButton Content="~"
+                                                    <RadioButton Content="{translate:Translate 'MapFilter.ComparisonType.Range'}"
                                                                  IsChecked="{Binding ComparisonType, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static models:ComparisonType.Range}}"
                                                                  IsEnabled="{Binding SupportsRange}"
                                                                  GroupName="{Binding Id}"/>

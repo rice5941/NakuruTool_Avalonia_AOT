@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "曲の長さ",
     "ComparisonType": "比較条件",
+    "ComparisonType.Equals": "一致",
+    "ComparisonType.Range": "範囲",
     "Value": "値",
     "ValueMin": "最小値",
     "ValueMax": "最大値",

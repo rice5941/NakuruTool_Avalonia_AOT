@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "길이",
     "ComparisonType": "비교 조건",
+    "ComparisonType.Equals": "일치",
+    "ComparisonType.Range": "범위",
     "Value": "값",
     "ValueMin": "최소값",
     "ValueMax": "최대값",

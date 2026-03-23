@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "Độ dài bài",
     "ComparisonType": "Điều kiện so sánh",
+    "ComparisonType.Equals": "Bằng",
+    "ComparisonType.Range": "Khoảng",
     "Value": "Giá trị",
     "ValueMin": "Giá trị nhỏ nhất",
     "ValueMax": "Giá trị lớn nhất",

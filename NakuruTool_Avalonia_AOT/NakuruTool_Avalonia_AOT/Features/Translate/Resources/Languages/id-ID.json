@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "Durasi lagu",
     "ComparisonType": "Kondisi pembandingan",
+    "ComparisonType.Equals": "Sama dengan",
+    "ComparisonType.Range": "Rentang",
     "Value": "Nilai",
     "ValueMin": "Nilai minimum",
     "ValueMax": "Nilai maksimum",

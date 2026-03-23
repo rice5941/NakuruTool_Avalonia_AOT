@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "Duração",
     "ComparisonType": "Condição de comparação",
+    "ComparisonType.Equals": "Igual",
+    "ComparisonType.Range": "Intervalo",
     "Value": "Valor",
     "ValueMin": "Mínimo",
     "ValueMax": "Máximo",

@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "Haba ng kanta",
     "ComparisonType": "Kondisyon ng paghahambing",
+    "ComparisonType.Equals": "Katumbas",
+    "ComparisonType.Range": "Saklaw",
     "Value": "Halaga",
     "ValueMin": "Minimum",
     "ValueMax": "Maximum",

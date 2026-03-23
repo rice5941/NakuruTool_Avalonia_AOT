@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "ความยาวเพลง",
     "ComparisonType": "เงื่อนไขเปรียบเทียบ",
+    "ComparisonType.Equals": "เท่ากับ",
+    "ComparisonType.Range": "ช่วง",
     "Value": "ค่า",
     "ValueMin": "ค่าต่ำสุด",
     "ValueMax": "ค่าสูงสุด",

@@ -87,6 +87,8 @@
     "Target.HP": "HP",
     "Target.DrainTime": "曲长",
     "ComparisonType": "比较条件",
+    "ComparisonType.Equals": "等于",
+    "ComparisonType.Range": "范围",
     "Value": "值",
     "ValueMin": "最小值",
     "ValueMax": "最大值",

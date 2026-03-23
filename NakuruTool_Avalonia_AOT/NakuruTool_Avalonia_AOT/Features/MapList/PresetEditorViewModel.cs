@@ -363,40 +363,8 @@ public partial class PresetEditorViewModel : ViewModelBase
         if (conditions.Length == 0)
             return Array.Empty<Beatmap>();
 
-        // コレクション条件用のHashSetキャッシュ（プリセットごとにリセット）
-        HashSet<string>? collectionMd5Cache = null;
-        string? cachedCollectionName = null;
-
         return _databaseService.Beatmaps.AsValueEnumerable()
-            .Where(beatmap =>
-            {
-                foreach (var condition in conditions)
-                {
-                    if (condition.Target == FilterTarget.Collection)
-                    {
-                        if (string.IsNullOrEmpty(condition.CollectionValue)) continue;
-
-                        if (cachedCollectionName != condition.CollectionValue)
-                        {
-                            var col = _databaseService.OsuCollections
-                                .AsValueEnumerable()
-                                .FirstOrDefault(c => c.Name == condition.CollectionValue);
-                            collectionMd5Cache = col != null
-                                ? new HashSet<string>(col.BeatmapMd5s, StringComparer.OrdinalIgnoreCase)
-                                : new HashSet<string>();
-                            cachedCollectionName = condition.CollectionValue;
-                        }
-
-                        if (!collectionMd5Cache!.Contains(beatmap.MD5Hash))
-                            return false;
-                    }
-                    else if (!condition.Matches(beatmap))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            })
+            .Where(beatmap => conditions.MatchesAll(beatmap, _databaseService))
             .ToArray();
     }
 

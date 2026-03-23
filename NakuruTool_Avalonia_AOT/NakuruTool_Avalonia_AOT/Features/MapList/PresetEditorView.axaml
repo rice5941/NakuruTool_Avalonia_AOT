@@ -198,8 +198,13 @@
                                             <!-- フィルタ対象選択 -->
                                             <StackPanel Grid.Row="0" Margin="0,0,0,8">
                                                 <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Target'}"/>
-                                                <Grid ColumnDefinitions="*,8,Auto">
-                                                    <ComboBox Grid.Column="0"
+                                                <Grid ColumnDefinitions="Auto,8,*,8,Auto">
+                                                    <CheckBox Grid.Column="0"
+                                                              Content="{translate:Translate 'MapFilter.Not'}"
+                                                              IsChecked="{Binding IsNot}"
+                                                              VerticalAlignment="Center"
+                                                              FontSize="12"/>
+                                                    <ComboBox Grid.Column="2"
                                                               Classes="filter-combobox"
                                                               ItemsSource="{x:Static MapList:MapFilterViewModel.FilterTargets}"
                                                               SelectedItem="{Binding Target}">
@@ -211,7 +216,7 @@
                                                     </ComboBox>
 
                                                     <!-- 削除ボタン -->
-                                                    <Button Grid.Column="2"
+                                                    <Button Grid.Column="4"
                                                             Width="32" Height="32"
                                                             Command="{Binding $parent[ItemsControl].((MapList:PresetEditorViewModel)DataContext).RemoveConditionCommand}"
                                                             CommandParameter="{Binding}">

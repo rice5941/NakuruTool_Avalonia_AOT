@@ -41,12 +41,6 @@ public partial class MapFilterViewModel : ViewModelBase
     private readonly IFilterPresetService _presetService;
     private readonly IDatabaseService _databaseService;
 
-    // Collectionフィルタ用MD5キャッシュ
-    private HashSet<string>? _collectionMd5Cache;
-    private string? _cachedCollectionName;
-
-
-
     [ObservableProperty]
     public partial FilterPreset? SelectedPreset { get; set; }
 
@@ -78,9 +72,6 @@ public partial class MapFilterViewModel : ViewModelBase
     {
         _presetService = presetService;
         _databaseService = databaseService;
-
-        // コレクション名リストを初期化
-        RefreshCollectionNames();
 
         // プリセットリストの変更を監視して、PresetsWithNoneを更新
         UpdatePresetsWithNone();
@@ -132,40 +123,7 @@ public partial class MapFilterViewModel : ViewModelBase
     public bool Matches(Beatmap beatmap)
     {
         if (Conditions.Count == 0) return true;
-        
-        foreach (var condition in Conditions)
-        {
-            if (condition.Target == FilterTarget.Collection)
-            {
-                if (!MatchesCollection(beatmap, condition.CollectionValue))
-                    return false;
-            }
-            else if (!condition.Matches(beatmap))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// コレクションによるフィルタリング（HashSetキャッシュでO(1)ルックアップ）
-    /// </summary>
-    private bool MatchesCollection(Beatmap beatmap, string collectionName)
-    {
-        if (string.IsNullOrEmpty(collectionName)) return true;
-
-        if (_cachedCollectionName != collectionName)
-        {
-            var col = _databaseService.OsuCollections
-                .AsValueEnumerable()
-                .FirstOrDefault(c => c.Name == collectionName);
-            _collectionMd5Cache = col != null
-                ? new HashSet<string>(col.BeatmapMd5s, StringComparer.OrdinalIgnoreCase)
-                : new HashSet<string>();
-            _cachedCollectionName = collectionName;
-        }
-        return _collectionMd5Cache!.Contains(beatmap.MD5Hash);
+        return Conditions.MatchesAll(beatmap, _databaseService);
     }
 
     /// <summary>
@@ -173,8 +131,7 @@ public partial class MapFilterViewModel : ViewModelBase
     /// </summary>
     public void RefreshCollectionNames()
     {
-        _collectionMd5Cache = null;
-        _cachedCollectionName = null;
+        FilterConditionExtensions.ClearCollectionCache();
 
         var names = FilterCondition.GetSharedCollectionNames();
         foreach (var col in _databaseService.OsuCollections)

@@ -244,6 +244,12 @@ public partial class FilterCondition : ObservableObject
     private BeatmapStatus _statusValue = BeatmapStatus.Ranked;
 
     /// <summary>
+    /// NOT条件（チェック時にマッチ結果を反転）
+    /// </summary>
+    [ObservableProperty]
+    private bool _isNot = false;
+
+    /// <summary>
     /// Bool型の選択値（IsPlayed用）
     /// </summary>
     [ObservableProperty]

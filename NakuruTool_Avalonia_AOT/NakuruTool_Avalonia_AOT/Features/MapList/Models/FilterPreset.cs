@@ -49,6 +49,11 @@ public class FilterConditionData
     /// </summary>
     public string StatusValue { get; set; } = string.Empty;
 
+    /// <summary>
+    /// NOT条件フラグ
+    /// </summary>
+    public bool IsNot { get; set; }
+
     public bool BoolValue { get; set; }
 
     /// <summary>
@@ -88,6 +93,7 @@ public class FilterConditionData
             Value = condition.Value,
             ValueMax = condition.ValueMax,
             StatusValue = condition.StatusValue.ToString(),
+            IsNot = condition.IsNot,
             BoolValue = condition.BoolValue,
             CollectionValue = condition.CollectionValue,
             ScoreModCategory = condition.ScoreModCategory.ToString(),
@@ -118,6 +124,7 @@ public class FilterConditionData
             Value = Value,
             ValueMax = ValueMax,
             StatusValue = statusValue,
+            IsNot = IsNot,
             BoolValue = BoolValue,
             CollectionValue = CollectionValue,
             ScoreModCategory = scoreModCategory,

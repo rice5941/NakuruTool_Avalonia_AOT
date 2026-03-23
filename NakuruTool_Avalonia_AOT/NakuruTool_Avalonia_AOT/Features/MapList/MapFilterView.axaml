@@ -167,7 +167,7 @@
                                     <StackPanel IsVisible="{Binding IsCollectionType}" Margin="0,0,0,8">
                                         <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.Value'}"/>
                                         <ComboBox Classes="filter-combobox"
-                                                  ItemsSource="{Binding $parent[ItemsControl].((MapList:MapFilterViewModel)DataContext).CollectionNames}"
+                                                  ItemsSource="{Binding CollectionNames}"
                                                   SelectedItem="{Binding CollectionValue}"
                                                   HorizontalAlignment="Stretch"/>
                                     </StackPanel>

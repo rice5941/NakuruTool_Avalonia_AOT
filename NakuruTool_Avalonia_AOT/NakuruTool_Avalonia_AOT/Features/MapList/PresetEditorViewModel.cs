@@ -8,7 +8,6 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ZLinq;
@@ -55,10 +54,7 @@ public partial class PresetEditorViewModel : ViewModelBase
     /// </summary>
     public AvaloniaList<FilterPreset> Presets { get; }
 
-    /// <summary>
-    /// DB内コレクション名一覧（Collection条件用ComboBox）
-    /// </summary>
-    public ObservableCollection<string> CollectionNames { get; } = new();
+
 
     /// <summary>
     /// 編集パネルのIsVisible制御用
@@ -404,17 +400,7 @@ public partial class PresetEditorViewModel : ViewModelBase
             .ToArray();
     }
 
-    /// <summary>
-    /// DBのコレクション名一覧をCollectionNamesに反映する
-    /// </summary>
-    public void RefreshCollectionNames()
-    {
-        CollectionNames.Clear();
-        foreach (var col in _databaseService.OsuCollections)
-        {
-            CollectionNames.Add(col.Name);
-        }
-    }
+
 
     private bool _disposed;
 

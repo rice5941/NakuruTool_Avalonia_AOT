@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.Converters;
 using System;
+using System.Collections.ObjectModel;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
 
@@ -253,6 +254,23 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     [ObservableProperty]
     private string _collectionValue = string.Empty;
+
+    private static readonly ObservableCollection<string> s_collectionNames = new();
+
+    /// <summary>
+    /// 利用可能なコレクション名一覧（全インスタンスで共有）
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public ObservableCollection<string> CollectionNames => s_collectionNames;
+
+    /// <summary>
+    /// コレクション名リストをクリアし、再構築用の参照を返す
+    /// </summary>
+    public static ObservableCollection<string> GetSharedCollectionNames()
+    {
+        s_collectionNames.Clear();
+        return s_collectionNames;
+    }
 
     /// <summary>
     /// スコア/精度フィルタ用のmod区分（BestScore/BestAccuracy対象時のみ使用）

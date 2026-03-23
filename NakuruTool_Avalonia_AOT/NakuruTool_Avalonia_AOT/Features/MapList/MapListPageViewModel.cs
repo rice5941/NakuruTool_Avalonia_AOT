@@ -112,7 +112,6 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         // DB読み込み完了後にコレクション名リストを更新
         FilterViewModel.RefreshCollectionNames();
         ListViewModel.Initialize();
-        PresetEditorViewModel.RefreshCollectionNames();
     }
 
     [RelayCommand]
@@ -123,12 +122,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
     partial void OnIsPresetEditorVisibleChanged(bool value)
     {
-        if (value)
-        {
-            // 編集画面を開いたときにコレクション名リストを更新
-            PresetEditorViewModel.RefreshCollectionNames();
-        }
-        else
+        if (!value)
         {
             // 編集画面を閉じたとき、一括生成の副作用で更新されたステータスをリセット
             GenerationStatusMessage = " ";

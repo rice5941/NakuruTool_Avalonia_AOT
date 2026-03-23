@@ -8,7 +8,6 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using ZLinq;
 
@@ -46,10 +45,7 @@ public partial class MapFilterViewModel : ViewModelBase
     private HashSet<string>? _collectionMd5Cache;
     private string? _cachedCollectionName;
 
-    /// <summary>
-    /// 利用可能なコレクション名一覧
-    /// </summary>
-    public ObservableCollection<string> CollectionNames { get; } = new();
+
 
     [ObservableProperty]
     public partial FilterPreset? SelectedPreset { get; set; }
@@ -177,13 +173,13 @@ public partial class MapFilterViewModel : ViewModelBase
     /// </summary>
     public void RefreshCollectionNames()
     {
-        CollectionNames.Clear();
         _collectionMd5Cache = null;
         _cachedCollectionName = null;
 
+        var names = FilterCondition.GetSharedCollectionNames();
         foreach (var col in _databaseService.OsuCollections)
         {
-            CollectionNames.Add(col.Name);
+            names.Add(col.Name);
         }
     }
 

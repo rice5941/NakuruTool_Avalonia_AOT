@@ -734,6 +734,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public int AudioVolume { get; set; } = 10;
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
+    public bool IsDarkTheme { get; set; } = true;
 }
 
 /// <summary>

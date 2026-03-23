@@ -23,8 +23,8 @@ public interface ISettingsService : IDisposable
 public sealed class SettingsService : ISettingsService
 {
     /// <summary>
-    /// Converter等のDI外コンポーネントからSettings値を参照するための静的アクセサ。
-    /// UnicodeDisplayConverter専用。他の用途での使用は推奨しない。
+    /// app.xamlやConverter等のDI外コンポーネントからSettings値を参照するための静的アクセサ。
+    /// app.xaml,UnicodeDisplayConverter専用。他の用途での使用は推奨しない。
     /// </summary>
     internal static ISettingsData? Current { get; private set; }
 
@@ -52,7 +52,7 @@ public sealed class SettingsService : ISettingsService
         _settingsPath = Path.Combine(settingsFolder, "settings.json");
 
         var settingsData = LoadSettings();
-    settingsData.LanguageKey = LanguageService.Instance.NormalizeLanguageCode(settingsData.LanguageKey);
+        settingsData.LanguageKey = LanguageService.Instance.NormalizeLanguageCode(settingsData.LanguageKey);
         SettingsData = settingsData;
 
         LanguageService.Instance.ChangeLanguage(SettingsData.LanguageKey);

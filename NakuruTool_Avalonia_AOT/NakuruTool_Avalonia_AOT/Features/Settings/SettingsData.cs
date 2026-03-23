@@ -11,6 +11,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         int AudioVolume { get; set; }
         bool AutoPlayOnSelect { get; set; }
         bool PreferUnicode { get; set; }
+        bool IsDarkTheme { get; set; }
     }
 
     public partial class SettingsData : ObservableObject, ISettingsData
@@ -21,6 +22,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         private int _audioVolume = 10;
         private bool _autoPlayOnSelect = true;
         private bool _preferUnicode = false;
+        private bool _isDarkTheme = true;
 
         public string OsuFolderPath
         {
@@ -52,6 +54,12 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             set => SetProperty(ref _preferUnicode, value);
         }
 
+        public bool IsDarkTheme
+        {
+            get => _isDarkTheme;
+            set => SetProperty(ref _isDarkTheme, value);
+        }
+
         public void Update(SettingsData newData)
         {
             OsuFolderPath = newData.OsuFolderPath;
@@ -59,6 +67,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             AudioVolume = newData.AudioVolume;
             AutoPlayOnSelect = newData.AutoPlayOnSelect;
             PreferUnicode = newData.PreferUnicode;
+            IsDarkTheme = newData.IsDarkTheme;
         }
     }
 

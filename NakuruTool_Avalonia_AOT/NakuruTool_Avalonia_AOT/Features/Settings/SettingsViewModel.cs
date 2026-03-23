@@ -88,13 +88,11 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
     }
 
     private readonly ISettingsService _settingsService;
-    private readonly IDatabaseService _databaseService;
     private bool _isInitialized = false;
 
-    public SettingsViewModel(ISettingsService settingsService, IDatabaseService databaseService)
+    public SettingsViewModel(ISettingsService settingsService)
     {
         _settingsService = settingsService;
-        _databaseService = databaseService;
 
         var settingsData = settingsService.SettingsData;
         SelectedLanguageKey = settingsData.LanguageKey;
@@ -109,6 +107,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
 
     private void UpdateSettingData()
     {
+        var app = Application.Current;
         var settingData = new SettingsData
         {
             LanguageKey = SelectedLanguageKey,
@@ -116,7 +115,8 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             // AudioVolumeはAudioPlayerViewModelが管理するため、現在の設定値を引き継ぐ
             AudioVolume = _settingsService.SettingsData.AudioVolume,
             AutoPlayOnSelect = AutoPlayOnSelect,
-            PreferUnicode = PreferUnicode
+            PreferUnicode = PreferUnicode,
+            IsDarkTheme = app?.ActualThemeVariant == ThemeVariant.Dark
         };
 
         _settingsService.SaveSettings(settingData);
@@ -144,5 +144,6 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         var theme = app.ActualThemeVariant;
         app.RequestedThemeVariant = theme == ThemeVariant.Dark ? ThemeVariant.Light : ThemeVariant.Dark;
         app.UnregisterFollowSystemTheme();
+        UpdateSettingData();
     }
 }

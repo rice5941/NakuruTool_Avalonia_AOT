@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NakuruTool_Avalonia_AOT.Features.Translate;
+using NakuruTool_Avalonia_AOT.Features.Settings;
 
 namespace NakuruTool_Avalonia_AOT
 {
@@ -79,6 +80,10 @@ namespace NakuruTool_Avalonia_AOT
             {
                 _ = singleViewPlatform;
             }
+
+            // 設定からテーマを復元
+            var isDarkTheme = SettingsService.Current?.IsDarkTheme ?? true;
+            RequestedThemeVariant = isDarkTheme ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
 
             base.OnFrameworkInitializationCompleted();
         }

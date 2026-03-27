@@ -138,7 +138,7 @@
 
 ダウンロード先のミラーサーバーは 設定 画面の 譜面ダウンロードミラー で変更できます。
 
-<!-- TODO: 譜面ダウンロードのスクリーンショット -->
+<img width="814" height="866" alt="image" src="https://github.com/user-attachments/assets/2d2f70b7-4fb6-48a3-a15f-bac1cf7fcf7a" />
 
 <img width="821" height="460" alt="image" src="https://github.com/user-attachments/assets/9458988f-8386-47cb-8d7d-a8c51b86fe81" />
 
@@ -152,7 +152,7 @@
 6. Unicode表示を優先 をオンにすると、曲名やアーティスト名を Unicode で表示できます。日本語や韓国語の表記を優先したい場合に有効です。
 7. 譜面ダウンロードミラー で、譜面ダウンロード時に使用するミラーサーバーの URL を変更できます。既定値は `https://catboy.best/d/` です。
 
-<img width="1119" height="150" alt="image" src="https://github.com/user-attachments/assets/1fe0a51a-b1d4-49d6-b6bf-d3d788e9e482" />
+<img width="1593" height="153" alt="image" src="https://github.com/user-attachments/assets/2d024ce2-8d5d-4080-8e49-7ba6d07f69be" />
 
 ## 復旧方法
 

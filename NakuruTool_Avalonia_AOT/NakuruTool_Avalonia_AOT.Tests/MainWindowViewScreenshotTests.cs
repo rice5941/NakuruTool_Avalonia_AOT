@@ -504,6 +504,8 @@ public class MockSettingsViewModel : ISettingsViewModel
     public bool HasOsuPathError { get; set; } = false;
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
+    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(["https://catboy.best/d/", "https://api.nerinyan.moe/d/"]);
+    public string SelectedMirrorUrl { get; set; } = "https://catboy.best/d/";
     public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
@@ -735,6 +737,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
     public bool IsDarkTheme { get; set; } = true;
+    public string BeatmapMirrorUrl { get; set; } = "https://catboy.best/d/";
 }
 
 /// <summary>

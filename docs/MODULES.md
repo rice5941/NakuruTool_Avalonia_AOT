@@ -1051,6 +1051,7 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `ZeroToStringConverter` | `ZeroToStringConverter.cs` | 0値（int/double）を `"-"` に変換 |
 | `UnicodeDisplayConverter` | `UnicodeDisplayConverter.cs` | `PreferUnicode`設定に基づいて`Beatmap`/`ImportExportBeatmapItem`のTitle/ArtistのUnicode版/ASCII版を切り替え。`SettingsService.Current`から設定値を参照。Unicodeが空の場合はASCII版にフォールバック |
 | `RepeatModeToIconConverter` | `RepeatModeToIconConverter.cs` | `AudioPlayerPanelViewModel.RepeatMode` を `MaterialIconKind` に変換。None→RepeatOff、All→Repeat、One→RepeatOnce |
+| `DownloadStateConverters` | `DownloadStateConverters.cs` | `BeatmapDownloadState` をUI要素の可視性（`IsVisible`）に変換するコンバーター群 |
 
 #### RepeatModeToIconConverter
 
@@ -1150,6 +1151,9 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `Models/ExportCollectionItem.cs` | モデル | エクスポートリスト行モデル（コレクション名、MD5配列） |
 | `Models/ImportFileItem.cs` | モデル | インポートリスト行モデル（ファイルパス、パース済みデータ） |
 | `Models/ImportExportBeatmapItem.cs` | モデル | Beatmap表示行モデル（プレビューペイン用） |
+| `IBeatmapDownloadService.cs` | インターフェース | ダウンロードサービスの契約定義 |
+| `BeatmapDownloadService.cs` | サービス | nerinyan.moe APIを使用した非同期ダウンロード実装 |
+| `Models/BeatmapDownloadState.cs` | モデル | ダウンロード状態enum（6段階） |
 
 ### 依存モジュール
 
@@ -1367,6 +1371,53 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeD
 ### 9.7 親子間通信パターン
 
 ImportExportモジュールは **親仲介パターン** を採用する。MapListモジュール（子→子の直接購読も許容）とは異なり、Export/Import子VM間に双方向の依存を持たせず、親VMがオーケストレーションを担う。
+
+---
+
+### 9.8 BeatmapDownloadService（ダウンロード機能）
+
+#### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `IBeatmapDownloadService.cs` | インターフェース | ダウンロードサービスの契約定義 |
+| `BeatmapDownloadService.cs` | サービス | ダウンロード実装 |
+| `Models/BeatmapDownloadState.cs` | モデル | ダウンロード状態enum |
+| `Shared/Converters/DownloadStateConverters.cs` | コンバーター | ダウンロード状態をUIの可視性に変換 |
+
+#### 責務
+
+- nerinyan.moe APIから未所持の beatmapset を `.osz` 形式でダウンロード
+- `System.Threading.Channels` による非同期キュー処理
+- `ConcurrentDictionary` によるBeatmapSetIdごとの重複排除
+- 一括ダウンロード・キャンセル機能
+
+#### BeatmapDownloadState（enum）
+
+| 値 | 概要 |
+|---|------|
+| `Exists` | 既にローカルに存在 |
+| `NotExists` | 未所持（ダウンロード可能） |
+| `Queued` | ダウンロードキュー待機中 |
+| `Downloading` | ダウンロード中 |
+| `Downloaded` | ダウンロード完了 |
+| `Error` | ダウンロード失敗 |
+
+#### UI状態遷移
+
+```
+NotExists → Queued → Downloading → Downloaded
+                                  → Error
+```
+
+#### インターフェース: `IBeatmapDownloadService`
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `GetDownloadState(int beatmapSetId)` | `BeatmapDownloadState` | 指定BeatmapSetIdの現在の状態を返す |
+| `DownloadStateChanged` | `Observable<(int, BeatmapDownloadState)>` | 状態変化通知（BeatmapSetId + 新状態） |
+| `EnqueueAsync(int beatmapSetId)` | `Task` | ダウンロードキューに追加 |
+| `CancelAll()` | `void` | 全キューのキャンセル |
 
 ```
 ExportViewModel  ──PreviewRequested──▶  ImportExportPageViewModel  ──SetPreviewRows()──▶  BeatmapListViewModel

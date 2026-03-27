@@ -32,13 +32,14 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
     public ImportExportPageViewModel(
         IDatabaseService databaseService,
         IImportExportService importExportService,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IBeatmapDownloadService downloadService)
     {
         _importExportService = importExportService;
 
         ExportViewModel = new ExportViewModel(databaseService, importExportService);
         ImportViewModel = new ImportViewModel(databaseService, importExportService);
-        BeatmapListViewModel = new ImportExportBeatmapListViewModel(settingsService);
+        BeatmapListViewModel = new ImportExportBeatmapListViewModel(settingsService, downloadService);
 
         // Service進捗監視（Export/Import どちらが処理中かで振り分け）
         _importExportService.ProgressObservable

@@ -12,12 +12,8 @@
              x:DataType="importExport:ImportExportBeatmapListViewModel">
 
     <UserControl.Resources>
-        <converters:BoolToIconKindConverter x:Key="ExistsIconConverter"
-                                            TrueIcon="CheckCircleOutline"
-                                            FalseIcon="AlertCircleOutline"/>
-        <converters:BoolToBrushConverter x:Key="ExistsBrushConverter"
-                                         TrueBrush="#4CAF50"
-                                         FalseBrush="#F44336"/>
+        <converters:DownloadStateVisibilityConverter x:Key="DownloadStateVisibilityConverter"/>
+        <converters:DownloadStateCanDownloadConverter x:Key="DownloadStateCanDownloadConverter"/>
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
@@ -79,28 +75,60 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
+
+        <!-- ダウンロードボタンのスタイル -->
+        <Style Selector="Button.download-btn">
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Row 0: ヘッダー（件数表示: TotalPreviewCount） -->
+        <!-- Row 0: ヘッダー（件数表示 + 一括DLボタン） -->
         <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
                 BorderBrush="{DynamicResource SemiGrey3}"
                 BorderThickness="1,1,1,0"
                 CornerRadius="4,4,0,0"
                 Padding="12,8">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20"
-                                 Foreground="{DynamicResource SemiBluePrimary}"/>
-                <TextBlock Text="{translate:Translate 'ImportExport.PreviewCount'}"
-                           VerticalAlignment="Center" FontSize="14"/>
-                <Border CornerRadius="12" Padding="12,4">
-                    <TextBlock Text="{Binding TotalPreviewCount}"
-                               VerticalAlignment="Center"
-                               FontWeight="Bold"
-                               FontSize="13"/>
-                </Border>
-            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- 左: 件数表示 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20"
+                                     Foreground="{DynamicResource SemiBluePrimary}"/>
+                    <TextBlock Text="{translate:Translate 'ImportExport.PreviewCount'}"
+                               VerticalAlignment="Center" FontSize="14"/>
+                    <Border CornerRadius="12" Padding="12,4">
+                        <TextBlock Text="{Binding TotalPreviewCount}"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"
+                                   FontSize="13"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- 右: ダウンロードボタン（Importプレビュー時のみ表示） -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding IsImportPreview}">
+                    <Button Command="{Binding DownloadAllMissingCommand}"
+                            ToolTip.Tip="{translate:Translate 'ImportExport.DownloadAllMissing'}"
+                            Theme="{StaticResource SolidButton}" Padding="8,4">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <mi:MaterialIcon Kind="DownloadMultiple" Width="16" Height="16"/>
+                            <TextBlock Text="{translate:Translate 'ImportExport.DownloadAll'}"
+                                       FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding CancelDownloadsCommand}"
+                            ToolTip.Tip="{translate:Translate 'ImportExport.CancelDownloads'}"
+                            Theme="{StaticResource SolidButton}" Padding="8,4">
+                        <mi:MaterialIcon Kind="Cancel" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Row 1: DataGrid -->
@@ -169,19 +197,106 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <!-- Exists（最終列: Importプレビュー時のみ表示） -->
-                <DataGridTemplateColumn Width="80">
+                <!-- Exists/Download列（最終列: Importプレビュー時のみ表示） -->
+                <DataGridTemplateColumn Width="100">
                     <DataGridTemplateColumn.Header>
                         <TextBlock Text="{translate:Translate 'ImportExport.Exists'}"
                                    HorizontalAlignment="Center"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="models:ImportExportBeatmapItem">
-                            <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                <!-- 状態: Exists（DB存在）→ 緑チェック -->
                                 <mi:MaterialIcon Width="20" Height="20"
-                                                 Kind="{Binding Exists, Converter={StaticResource ExistsIconConverter}}"
-                                                 Foreground="{Binding Exists, Converter={StaticResource ExistsBrushConverter}}"/>
-                            </Border>
+                                    Kind="CheckCircleOutline"
+                                    Foreground="{DynamicResource SemiColorSuccess}"
+                                    IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Exists}"/>
+
+                                <!-- 状態: NotExists + CanDownload → DLボタン -->
+                                <Button Classes="download-btn"
+                                        Command="{Binding $parent[DataGrid].((importExport:ImportExportBeatmapListViewModel)DataContext).DownloadBeatmapCommand}"
+                                        CommandParameter="{Binding}"
+                                        ToolTip.Tip="{translate:Translate 'ImportExport.Download'}">
+                                    <Button.IsVisible>
+                                        <MultiBinding Converter="{StaticResource DownloadStateCanDownloadConverter}"
+                                                      ConverterParameter="NotExistsCanDownload">
+                                            <Binding Path="DownloadState"/>
+                                            <Binding Path="CanDownload"/>
+                                        </MultiBinding>
+                                    </Button.IsVisible>
+                                    <mi:MaterialIcon Width="20" Height="20" Kind="Download"
+                                                     Foreground="{DynamicResource SemiGrey7}"/>
+                                </Button>
+
+                                <!-- 状態: NotExists + !CanDownload → グレーアウトアイコン -->
+                                <mi:MaterialIcon Width="20" Height="20"
+                                    Kind="DownloadOff"
+                                    Foreground="{DynamicResource SemiGrey7}"
+                                    Opacity="0.5"
+                                    ToolTip.Tip="{translate:Translate 'ImportExport.DownloadUnavailable'}">
+                                    <mi:MaterialIcon.IsVisible>
+                                        <MultiBinding Converter="{StaticResource DownloadStateCanDownloadConverter}"
+                                                      ConverterParameter="NotExistsNoDownload">
+                                            <Binding Path="DownloadState"/>
+                                            <Binding Path="CanDownload"/>
+                                        </MultiBinding>
+                                    </mi:MaterialIcon.IsVisible>
+                                </mi:MaterialIcon>
+
+                                <!-- 状態: Queued → 時計アイコン -->
+                                <mi:MaterialIcon Width="20" Height="20"
+                                    Kind="Clock"
+                                    Foreground="{DynamicResource SemiGrey7}"
+                                    IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Queued}"/>
+
+                                <!-- 状態: Downloading → 回転ローディング -->
+                                <mi:MaterialIcon Width="20" Height="20"
+                                    Kind="Loading"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource SemiGrey7}"
+                                    IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Downloading}">
+                                    <mi:MaterialIcon.RenderTransform>
+                                        <RotateTransform/>
+                                    </mi:MaterialIcon.RenderTransform>
+                                    <mi:MaterialIcon.Styles>
+                                        <Style Selector="mi|MaterialIcon">
+                                            <Style.Animations>
+                                                <Animation Duration="0:0:1" IterationCount="INFINITE">
+                                                    <KeyFrame Cue="0%">
+                                                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="100%">
+                                                        <Setter Property="RotateTransform.Angle" Value="360"/>
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                    </mi:MaterialIcon.Styles>
+                                </mi:MaterialIcon>
+
+                                <!-- 状態: Downloaded → 完了チェック -->
+                                <mi:MaterialIcon Width="20" Height="20"
+                                    Kind="CheckCircle"
+                                    Foreground="{DynamicResource SemiColorSuccess}"
+                                    IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Downloaded}"/>
+
+                                <!-- 状態: Error → エラーアイコン + リトライボタン -->
+                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                            IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Error}">
+                                    <mi:MaterialIcon Width="18" Height="18"
+                                        Kind="AlertCircle"
+                                        Foreground="{DynamicResource SemiColorDanger}"/>
+                                    <Button Classes="download-btn"
+                                            Command="{Binding $parent[DataGrid].((importExport:ImportExportBeatmapListViewModel)DataContext).DownloadBeatmapCommand}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip.Tip="{Binding ErrorMessage}">
+                                        <mi:MaterialIcon Width="14" Height="14" Kind="Refresh"/>
+                                    </Button>
+                                </StackPanel>
+
+                            </Panel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

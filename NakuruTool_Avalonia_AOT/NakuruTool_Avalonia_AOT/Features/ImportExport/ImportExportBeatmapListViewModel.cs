@@ -7,6 +7,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
+using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 
@@ -38,18 +39,65 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
 
     private ImportExportBeatmapItem[] _allPreviewRows = Array.Empty<ImportExportBeatmapItem>();
     private readonly AvaloniaList<ImportExportBeatmapItem> _showBeatmapsList = new();
+    private readonly IBeatmapDownloadService _downloadService;
+    private readonly SerialDisposable _itemSubscriptions = new();
 
     private bool _disposed;
 
-    public ImportExportBeatmapListViewModel(ISettingsService settingsService)
+    public ImportExportBeatmapListViewModel(ISettingsService settingsService, IBeatmapDownloadService downloadService)
     {
+        _downloadService = downloadService;
         ShowBeatmaps = _showBeatmapsList;
+        _itemSubscriptions.AddTo(Disposables);
 
         // Unicode表示設定の変更時にリスト表示を更新
         settingsService.SettingsData.ObservePropertyAndSubscribe(
             nameof(ISettingsData.PreferUnicode),
             () => UpdateShowBeatmaps(),
             Disposables);
+    }
+
+    [RelayCommand]
+    private void DownloadBeatmap(ImportExportBeatmapItem? item)
+    {
+        if (item is null || !item.CanDownload) return;
+        _downloadService.EnqueueDownload(item, _allPreviewRows);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDownloadAllMissing))]
+    private void DownloadAllMissing()
+    {
+        foreach (var item in _allPreviewRows)
+        {
+            if (item.CanDownload)
+            {
+                _downloadService.EnqueueDownload(item, _allPreviewRows);
+            }
+        }
+    }
+
+    private bool CanDownloadAllMissing() => !IsAnyDownloading;
+
+    [RelayCommand(CanExecute = nameof(CanCancelDownloads))]
+    private async Task CancelDownloadsAsync()
+    {
+        await _downloadService.CancelAllAsync();
+    }
+
+    private bool CanCancelDownloads() => IsAnyDownloading;
+
+    /// <summary>DL中またはキュー待ちの譜面が1つでもあるか</summary>
+    private bool IsAnyDownloading
+    {
+        get
+        {
+            foreach (var item in _allPreviewRows)
+            {
+                if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
+                    return true;
+            }
+            return false;
+        }
     }
 
     /// <summary>
@@ -60,6 +108,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     public void SetPreviewRows(ImportExportBeatmapItem[] rows, bool isImport)
     {
         _allPreviewRows = rows;
+        SubscribeItemEvents();
         TotalPreviewCount = rows.Length;
         IsImportPreview = isImport;
         UpdateFilteredPages();
@@ -71,11 +120,28 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     /// </summary>
     public void Reset()
     {
+        _itemSubscriptions.Disposable = null;
         _allPreviewRows = Array.Empty<ImportExportBeatmapItem>();
         TotalPreviewCount = 0;
         IsImportPreview = false;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+    }
+
+    private void SubscribeItemEvents()
+    {
+        var disposables = new CompositeDisposable();
+        foreach (var item in _allPreviewRows)
+        {
+            item.ObserveProperty(nameof(ImportExportBeatmapItem.DownloadState))
+                .Subscribe(_ =>
+                {
+                    DownloadAllMissingCommand.NotifyCanExecuteChanged();
+                    CancelDownloadsCommand.NotifyCanExecuteChanged();
+                })
+                .AddTo(disposables);
+        }
+        _itemSubscriptions.Disposable = disposables;
     }
 
     private void UpdateFilteredPages()

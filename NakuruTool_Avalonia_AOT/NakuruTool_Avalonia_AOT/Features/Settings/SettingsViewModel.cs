@@ -9,6 +9,7 @@ using NakuruTool_Avalonia_AOT.Features.Translate;
 using Semi.Avalonia;
 using System;
 using System.Reflection;
+using static System.Net.WebRequestMethods;
 
 namespace NakuruTool_Avalonia_AOT.Features.Settings;
 
@@ -21,12 +22,21 @@ public interface ISettingsViewModel : IDisposable
     bool HasOsuPathError { get; }
     bool AutoPlayOnSelect { get; set; }
     bool PreferUnicode { get; set; }
+    IAvaloniaReadOnlyList<string> MirrorUrls { get; }
+    string SelectedMirrorUrl { get; set; }
     string AppVersion { get; }
 }
 
 public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
 {
     public IAvaloniaReadOnlyList<string> LanguageKeys { get; } = new AvaloniaList<string>(LanguageService.Instance.AvailableLanguages);
+
+    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(
+    [
+        "https://catboy.best/d/",
+        "https://api.nerinyan.moe/d/",
+        "https://osu.direct/api/d/",
+    ]);
 
     public string AppVersion { get; } =
         typeof(SettingsViewModel).Assembly.GetName().Version is { } v
@@ -87,6 +97,17 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         }
     }
 
+    [ObservableProperty]
+    public partial string SelectedMirrorUrl { get; set; }
+
+    partial void OnSelectedMirrorUrlChanged(string value)
+    {
+        if (_isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private bool _isInitialized = false;
 
@@ -99,6 +120,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         SelectedFolderPath = settingsData.OsuFolderPath;
         AutoPlayOnSelect = settingsData.AutoPlayOnSelect;
         PreferUnicode = settingsData.PreferUnicode;
+        SelectedMirrorUrl = settingsData.BeatmapMirrorUrl;
 
         UpdateOsuPathErrorMessage();
 
@@ -116,6 +138,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             AudioVolume = _settingsService.SettingsData.AudioVolume,
             AutoPlayOnSelect = AutoPlayOnSelect,
             PreferUnicode = PreferUnicode,
+            BeatmapMirrorUrl = SelectedMirrorUrl,
             IsDarkTheme = app?.ActualThemeVariant == ThemeVariant.Dark
         };
 

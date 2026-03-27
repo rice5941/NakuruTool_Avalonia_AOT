@@ -50,7 +50,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceA = new MockDatabaseService();
         var mockImportExportServiceA = new MockImportExportService();
-        var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA, mockSettingsService);
+        var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA, mockSettingsService, new NullBeatmapDownloadService());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -124,7 +124,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceB = new MockDatabaseService();
         var mockImportExportServiceB = new MockImportExportService();
-        var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB, mockSettingsService);
+        var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB, mockSettingsService, new NullBeatmapDownloadService());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -215,7 +215,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseServiceC = new MockDatabaseService();
         var mockImportExportServiceC = new MockImportExportService();
-        var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC, mockSettingsService);
+        var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC, mockSettingsService, new NullBeatmapDownloadService());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -280,7 +280,7 @@ public class MainWindowViewScreenshotTests
         var mockSettingsService = new MockSettingsService();
         var mockDatabaseService3 = new MockDatabaseService();
         var mockImportExportService3 = new MockImportExportService();
-        var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3, mockSettingsService);
+        var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3, mockSettingsService, new NullBeatmapDownloadService());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -772,6 +772,16 @@ public class MockAudioPlayerService : IAudioPlayerService
     public double GetDuration() => 0;
     public void Seek(double positionSeconds) { }
     public void Dispose() { _stateChanged.Dispose(); }
+}
+
+/// <summary>
+/// テスト用の何もしない IBeatmapDownloadService 実装
+/// </summary>
+public class NullBeatmapDownloadService : IBeatmapDownloadService
+{
+    public void EnqueueDownload(ImportExportBeatmapItem item, IReadOnlyList<ImportExportBeatmapItem> allItems) { }
+    public Task CancelAllAsync() => Task.CompletedTask;
+    public void Dispose() { }
 }
 
 /// <summary>

@@ -114,6 +114,7 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
                 {
                     return new ImportExportBeatmapItem
                     {
+                        BeatmapSetId = beatmap.BeatmapSetId,
                         KeyCount = beatmap.KeyCount,
                         Title = beatmap.Title,
                         TitleUnicode = beatmap.TitleUnicode,
@@ -121,17 +122,17 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
                         ArtistUnicode = beatmap.ArtistUnicode,
                         Version = beatmap.Version,
                         Creator = beatmap.Creator,
-                        Exists = true
+                        DownloadState = BeatmapDownloadState.Exists
                     };
                 }
                 return new ImportExportBeatmapItem
                 {
+                    BeatmapSetId = bm.BeatmapsetId,
                     Title = bm.Title,
                     Artist = bm.Artist,
                     Version = bm.Version,
                     Creator = bm.Creator,
                     KeyCount = (int)bm.Cs,
-                    Exists = false
                 };
             })
             .ToArray();

@@ -30,6 +30,7 @@ partial class Composition
         .Bind<IFilterPresetService>().As(Singleton).To<FilterPresetService>()
         .Bind<IAudioPlayerService>().As(Singleton).To<AudioPlayerService>()
         .Bind<IImportExportService>().As(Singleton).To<ImportExportService>()
+        .Bind<IBeatmapDownloadService>().As(Singleton).To<BeatmapDownloadService>()
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします

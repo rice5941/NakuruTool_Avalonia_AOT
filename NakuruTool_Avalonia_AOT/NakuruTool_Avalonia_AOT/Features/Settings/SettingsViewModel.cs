@@ -35,7 +35,6 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
     [
         "https://catboy.best/d/",
         "https://api.nerinyan.moe/d/",
-        "https://osu.direct/api/d/",
     ]);
 
     public string AppVersion { get; } =

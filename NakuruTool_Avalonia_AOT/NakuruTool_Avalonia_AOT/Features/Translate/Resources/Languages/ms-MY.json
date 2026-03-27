@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Laluan folder kosong.",
     "AutoPlayOnSelect": "Main automatik apabila dipilih",
     "PreferUnicode": "Utamakan paparan Unicode",
+    "BeatmapMirror": "Mirror muat turun beatmap",
     "AppVersion": "Versi"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Ralat eksport: {0}",
     "Status.ImportComplete": "Import selesai",
     "Status.ImportError": "Ralat berlaku semasa import",
-    "Status.ReloadError": "Ralat muat semula: {0}"
+    "Status.ReloadError": "Ralat muat semula: {0}",
+    "Download": "Muat turun",
+    "DownloadAll": "Muat turun semua",
+    "DownloadAllMissing": "Muat turun semua beatmap yang tiada",
+    "CancelDownloads": "Batalkan muat turun",
+    "DownloadUnavailable": "Muat turun tidak tersedia (BeatmapSetID tidak diketahui)",
+    "OsuRestartRequired": "Sila lancarkan osu! untuk memuatkan beatmap yang telah dimuat turun"
   },
   "Preset": {
     "EditorTitle": "Editor preset",

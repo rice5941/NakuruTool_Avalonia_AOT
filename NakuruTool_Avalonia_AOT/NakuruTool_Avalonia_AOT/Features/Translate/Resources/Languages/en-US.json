@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Folder path is empty.",
     "AutoPlayOnSelect": "Auto Play on Select",
     "PreferUnicode": "Prefer Unicode Display",
+    "BeatmapMirror": "Beatmap Download Mirror",
     "AppVersion": "Version"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Export error: {0}",
     "Status.ImportComplete": "Import complete",
     "Status.ImportError": "An error occurred during import",
-    "Status.ReloadError": "Reload error: {0}"
+    "Status.ReloadError": "Reload error: {0}",
+    "Download": "Download",
+    "DownloadAll": "Download All",
+    "DownloadAllMissing": "Download all missing beatmaps",
+    "CancelDownloads": "Cancel downloads",
+    "DownloadUnavailable": "Download unavailable (unknown BeatmapSetID)",
+    "OsuRestartRequired": "Please launch osu! to load the downloaded beatmaps"
   },
   "Preset": {
     "EditorTitle": "Preset Editor",

@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Đường dẫn thư mục đang trống.",
     "AutoPlayOnSelect": "Tự phát khi chọn",
     "PreferUnicode": "Ưu tiên hiển thị Unicode",
+    "BeatmapMirror": "Mirror tải beatmap",
     "AppVersion": "Phiên bản"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Lỗi xuất: {0}",
     "Status.ImportComplete": "Nhập hoàn tất",
     "Status.ImportError": "Đã xảy ra lỗi khi nhập",
-    "Status.ReloadError": "Lỗi tải lại: {0}"
+    "Status.ReloadError": "Lỗi tải lại: {0}",
+    "Download": "Tải xuống",
+    "DownloadAll": "Tải tất cả",
+    "DownloadAllMissing": "Tải tất cả beatmap còn thiếu",
+    "CancelDownloads": "Hủy tải xuống",
+    "DownloadUnavailable": "Không thể tải xuống (không rõ BeatmapSetID)",
+    "OsuRestartRequired": "Vui lòng khởi động osu! để tải các beatmap đã tải xuống"
   },
   "Preset": {
     "EditorTitle": "Chỉnh sửa preset",

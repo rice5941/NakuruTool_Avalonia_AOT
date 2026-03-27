@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "폴더 경로가 비어 있습니다.",
     "AutoPlayOnSelect": "선택 시 자동 재생",
     "PreferUnicode": "Unicode 표기 우선",
+    "BeatmapMirror": "비트맵 다운로드 미러",
     "AppVersion": "버전"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "내보내기 오류: {0}",
     "Status.ImportComplete": "가져오기 완료",
     "Status.ImportError": "가져오는 중 오류가 발생했습니다",
-    "Status.ReloadError": "다시 불러오기 오류: {0}"
+    "Status.ReloadError": "다시 불러오기 오류: {0}",
+    "Download": "다운로드",
+    "DownloadAll": "일괄 다운로드",
+    "DownloadAllMissing": "미보유 비트맵 일괄 다운로드",
+    "CancelDownloads": "다운로드 취소",
+    "DownloadUnavailable": "다운로드 불가 (BeatmapSetID 불명)",
+    "OsuRestartRequired": "다운로드한 비트맵을 불러오려면 osu!를 실행해 주세요"
   },
   "Preset": {
     "EditorTitle": "프리셋 편집",

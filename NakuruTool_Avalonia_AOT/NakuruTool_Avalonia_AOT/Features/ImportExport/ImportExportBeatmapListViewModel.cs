@@ -27,6 +27,9 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     public partial bool IsImportPreview { get; set; } = false;
 
     [ObservableProperty]
+    public partial bool HasDownloadedItems { get; set; } = false;
+
+    [ObservableProperty]
     public partial int CurrentPage { get; set; } = 1;
 
     [ObservableProperty]
@@ -124,6 +127,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         _allPreviewRows = Array.Empty<ImportExportBeatmapItem>();
         TotalPreviewCount = 0;
         IsImportPreview = false;
+        HasDownloadedItems = false;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
     }
@@ -138,10 +142,22 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
                 {
                     DownloadAllMissingCommand.NotifyCanExecuteChanged();
                     CancelDownloadsCommand.NotifyCanExecuteChanged();
+                    if (!HasDownloadedItems)
+                        HasDownloadedItems = CheckHasDownloadedItems();
                 })
                 .AddTo(disposables);
         }
         _itemSubscriptions.Disposable = disposables;
+    }
+
+    private bool CheckHasDownloadedItems()
+    {
+        foreach (var item in _allPreviewRows)
+        {
+            if (item.DownloadState == BeatmapDownloadState.Downloaded)
+                return true;
+        }
+        return false;
     }
 
     private void UpdateFilteredPages()

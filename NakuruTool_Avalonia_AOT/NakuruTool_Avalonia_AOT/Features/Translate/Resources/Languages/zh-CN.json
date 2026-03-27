@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "文件夹路径为空。",
     "AutoPlayOnSelect": "选择时自动播放",
     "PreferUnicode": "优先Unicode显示",
+    "BeatmapMirror": "谱面下载镜像",
     "AppVersion": "版本"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "导出错误: {0}",
     "Status.ImportComplete": "导入完成",
     "Status.ImportError": "导入时发生错误",
-    "Status.ReloadError": "重新加载错误: {0}"
+    "Status.ReloadError": "重新加载错误: {0}",
+    "Download": "下载",
+    "DownloadAll": "批量下载",
+    "DownloadAllMissing": "批量下载未拥有的谱面",
+    "CancelDownloads": "取消下载",
+    "DownloadUnavailable": "无法下载（BeatmapSetID未知）",
+    "OsuRestartRequired": "请启动osu!以加载已下载的谱面"
   },
   "Preset": {
     "EditorTitle": "预设编辑",

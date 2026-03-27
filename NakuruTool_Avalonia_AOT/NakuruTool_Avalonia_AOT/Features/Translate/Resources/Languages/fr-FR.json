@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Le chemin du dossier est vide.",
     "AutoPlayOnSelect": "Lecture automatique à la sélection",
     "PreferUnicode": "Privilégier l'affichage Unicode",
+    "BeatmapMirror": "Miroir de téléchargement des beatmaps",
     "AppVersion": "Version"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Erreur d'export : {0}",
     "Status.ImportComplete": "Import terminé",
     "Status.ImportError": "Une erreur s'est produite pendant l'import",
-    "Status.ReloadError": "Erreur de rechargement : {0}"
+    "Status.ReloadError": "Erreur de rechargement : {0}",
+    "Download": "Télécharger",
+    "DownloadAll": "Tout télécharger",
+    "DownloadAllMissing": "Télécharger tous les beatmaps manquants",
+    "CancelDownloads": "Annuler les téléchargements",
+    "DownloadUnavailable": "Téléchargement indisponible (BeatmapSetID inconnu)",
+    "OsuRestartRequired": "Veuillez lancer osu! pour charger les beatmaps téléchargées"
   },
   "Preset": {
     "EditorTitle": "Éditeur de presets",

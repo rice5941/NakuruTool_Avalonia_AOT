@@ -87,7 +87,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- Row 0: ヘッダー（件数表示 + 一括DLボタン） -->
         <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
@@ -131,8 +131,27 @@
             </Grid>
         </Border>
 
-        <!-- Row 1: DataGrid -->
-        <DataGrid Grid.Row="1"
+        <!-- Row 1: osu!起動推奨メッセージ -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource SemiYellow0}"
+                BorderBrush="{DynamicResource SemiYellow3}"
+                BorderThickness="1,0,1,0"
+                Padding="12,6"
+                IsVisible="{Binding HasDownloadedItems}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
+                                 Foreground="{DynamicResource SemiYellow7}"
+                                 VerticalAlignment="Center"/>
+                <TextBlock Text="{translate:Translate 'ImportExport.OsuRestartRequired'}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SemiYellow9}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Row 2: DataGrid -->
+        <DataGrid Grid.Row="2"
                   x:Name="BeatmapGrid"
                   ItemsSource="{Binding ShowBeatmaps}"
                   IsReadOnly="True"
@@ -304,8 +323,8 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Row 2: ページネーション -->
-        <Border Grid.Row="2"
+        <!-- Row 3: ページネーション -->
+        <Border Grid.Row="3"
                 Background="{DynamicResource SemiGrey1}"
                 BorderBrush="{DynamicResource SemiGrey3}"
                 BorderThickness="1,0,1,1"

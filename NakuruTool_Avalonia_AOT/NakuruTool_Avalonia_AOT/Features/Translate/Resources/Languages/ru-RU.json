@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Путь к папке пуст.",
     "AutoPlayOnSelect": "Автовоспроизведение при выборе",
     "PreferUnicode": "Предпочитать отображение Unicode",
+    "BeatmapMirror": "Зеркало загрузки карт",
     "AppVersion": "Версия"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Ошибка экспорта: {0}",
     "Status.ImportComplete": "Импорт завершен",
     "Status.ImportError": "Во время импорта произошла ошибка",
-    "Status.ReloadError": "Ошибка перезагрузки: {0}"
+    "Status.ReloadError": "Ошибка перезагрузки: {0}",
+    "Download": "Скачать",
+    "DownloadAll": "Скачать все",
+    "DownloadAllMissing": "Скачать все отсутствующие beatmap",
+    "CancelDownloads": "Отменить загрузки",
+    "DownloadUnavailable": "Загрузка недоступна (BeatmapSetID неизвестен)",
+    "OsuRestartRequired": "Пожалуйста, запустите osu! для загрузки скачанных карт"
   },
   "Preset": {
     "EditorTitle": "Редактор пресетов",

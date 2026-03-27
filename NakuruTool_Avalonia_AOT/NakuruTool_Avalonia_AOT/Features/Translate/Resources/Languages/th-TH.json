@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "พาธโฟลเดอร์ว่างอยู่",
     "AutoPlayOnSelect": "เล่นอัตโนมัติเมื่อเลือก",
     "PreferUnicode": "แสดง Unicode เป็นหลัก",
+    "BeatmapMirror": "มิเรอร์ดาวน์โหลดบีทแมป",
     "AppVersion": "เวอร์ชัน"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "ข้อผิดพลาดการส่งออก: {0}",
     "Status.ImportComplete": "นำเข้าเสร็จสิ้น",
     "Status.ImportError": "เกิดข้อผิดพลาดระหว่างนำเข้า",
-    "Status.ReloadError": "ข้อผิดพลาดการโหลดใหม่: {0}"
+    "Status.ReloadError": "ข้อผิดพลาดการโหลดใหม่: {0}",
+    "Download": "ดาวน์โหลด",
+    "DownloadAll": "ดาวน์โหลดทั้งหมด",
+    "DownloadAllMissing": "ดาวน์โหลดบีตแมปที่ขาดทั้งหมด",
+    "CancelDownloads": "ยกเลิกการดาวน์โหลด",
+    "DownloadUnavailable": "ไม่สามารถดาวน์โหลดได้ (ไม่ทราบ BeatmapSetID)",
+    "OsuRestartRequired": "กรุณาเปิด osu! เพื่อโหลดบีทแมปที่ดาวน์โหลดแล้ว"
   },
   "Preset": {
     "EditorTitle": "แก้ไขพรีเซ็ต",

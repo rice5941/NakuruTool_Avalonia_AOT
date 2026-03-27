@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "フォルダパスが空です。",
     "AutoPlayOnSelect": "選択時自動再生",
     "PreferUnicode": "Unicode表示を優先",
+    "BeatmapMirror": "譜面ダウンロードミラー",
     "AppVersion": "バージョン"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "エクスポートエラー: {0}",
     "Status.ImportComplete": "インポート完了",
     "Status.ImportError": "インポート中にエラーが発生しました",
-    "Status.ReloadError": "再読込エラー: {0}"
+    "Status.ReloadError": "再読込エラー: {0}",
+    "Download": "ダウンロード",
+    "DownloadAll": "一括DL",
+    "DownloadAllMissing": "未所持の譜面を一括ダウンロード",
+    "CancelDownloads": "ダウンロードキャンセル",
+    "DownloadUnavailable": "ダウンロード不可（BeatmapSetID不明）",
+    "OsuRestartRequired": "ダウンロードした譜面を反映するにはosu!を起動してください"
   },
   "Preset": {
     "EditorTitle": "プリセット編集",

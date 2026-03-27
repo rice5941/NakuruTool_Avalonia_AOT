@@ -20,6 +20,7 @@
     "ErrorOsuPathEmpty": "Walang laman ang path ng folder.",
     "AutoPlayOnSelect": "Awtomatikong tumugtog kapag pinili",
     "PreferUnicode": "Unahin ang Unicode display",
+    "BeatmapMirror": "Mirror ng pag-download ng beatmap",
     "AppVersion": "Bersyon"
   },
   "Licenses": {
@@ -177,7 +178,13 @@
     "Status.ExportError": "Error sa export: {0}",
     "Status.ImportComplete": "Tapos ang import",
     "Status.ImportError": "Nagkaroon ng error habang nag-iimport",
-    "Status.ReloadError": "Error sa reload: {0}"
+    "Status.ReloadError": "Error sa reload: {0}",
+    "Download": "I-download",
+    "DownloadAll": "I-download lahat",
+    "DownloadAllMissing": "I-download lahat ng nawawalang beatmap",
+    "CancelDownloads": "Kanselahin ang mga download",
+    "DownloadUnavailable": "Hindi available ang download (hindi alam ang BeatmapSetID)",
+    "OsuRestartRequired": "Mangyaring buksan ang osu! para ma-load ang mga na-download na beatmap"
   },
   "Preset": {
     "EditorTitle": "Editor ng preset",

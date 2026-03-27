@@ -192,8 +192,7 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
         if (string.IsNullOrEmpty(mirrorUrl))
             mirrorUrl = "https://catboy.best/d/";
         var url = $"{mirrorUrl}{item.BeatmapSetId}";
-        var finalPath = Path.Combine(songsFolder, $"{item.BeatmapSetId}.osz");
-        var tempPath = finalPath + TempExtension;
+        string? tempPath = null;
 
         try
         {
@@ -221,6 +220,10 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
 
             response.EnsureSuccessStatusCode();
 
+            var fileName = GetFileNameFromContentDisposition(response, item.BeatmapSetId);
+            var finalPath = Path.Combine(songsFolder, fileName);
+            tempPath = finalPath + TempExtension;
+
             await using var responseStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
             await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
@@ -232,12 +235,39 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
         }
         catch
         {
-            if (File.Exists(tempPath))
+            if (tempPath != null && File.Exists(tempPath))
             {
                 try { File.Delete(tempPath); } catch { }
             }
             throw;
         }
+    }
+
+    private static string GetFileNameFromContentDisposition(HttpResponseMessage response, int beatmapSetId)
+    {
+        var cd = response.Content.Headers.ContentDisposition;
+        var raw = cd?.FileNameStar ?? cd?.FileName;
+        if (!string.IsNullOrWhiteSpace(raw))
+        {
+            var name = raw.Trim('"');
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var chars = name.ToCharArray();
+            for (var i = 0; i < chars.Length; i++)
+            {
+                foreach (var c in invalidChars)
+                {
+                    if (chars[i] == c)
+                    {
+                        chars[i] = '_';
+                        break;
+                    }
+                }
+            }
+            var sanitized = new string(chars);
+            if (sanitized.EndsWith(".osz", StringComparison.OrdinalIgnoreCase))
+                return sanitized;
+        }
+        return $"{beatmapSetId}.osz";
     }
 
     private static async Task ApplyRateLimitDelayAsync(CancellationToken ct)

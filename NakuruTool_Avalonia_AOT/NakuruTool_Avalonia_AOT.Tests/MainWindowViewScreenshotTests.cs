@@ -81,7 +81,8 @@ public class MainWindowViewScreenshotTests
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
         // TabControlを取得してMapListタブを選択（インデックス1）
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
+        var mainContentView1 = mainWindowView.FindDescendantOfType<MainContentView>();
+        var tabControl = mainContentView1?.FindControl<TabControl>("MainTab");
         if (tabControl != null)
         {
             tabControl.SelectedIndex = 1; // MapListViewPageのタブ
@@ -155,7 +156,8 @@ public class MainWindowViewScreenshotTests
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
         // サイドメニューを閉じる（ExpandButtonをチェック状態にする）
-        var expandButton = mainWindowView.FindControl<ToggleButton>("ExpandButton");
+        var mainContentView2 = mainWindowView.FindDescendantOfType<MainContentView>();
+        var expandButton = mainContentView2?.FindControl<ToggleButton>("ExpandButton");
         if (expandButton != null)
         {
             expandButton.IsChecked = true;
@@ -164,7 +166,7 @@ public class MainWindowViewScreenshotTests
         }
 
         // TabControlを取得してMapListタブを選抁E
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
+        var tabControl = mainContentView2?.FindControl<TabControl>("MainTab");
         if (tabControl != null)
         {
             tabControl.SelectedIndex = 1;
@@ -310,7 +312,8 @@ public class MainWindowViewScreenshotTests
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
         // MapListタブを選択
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
+        var mainContentView3 = mainWindowView.FindDescendantOfType<MainContentView>();
+        var tabControl = mainContentView3?.FindControl<TabControl>("MainTab");
         if (tabControl != null)
         {
             tabControl.SelectedIndex = 1;

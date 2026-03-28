@@ -1,5 +1,36 @@
+param(
+    [ValidateSet("win-x64", "linux-arm64")]
+    [string]$Runtime = "win-x64"
+)
+
 # NakuruTool NativeAOT Publish Script
 # このスクリプトはvswhere.exeをPATHに追加してNativeAOTビルドを実行します
+
+if ($Runtime -eq "linux-arm64") {
+    Write-Host "Building for Raspberry Pi (linux-arm64) via WSL2..." -ForegroundColor Cyan
+
+    # WSL2 の存在確認
+    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
+        Write-Host "Error: wsl.exe not found. WSL2 is required for linux-arm64 builds." -ForegroundColor Red
+        exit 1
+    }
+
+    # Windows パスを WSL パスに変換
+    $wslPath = wsl.exe wslpath -u "$PSScriptRoot"
+
+    # WSL2 上でビルドスクリプトを実行
+    wsl.exe bash "$wslPath/scripts/publish-linux-arm64.sh"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`nWSL2 build failed with exit code $LASTEXITCODE" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "`nRPi build completed!" -ForegroundColor Green
+    exit 0
+}
+
+# ── 以下、既存の win-x64 ビルド処理（変更なし） ──
 
 $ErrorActionPreference = "Stop"
 

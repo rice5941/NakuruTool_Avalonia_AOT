@@ -77,7 +77,7 @@ namespace NakuruTool_Avalonia_AOT
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
-                _ = singleViewPlatform;
+                singleViewPlatform.MainView = composition.MainContent;
             }
 
             base.OnFrameworkInitializationCompleted();

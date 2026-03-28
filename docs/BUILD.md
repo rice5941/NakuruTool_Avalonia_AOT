@@ -353,36 +353,77 @@ ls ../../NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/Features/AudioPlayer/Na
 
 ## クロスプラットフォームビルド
 
-### Linux (将来対応予定)
+### Linux ARM64 ビルド (Raspberry Pi 4B)
 
-**必要なパッケージ (Ubuntu/Debian):**
+WSL2 Ubuntu を使用して linux-arm64 向けの NativeAOT ビルドを行います。
+
+#### WSL2 環境構築
+
+1. WSL2 Ubuntu のインストール
+```powershell
+wsl --install -d Ubuntu
+```
+
+2. .NET SDK 10.0 のインストール
 ```bash
-sudo apt-get update
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh --channel 10.0
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.bashrc
+source ~/.bashrc
+```
+
+3. Rust ツールチェーンのインストール
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+rustup target add aarch64-unknown-linux-gnu
+```
+
+4. クロスコンパイル用パッケージ
+```bash
+# 必須ツール
 sudo apt-get install -y \
-    build-essential \
-    libasound2-dev \
-    libssl-dev \
-    pkg-config
+    clang \
+    binutils-aarch64-linux-gnu \
+    gcc-aarch64-linux-gnu \
+    g++-aarch64-linux-gnu
+
+# ALSA開発ライブラリ (audio library)
+sudo dpkg --add-architecture arm64
+sudo apt-get install -y libasound2-dev:arm64
 ```
 
-**ビルド:**
+#### ビルド手順
+
+```powershell
+# Windows PowerShell から
+.\publish.ps1 -Runtime linux-arm64
+```
+
+または WSL2 上で直接:
 ```bash
-dotnet build -c Release -r linux-x64
+bash scripts/publish-linux-arm64.sh
 ```
 
-### macOS (将来対応予定)
+#### 出力
+- `NakuruTool_{Version}_linux-arm64/NakuruTool` — NativeAOT バイナリ (ELF aarch64)
+- `NakuruTool_{Version}_linux-arm64/libnakuru_audio.so` — オーディオライブラリ
 
-**必要なツール:**
+#### RPi OS Lite セットアップ
+
+RPi 4B 上で必要なパッケージ:
 ```bash
-xcode-select --install
+sudo apt install -y libasound2 libfontconfig1 fonts-noto-cjk libicu-dev libgbm1 libdrm2 libinput10 libudev1
+sudo usermod -aG video $USER
+sudo usermod -aG input $USER
 ```
 
-**ビルド:**
+起動:
 ```bash
-dotnet build -c Release -r osx-x64
+./NakuruTool --drm
 ```
-
----
 
 ## ビルドの仕組み
 

@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+ï»¿using Avalonia.Controls;
 
 namespace NakuruTool_Avalonia_AOT.Features.MainWindow;
 
@@ -8,15 +8,9 @@ public partial class MainWindowView : Window
     {
         InitializeComponent();
     }
-    
+
     public MainWindowView(MainWindowViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        
-        // ƒEƒBƒ“ƒhƒE‚ªŠJ‚¢‚½‚Æ‚«‚Éƒf[ƒ^ƒx[ƒX“Ç‚Ýž‚Ý‚ðŠJŽn
-        Opened += async (_, _) =>
-        {
-            await viewModel.StartLoadingAsync();
-        };
     }
 }

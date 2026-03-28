@@ -33,5 +33,6 @@ partial class Composition
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします
-        .Root<MainWindowView>("MainWindow");
+        .Root<MainWindowView>("MainWindow")
+        .Root<MainContentView>("MainContent");
 }

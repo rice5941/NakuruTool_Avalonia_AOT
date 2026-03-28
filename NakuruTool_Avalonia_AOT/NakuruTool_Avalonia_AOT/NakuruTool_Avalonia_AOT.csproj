@@ -73,11 +73,15 @@
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
     <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.3.7.3" />
     <PackageReference Include="ZLinq" Version="1.5.5" />
+    <PackageReference Include="Avalonia.LinuxFramebuffer" Version="11.3.12" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Features\MainWindow\MainWindowView.axaml.cs">
       <DependentUpon>MainWindowView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Features\MainWindow\MainContentView.axaml.cs">
+      <DependentUpon>MainContentView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -87,13 +91,34 @@
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+
+      <!-- RuntimeIdentifier から Rust ターゲットを決定 -->
+      <RustTarget Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">aarch64-unknown-linux-gnu</RustTarget>
+      <RustTargetFlag Condition="'$(RustTarget)' != ''">--target $(RustTarget)</RustTargetFlag>
+
+      <!-- Rust 出力ディレクトリ（クロスコンパイル時はターゲットサブディレクトリが付く） -->
+      <RustTargetSubDir Condition="'$(RustTarget)' != ''">$(RustTarget)/</RustTargetSubDir>
+      <RustOutputDir>$(ProjectDir)../../native/nakuru_audio/target/$(RustTargetSubDir)$(RustProfile)</RustOutputDir>
+
+      <!-- ビルドホスト OS に基づく cargo コマンド -->
+      <CargoCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">&quot;$(USERPROFILE)/.cargo/bin/cargo&quot;</CargoCommand>
+      <CargoCommand Condition="$([MSBuild]::IsOSPlatform('Linux'))">cargo</CargoCommand>
+
+      <!-- ターゲットプラットフォームに基づくネイティブライブラリ名 -->
+      <_IsTargetLinux Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</_IsTargetLinux>
+      <_IsTargetLinux Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">true</_IsTargetLinux>
+      <_IsTargetWindows Condition="$(RuntimeIdentifier.StartsWith('win'))">true</_IsTargetWindows>
+      <_IsTargetWindows Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">true</_IsTargetWindows>
+
+      <NativeLibName Condition="'$(_IsTargetWindows)' == 'true'">nakuru_audio.dll</NativeLibName>
+      <NativeLibName Condition="'$(_IsTargetLinux)' == 'true'">libnakuru_audio.so</NativeLibName>
+      <NativeLibPath>$(RustOutputDir)/$(NativeLibName)</NativeLibPath>
     </PropertyGroup>
 
     <!-- Build Rust library -->
-    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
+    <Exec Command="$(CargoCommand) build $(RustBuildFlag) $(RustTargetFlag) --manifest-path &quot;$(ProjectDir)../../native/nakuru_audio/Cargo.toml&quot;" />
 
-    <!-- Copy native library to output directory (Windows) -->
+    <!-- Copy native library to output directory -->
     <Copy SourceFiles="$(NativeLibPath)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPath)')" />
   </Target>
 
@@ -102,12 +127,24 @@
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+
+      <RustTarget Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">aarch64-unknown-linux-gnu</RustTarget>
+      <RustTargetSubDir Condition="'$(RustTarget)' != ''">$(RustTarget)/</RustTargetSubDir>
+      <RustOutputDir>$(ProjectDir)../../native/nakuru_audio/target/$(RustTargetSubDir)$(RustProfile)</RustOutputDir>
+
+      <_IsTargetLinux Condition="$(RuntimeIdentifier.StartsWith('linux'))">true</_IsTargetLinux>
+      <_IsTargetLinux Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">true</_IsTargetLinux>
+      <_IsTargetWindows Condition="$(RuntimeIdentifier.StartsWith('win'))">true</_IsTargetWindows>
+      <_IsTargetWindows Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">true</_IsTargetWindows>
+
+      <NativeLibName Condition="'$(_IsTargetWindows)' == 'true'">nakuru_audio.dll</NativeLibName>
+      <NativeLibName Condition="'$(_IsTargetLinux)' == 'true'">libnakuru_audio.so</NativeLibName>
+      <NativeLibPath>$(RustOutputDir)/$(NativeLibName)</NativeLibPath>
     </PropertyGroup>
 
     <ItemGroup>
       <ResolvedFileToPublish Include="$(NativeLibPath)" Condition="Exists('$(NativeLibPath)')">
-        <RelativePath>nakuru_audio.dll</RelativePath>
+        <RelativePath>$(NativeLibName)</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

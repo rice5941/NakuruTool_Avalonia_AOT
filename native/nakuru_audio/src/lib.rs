@@ -9,36 +9,88 @@ use rodio::{OutputStreamBuilder, Sink, Source};
 use std::fs::File;
 use std::io::BufReader;
 use std::str;
-use symphonia::core::formats::FormatOptions;
-use symphonia::core::io::MediaSourceStream;
-use symphonia::core::meta::MetadataOptions;
-use symphonia::core::probe::Hint;
-
-/// Symphonia probe で再生時間を取得する（rodio の total_duration() が None の場合のフォールバック）
-/// MP3 の Xing/VBRI ヘッダーから n_frames + time_base を読み取り Duration を返す
-fn probe_duration_symphonia(path: &str) -> Option<std::time::Duration> {
-    let file = File::open(path).ok()?;
-    let mss = MediaSourceStream::new(Box::new(file), Default::default());
-
-    let mut hint = Hint::new();
-    if let Some(ext) = std::path::Path::new(path)
+/// mp3-duration で MP3 ファイルの再生時間を取得する
+/// minimp3 の total_duration() が常に None を返すためのフォールバック
+/// ファイル末尾フレームが不完全 (UnexpectedEOF) な場合も、
+/// エラー構造体の at_duration から取得できた時間を返す
+fn probe_duration_mp3(path: &str) -> Option<std::time::Duration> {
+    let extension = std::path::Path::new(path)
         .extension()
-        .and_then(|e| e.to_str())
-    {
-        hint.with_extension(ext);
+        .and_then(|ext| ext.to_str())?;
+
+    if !extension.eq_ignore_ascii_case("mp3") {
+        return None;
     }
 
-    let probed = symphonia::default::get_probe()
-        .format(&hint, mss, &FormatOptions::default(), &MetadataOptions::default())
-        .ok()?;
+    match mp3_duration::from_path(path) {
+        Ok(d) => Some(d),
+        Err(e) if e.at_duration.as_secs() > 0 => Some(e.at_duration),
+        _ => None,
+    }
+}
 
-    let track = probed.format.default_track()?;
-    let n_frames = track.codec_params.n_frames?;
-    let time_base = track.codec_params.time_base?;
+/// OGG/Vorbis ファイルの再生時間を取得する
+/// lewton の total_duration() が常に None を返すためのフォールバック
+fn probe_duration_ogg(path: &str) -> Option<std::time::Duration> {
+    use std::io::{Read, Seek, SeekFrom};
 
-    let time = time_base.calc_time(n_frames);
-    let secs = time.seconds as f64 + time.frac;
-    Some(std::time::Duration::from_secs_f64(secs))
+    let extension = std::path::Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())?;
+
+    if !extension.eq_ignore_ascii_case("ogg") {
+        return None;
+    }
+
+    let mut file = std::fs::File::open(path).ok()?;
+    let file_len = file.seek(SeekFrom::End(0)).ok()?;
+
+    // 末尾最大 65536 バイトから最後の OggS ページを探す
+    let search_start = file_len.saturating_sub(65536);
+    file.seek(SeekFrom::Start(search_start)).ok()?;
+    let buf_size = (file_len - search_start) as usize;
+    let mut tail_buf = vec![0u8; buf_size];
+    file.read_exact(&mut tail_buf).ok()?;
+
+    // 最後の "OggS" を探す
+    let last_page_offset = tail_buf
+        .windows(4)
+        .enumerate()
+        .rev()
+        .find(|(_, w)| *w == b"OggS")
+        .map(|(i, _)| i)?;
+
+    // グラニュール位置 = OggS のオフセット + 6
+    let gp_start = last_page_offset + 6;
+    if gp_start + 8 > tail_buf.len() {
+        return None;
+    }
+    let granule_pos = i64::from_le_bytes(
+        tail_buf[gp_start..gp_start + 8].try_into().ok()?
+    );
+    if granule_pos <= 0 {
+        return None;
+    }
+
+    // Vorbis ID ヘッダーからサンプリングレートを取得
+    file.seek(SeekFrom::Start(0)).ok()?;
+    let mut head_buf = [0u8; 8192];
+    let n = file.read(&mut head_buf).ok()?;
+    let head_buf = &head_buf[..n];
+
+    let id_pos = head_buf.windows(7).position(|w| w == b"\x01vorbis")?;
+    let rate_start = id_pos + 7 + 4 + 1; // \x01vorbis(7) + version(4) + channels(1)
+    if rate_start + 4 > head_buf.len() {
+        return None;
+    }
+    let sample_rate = u32::from_le_bytes(
+        head_buf[rate_start..rate_start + 4].try_into().ok()?
+    );
+    if sample_rate == 0 {
+        return None;
+    }
+
+    Some(std::time::Duration::from_secs_f64(granule_pos as f64 / sample_rate as f64))
 }
 
 /// オーディオプレイヤーの状態
@@ -141,9 +193,10 @@ pub extern "C" fn nakuru_audio_play(
                     Ok(source) => {
                         // Get duration before consuming source
                         // total_duration() は MP3 の Xing ヘッダーがない場合に None を返すため
-                        // symphonia の probe 結果をフォールバックとして使用する
+                        // mp3-duration によるフォールバックを使用する
                         let total_duration = source.total_duration()
-                            .or_else(|| probe_duration_symphonia(path_str));
+                            .or_else(|| probe_duration_mp3(path_str))
+                            .or_else(|| probe_duration_ogg(path_str));
 
                         // Create a new Sink and replace the old one
                         let new_sink = Sink::connect_new(&player._stream.mixer());
@@ -320,14 +373,15 @@ pub extern "C" fn nakuru_audio_seek(player: *mut AudioPlayer, position_secs: f64
             Err(_) => return,
         };
         let reader = BufReader::new(file);
-        let mut source = match rodio::Decoder::new(reader) {
+        let source = match rodio::Decoder::new(reader) {
             Ok(s) => s,
             Err(_) => return,
         };
 
-        // デコーダーに直接シーク（同期操作 — Sink経由の非同期キューと異なり即座に完了）
+        // skip_duration でデコード済みサンプルを読み飛ばしてシーク位置まで進める
+        // minimp3 の try_seek() は NotSupported を返すため、skip_duration で代替する
         let target = std::time::Duration::from_secs_f64(position_secs);
-        let _ = source.try_seek(target);
+        let source = source.skip_duration(target);
 
         // 現在のSinkの状態を取得
         let was_paused = {

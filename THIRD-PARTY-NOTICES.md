@@ -138,15 +138,116 @@ parking_lotは以下のライセンスのいずれかを選択できます：
 
 ---
 
-### symphonia
-- **Version**: 0.5.5
-- **License**: Mozilla Public License 2.0 (MPL-2.0)
-- **Repository**: https://github.com/pdeljanov/Symphonia
-- **Copyright**: Copyright (c) Philip Deljanov
+### lewton
+- **Version**: 0.10.2
+- **License**: MIT OR Apache-2.0
+- **Repository**: https://github.com/RustAudio/lewton
+- **Copyright**: Copyright (c) The lewton contributors
 
-Pure Rustによるオーディオデコーディングライブラリ。MP3デコードのために直接使用しています。
+OGG Vorbis デコードライブラリ。rodio の `lewton` feature 経由で使用。
 
-MPL-2.0のソースコードは上記リポジトリで公開されています。
+lewtonは以下のライセンスのいずれかを選択できます：
+- MIT License (http://opensource.org/licenses/MIT)
+- Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+---
+
+### ogg
+- **Version**: 0.8.0
+- **License**: BSD-3-Clause
+- **Repository**: https://github.com/RustAudio/ogg
+- **Copyright**: Copyright (c) The ogg crate contributors
+
+OGG コンテナパーサー。lewton が内部的に使用しています。
+
+Copyright (c) The ogg crate contributors.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+---
+
+### byteorder
+- **Version**: 1.5.0
+- **License**: Unlicense OR MIT
+- **Repository**: https://github.com/BurntSushi/byteorder
+- **Copyright**: Copyright (c) 2015 Andrew Gallant
+
+バイトオーダー読み書きライブラリ。oggが内部的に使用しています。
+
+byteorderは以下のライセンスのいずれかを選択できます：
+- Unlicense (https://unlicense.org)
+- MIT License (http://opensource.org/licenses/MIT)
+
+---
+
+### tinyvec
+- **Version**: 1.11.0
+- **License**: Zlib OR Apache-2.0 OR MIT
+- **Repository**: https://github.com/Lokathor/tinyvec
+- **Copyright**: Copyright (c) The tinyvec contributors
+
+小規模ベクター最適化ライブラリ。lewton が内部的に使用しています。
+
+tinyvecは以下のライセンスのいずれかを選択できます：
+- Zlib License
+- Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+- MIT License (http://opensource.org/licenses/MIT)
+
+---
+
+### tinyvec_macros
+- **Version**: 0.1.1
+- **License**: MIT OR Apache-2.0 OR Zlib
+- **Repository**: https://github.com/Lokathor/tinyvec
+- **Copyright**: Copyright (c) The tinyvec_macros contributors
+
+tinyvec のプロシージャルマクロ補助クレート。
+
+tinyvec_macrosは以下のライセンスのいずれかを選択できます：
+- MIT License (http://opensource.org/licenses/MIT)
+- Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+- Zlib License
+
+---
+
+### minimp3_fixed
+- **Version**: 0.5.4
+- **License**: CC0-1.0 OR MIT
+- **Repository**: https://github.com/nicedoc/minimp3-rs
+- **Copyright**: Copyright (c) minimp3 contributors
+
+Pure RustによるMP3デコードライブラリ。rodio経由でMP3再生に使用しています。
+
+---
+
+### mp3-duration
+- **Version**: 0.1.10
+- **License**: MIT License
+- **Repository**: https://github.com/agersant/mp3-duration
+- **Copyright**: Copyright (c) Antoine Gersant
+
+MP3ファイルの再生時間を計測するライブラリ。Duration取得に直接使用しています。
+
+---
+
+### hound
+- **Version**: 3.5.1
+- **License**: Apache-2.0
+- **Repository**: https://github.com/ruuda/hound
+- **Copyright**: Copyright (c) Ruud van Asseldonk
+
+WAVファイルの読み書きライブラリ。rodio経由でWAV再生に使用しています。
 
 ---
 

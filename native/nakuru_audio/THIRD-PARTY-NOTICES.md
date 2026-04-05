@@ -20,18 +20,67 @@ at your option.
 - **Repository**: https://github.com/RustAudio/cpal
 - Used by rodio for cross-platform audio I/O
 
-## symphonia
+## minimp3_fixed
 
-- **License**: MPL-2.0
-- **Repository**: https://github.com/pdeljanov/Symphonia
-- **Copyright**: Copyright (c) Philip Deljanov
-- Used directly for audio decoding (MP3)
+- **License**: CC0-1.0 OR MIT
+- **Repository**: https://github.com/nicedoc/minimp3-rs
+- **Copyright**: minimp3 contributors
+- Used by rodio for MP3 decoding
+
+## mp3-duration
+
+- **License**: MIT
+- **Repository**: https://github.com/agersant/mp3-duration
+- **Copyright**: Copyright (c) Antoine Gersant
+- Used directly for measuring MP3 playback duration
+
+## hound
+
+- **License**: Apache-2.0
+- **Repository**: https://github.com/ruuda/hound
+- **Copyright**: Copyright (c) Ruud van Asseldonk
+- Used by rodio for WAV decoding
 
 ## parking_lot
 
 - **License**: MIT OR Apache-2.0
 - **Repository**: https://github.com/Amanieu/parking_lot
 - **Copyright**: The parking_lot contributors
+
+## lewton
+
+- **License**: MIT OR Apache-2.0
+- **Repository**: https://github.com/RustAudio/lewton
+- **Copyright**: The lewton contributors
+- Used by rodio for OGG Vorbis decoding
+
+## ogg
+
+- **License**: BSD-3-Clause
+- **Repository**: https://github.com/RustAudio/ogg
+- **Copyright**: The ogg crate contributors
+- Used by lewton for OGG container parsing
+
+## byteorder
+
+- **License**: Unlicense OR MIT
+- **Repository**: https://github.com/BurntSushi/byteorder
+- **Copyright**: Andrew Gallant
+- Used by ogg for byte-order reading
+
+## tinyvec
+
+- **License**: Zlib OR Apache-2.0 OR MIT
+- **Repository**: https://github.com/Soveu/tinyvec
+- **Copyright**: The tinyvec contributors
+- Used by lewton for small vector optimization
+
+## tinyvec_macros
+
+- **License**: MIT OR Apache-2.0 OR Zlib
+- **Repository**: https://github.com/Soveu/tinyvec
+- **Copyright**: The tinyvec_macros contributors
+- Used by tinyvec
 
 ---
 

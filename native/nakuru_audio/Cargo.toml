@@ -10,9 +10,9 @@ repository = "https://github.com/your-username/NakuruTool_Avalonia_AOT"
 crate-type = ["cdylib"]
 
 [dependencies]
-rodio = "0.21"
+rodio = { version = "0.21", default-features = false, features = ["playback", "minimp3", "hound", "lewton"] }
 parking_lot = "0.12"
-symphonia = { version = "0.5.4", default-features = false, features = ["mp3"] }
+mp3-duration = "0.1.10"
 
 [build-dependencies]
 csbindgen = "1.9"

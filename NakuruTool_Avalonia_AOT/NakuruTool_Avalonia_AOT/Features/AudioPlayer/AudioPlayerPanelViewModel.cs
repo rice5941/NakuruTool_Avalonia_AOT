@@ -165,7 +165,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         AudioPlayer.PlayBeatmapAudio(beatmap);
 
         // 位置・時間リセット
-        // symphonia probe により GetDuration() は MP3 を含む全形式で確実に値を返す
+        // mp3-duration / hound により GetDuration() は MP3/WAV で確実に値を返す
         CurrentPosition = 0;
         CurrentPositionText = "0:00";
         var dur = _audioPlayerService.GetDuration();

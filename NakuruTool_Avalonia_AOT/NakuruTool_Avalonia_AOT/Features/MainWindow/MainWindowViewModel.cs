@@ -79,6 +79,20 @@ public partial class MainWindowViewModel : ViewModelBase
         MapListPageViewModel.Initialize();
         ImportExportPageViewModel.Initialize();
 
+        // 設定が有効かつDB読み込み成功時、プリセットから自動一括生成
+        if (!DatabaseLoadingViewModel.HasError
+            && _settingsService.SettingsData.AutoBatchGenerateOnStartup)
+        {
+            try
+            {
+                await MapListPageViewModel.AutoBatchGenerateFromPresetsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Auto batch generate failed: {ex.Message}");
+            }
+        }
+
         IsLoadingOverlayVisible = false;
 
         // 読み込み結果に応じてタブを切り替え

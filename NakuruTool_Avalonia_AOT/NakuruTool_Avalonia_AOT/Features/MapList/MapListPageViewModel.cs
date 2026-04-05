@@ -246,6 +246,14 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         });
     }
 
+    /// <summary>
+    /// 起動時の自動一括生成を実行する。
+    /// </summary>
+    public async Task AutoBatchGenerateFromPresetsAsync()
+    {
+        await PresetEditorViewModel.ExecuteBatchGenerateCoreAsync();
+    }
+
     public override void Dispose()
     {
         if (_disposed) return;

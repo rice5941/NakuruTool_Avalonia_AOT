@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Automatisch abspielen bei Auswahl",
     "PreferUnicode": "Unicode-Anzeige bevorzugen",
     "BeatmapMirror": "Beatmap-Download-Mirror",
+    "AutoBatchGenerateOnStartup": "Sammlungen aus Vorlagen beim Start stapelweise generieren",
     "AppVersion": "Version"
   },
   "Licenses": {

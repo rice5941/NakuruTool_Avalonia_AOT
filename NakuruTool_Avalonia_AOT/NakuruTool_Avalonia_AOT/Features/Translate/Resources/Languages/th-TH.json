@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "เล่นอัตโนมัติเมื่อเลือก",
     "PreferUnicode": "แสดง Unicode เป็นหลัก",
     "BeatmapMirror": "มิเรอร์ดาวน์โหลดบีทแมป",
+    "AutoBatchGenerateOnStartup": "สร้าง Collection เป็นชุดจาก Preset เมื่อเริ่มต้น",
     "AppVersion": "เวอร์ชัน"
   },
   "Licenses": {

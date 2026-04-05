@@ -299,29 +299,17 @@ public partial class PresetEditorViewModel : ViewModelBase
         {
             var presets = _presetService.Presets.ToArray();
             var totalPresets = presets.Length;
-            var successCount = 0;
 
-            for (var i = 0; i < presets.Length; i++)
-            {
-                var preset = presets[i];
-
-                BatchGenerationStatusMessage = string.Format(
-                    LangServiceInstance.GetString("Preset.Status.BulkProgress"),
-                    i + 1, totalPresets, preset.Name);
-                BatchGenerationProgress = (int)((double)i / totalPresets * 100);
-
-                var filteredBeatmaps = FilterBeatmapsByPreset(preset);
-
-                if (filteredBeatmaps.Length > 0 && !string.IsNullOrWhiteSpace(preset.CollectionName))
+            var (successCount, failCount) = await ExecuteBatchGenerateCoreAsync(
+                (current, total, name) =>
                 {
-                    var success = await _generateCollectionService.GenerateCollection(
-                        preset.CollectionName, filteredBeatmaps);
-                    if (success) successCount++;
-                }
-            }
+                    BatchGenerationStatusMessage = string.Format(
+                        LangServiceInstance.GetString("Preset.Status.BulkProgress"),
+                        current, total, name);
+                    BatchGenerationProgress = (int)((double)(current - 1) / total * 100);
+                });
 
             BatchGenerationProgress = 100;
-            var failCount = totalPresets - successCount;
             BatchGenerationStatusMessage = string.Format(
                 LangServiceInstance.GetString("Preset.Status.BulkCompleted"),
                 successCount, failCount);
@@ -336,6 +324,34 @@ public partial class PresetEditorViewModel : ViewModelBase
         {
             IsBatchGenerating = false;
         }
+    }
+
+    /// <summary>
+    /// 一括生成のコアロジック。UI状態管理を含まない。
+    /// </summary>
+    internal async Task<(int successCount, int failCount)> ExecuteBatchGenerateCoreAsync(
+        Action<int, int, string>? progressCallback = null)
+    {
+        var presets = _presetService.Presets.ToArray();
+        var totalPresets = presets.Length;
+        var successCount = 0;
+
+        for (var i = 0; i < presets.Length; i++)
+        {
+            var preset = presets[i];
+            progressCallback?.Invoke(i + 1, totalPresets, preset.Name);
+
+            var filteredBeatmaps = FilterBeatmapsByPreset(preset);
+
+            if (filteredBeatmaps.Length > 0 && !string.IsNullOrWhiteSpace(preset.CollectionName))
+            {
+                var success = await _generateCollectionService.GenerateCollection(
+                    preset.CollectionName, filteredBeatmaps);
+                if (success) successCount++;
+            }
+        }
+
+        return (successCount, totalPresets - successCount);
     }
 
     /// <summary>

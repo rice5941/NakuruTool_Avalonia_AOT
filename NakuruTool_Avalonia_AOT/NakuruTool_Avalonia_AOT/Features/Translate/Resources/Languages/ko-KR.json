@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "선택 시 자동 재생",
     "PreferUnicode": "Unicode 표기 우선",
     "BeatmapMirror": "비트맵 다운로드 미러",
+    "AutoBatchGenerateOnStartup": "시작 시 프리셋에서 컬렉션 일괄 생성",
     "AppVersion": "버전"
   },
   "Licenses": {

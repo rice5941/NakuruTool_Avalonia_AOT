@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "选择时自动播放",
     "PreferUnicode": "优先Unicode显示",
     "BeatmapMirror": "谱面下载镜像",
+    "AutoBatchGenerateOnStartup": "启动时从预设批量生成合集",
     "AppVersion": "版本"
   },
   "Licenses": {

@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Tự phát khi chọn",
     "PreferUnicode": "Ưu tiên hiển thị Unicode",
     "BeatmapMirror": "Mirror tải beatmap",
+    "AutoBatchGenerateOnStartup": "Tạo hàng loạt Collection từ Preset khi khởi động",
     "AppVersion": "Phiên bản"
   },
   "Licenses": {

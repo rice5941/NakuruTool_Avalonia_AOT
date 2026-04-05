@@ -13,6 +13,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         bool PreferUnicode { get; set; }
         bool IsDarkTheme { get; set; }
         string BeatmapMirrorUrl { get; set; }
+        bool AutoBatchGenerateOnStartup { get; set; }
     }
 
     public partial class SettingsData : ObservableObject, ISettingsData
@@ -25,6 +26,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
         private bool _preferUnicode = false;
         private bool _isDarkTheme = true;
         private string _beatmapMirrorUrl = "https://catboy.best/d/";
+        private bool _autoBatchGenerateOnStartup = false;
 
         public string OsuFolderPath
         {
@@ -68,6 +70,12 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             set => SetProperty(ref _beatmapMirrorUrl, value);
         }
 
+        public bool AutoBatchGenerateOnStartup
+        {
+            get => _autoBatchGenerateOnStartup;
+            set => SetProperty(ref _autoBatchGenerateOnStartup, value);
+        }
+
         public void Update(SettingsData newData)
         {
             OsuFolderPath = newData.OsuFolderPath;
@@ -77,6 +85,7 @@ namespace NakuruTool_Avalonia_AOT.Features.Settings
             PreferUnicode = newData.PreferUnicode;
             IsDarkTheme = newData.IsDarkTheme;
             BeatmapMirrorUrl = newData.BeatmapMirrorUrl;
+            AutoBatchGenerateOnStartup = newData.AutoBatchGenerateOnStartup;
         }
     }
 

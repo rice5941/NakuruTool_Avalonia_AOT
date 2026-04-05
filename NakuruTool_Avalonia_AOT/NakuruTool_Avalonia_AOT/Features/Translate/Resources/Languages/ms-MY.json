@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Main automatik apabila dipilih",
     "PreferUnicode": "Utamakan paparan Unicode",
     "BeatmapMirror": "Mirror muat turun beatmap",
+    "AutoBatchGenerateOnStartup": "Jana Koleksi Kelompok dari Praset pada Permulaan",
     "AppVersion": "Versi"
   },
   "Licenses": {

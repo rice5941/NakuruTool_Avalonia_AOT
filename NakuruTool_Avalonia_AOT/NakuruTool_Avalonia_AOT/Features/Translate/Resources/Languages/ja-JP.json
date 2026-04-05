@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "選択時自動再生",
     "PreferUnicode": "Unicode表示を優先",
     "BeatmapMirror": "譜面ダウンロードミラー",
+    "AutoBatchGenerateOnStartup": "起動時にプリセットからコレクションを一括生成",
     "AppVersion": "バージョン"
   },
   "Licenses": {

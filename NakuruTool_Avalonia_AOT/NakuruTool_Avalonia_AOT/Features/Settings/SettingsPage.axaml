@@ -78,6 +78,12 @@
 
         <HeaderedContentControl
             Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.AutoBatchGenerateOnStartup'}">
+            <ToggleSwitch IsChecked="{Binding AutoBatchGenerateOnStartup}" />
+        </HeaderedContentControl>
+
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.BeatmapMirror'}">
             <ComboBox MinWidth="280" ItemsSource="{Binding MirrorUrls}" SelectedItem="{Binding SelectedMirrorUrl}" />
         </HeaderedContentControl>

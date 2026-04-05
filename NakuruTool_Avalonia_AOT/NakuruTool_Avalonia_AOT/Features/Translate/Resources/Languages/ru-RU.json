@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Автовоспроизведение при выборе",
     "PreferUnicode": "Предпочитать отображение Unicode",
     "BeatmapMirror": "Зеркало загрузки карт",
+    "AutoBatchGenerateOnStartup": "Пакетная генерация коллекций из пресетов при запуске",
     "AppVersion": "Версия"
   },
   "Licenses": {

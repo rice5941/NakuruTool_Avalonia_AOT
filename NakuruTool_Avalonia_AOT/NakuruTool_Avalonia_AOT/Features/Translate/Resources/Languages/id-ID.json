@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Putar otomatis saat dipilih",
     "PreferUnicode": "Prioritaskan tampilan Unicode",
     "BeatmapMirror": "Mirror unduh beatmap",
+    "AutoBatchGenerateOnStartup": "Batch Generate Koleksi dari Preset saat Startup",
     "AppVersion": "Versi"
   },
   "Licenses": {

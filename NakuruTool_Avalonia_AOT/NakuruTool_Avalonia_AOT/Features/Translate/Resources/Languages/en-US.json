@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Auto Play on Select",
     "PreferUnicode": "Prefer Unicode Display",
     "BeatmapMirror": "Beatmap Download Mirror",
+    "AutoBatchGenerateOnStartup": "Batch Generate Collections from Presets on Startup",
     "AppVersion": "Version"
   },
   "Licenses": {

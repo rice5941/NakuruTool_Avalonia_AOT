@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Reproducir automáticamente al seleccionar",
     "PreferUnicode": "Priorizar visualización Unicode",
     "BeatmapMirror": "Mirror de descarga de beatmaps",
+    "AutoBatchGenerateOnStartup": "Generar colecciones en lote desde presets al iniciar",
     "AppVersion": "Versión"
   },
   "Licenses": {

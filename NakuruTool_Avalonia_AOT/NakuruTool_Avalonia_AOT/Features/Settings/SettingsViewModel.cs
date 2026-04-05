@@ -24,6 +24,7 @@ public interface ISettingsViewModel : IDisposable
     bool PreferUnicode { get; set; }
     IAvaloniaReadOnlyList<string> MirrorUrls { get; }
     string SelectedMirrorUrl { get; set; }
+    bool AutoBatchGenerateOnStartup { get; set; }
     string AppVersion { get; }
 }
 
@@ -107,6 +108,17 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         }
     }
 
+    [ObservableProperty]
+    public partial bool AutoBatchGenerateOnStartup { get; set; } = false;
+
+    partial void OnAutoBatchGenerateOnStartupChanged(bool value)
+    {
+        if (_isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private bool _isInitialized = false;
 
@@ -120,6 +132,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         AutoPlayOnSelect = settingsData.AutoPlayOnSelect;
         PreferUnicode = settingsData.PreferUnicode;
         SelectedMirrorUrl = settingsData.BeatmapMirrorUrl;
+        AutoBatchGenerateOnStartup = settingsData.AutoBatchGenerateOnStartup;
 
         UpdateOsuPathErrorMessage();
 
@@ -138,7 +151,8 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             AutoPlayOnSelect = AutoPlayOnSelect,
             PreferUnicode = PreferUnicode,
             BeatmapMirrorUrl = SelectedMirrorUrl,
-            IsDarkTheme = app?.ActualThemeVariant == ThemeVariant.Dark
+            IsDarkTheme = app?.ActualThemeVariant == ThemeVariant.Dark,
+            AutoBatchGenerateOnStartup = AutoBatchGenerateOnStartup,
         };
 
         _settingsService.SaveSettings(settingData);

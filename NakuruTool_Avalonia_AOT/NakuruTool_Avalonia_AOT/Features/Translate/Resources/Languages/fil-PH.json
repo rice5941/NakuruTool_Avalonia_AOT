@@ -21,6 +21,7 @@
     "AutoPlayOnSelect": "Awtomatikong tumugtog kapag pinili",
     "PreferUnicode": "Unahin ang Unicode display",
     "BeatmapMirror": "Mirror ng pag-download ng beatmap",
+    "AutoBatchGenerateOnStartup": "Batch Generate ng mga Koleksyon mula sa Presets sa Startup",
     "AppVersion": "Bersyon"
   },
   "Licenses": {

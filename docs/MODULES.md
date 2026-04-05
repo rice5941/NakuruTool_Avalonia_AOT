@@ -114,11 +114,11 @@
 
 #### 構成ファイル
 
-| ファイル | 種別 |
-|---------|------|
-| `MapListViewModel.cs` | ViewModel |
-| `MapListView.axaml` | View |
-| `MapListView.axaml.cs` | CodeBehind |
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `MapListViewModel.cs` | ViewModel | フィルタ済み譜面一覧・ページング・オーディオ連携・コンテキストメニュー制御 |
+| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義 |
+| `MapListView.axaml.cs` | CodeBehind | DataGrid右クリック時のコンテキストメニュー表示制御（行ヒットテスト・メニュー生成） |
 
 #### 責務
 
@@ -164,6 +164,10 @@
 - `IsAudioPanelMode` が `true` の場合、選択変更時に `AudioPlayerPanel.PlayBeatmap()` を呼び出し
 - `AudioPlayerPanel.NavigateToFilteredIndex` コールバック経由でページ遷移を実行
 - `ApplyFilter()` 呼び出し時に `AudioPlayerPanel.SetNavigationContext()` でフィルタ結果を連携
+
+#### コンテキストメニュー
+
+- **コンテキストメニュー** — DataGrid行の右クリックで「ダウンロードURLをコピー」コンテキストメニューを表示。`SelectBeatmapForContextMenu()` で右クリック行を選択（`_isNavigating` で音声再生を抑制）、`TryPrepareContextMenu()` でメニュー表示判定、`CopyDownloadUrlAsync()` で `{BeatmapMirrorUrl}{BeatmapSetId}` 形式のURLをクリップボードにコピー
 
 ---
 

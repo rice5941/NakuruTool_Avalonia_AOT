@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "Sistem skor",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "Salin URL Muat Turun",
+    "OpenInExplorer": "Buka Folder dalam Explorer"
   },
   "MapFilter": {
     "Title": "Syarat penapis",

@@ -8,7 +8,10 @@ using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ZLinq;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
@@ -39,6 +42,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     public AudioPlayerPanelViewModel AudioPlayerPanel { get; }
 
     private bool _isNavigating;
+    private Func<string, Task>? _clipboardWriter;
+    private Beatmap? _contextMenuBeatmap;
 
     [ObservableProperty]
     public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; } = new AvaloniaList<Beatmap>();
@@ -138,6 +143,80 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     [RelayCommand(CanExecute = nameof(CanGoToPreviousPage))]
     private void PreviousPage() => CurrentPage--;
     private bool CanGoToPreviousPage() => CurrentPage > 1;
+
+    private bool CanCopyDownloadUrl() =>
+        _contextMenuBeatmap is { BeatmapSetId: > 0 } && _clipboardWriter is not null;
+
+    [RelayCommand(CanExecute = nameof(CanCopyDownloadUrl))]
+    private async Task CopyDownloadUrlAsync()
+    {
+        if (_contextMenuBeatmap is null || _clipboardWriter is null)
+            return;
+
+        var mirrorUrl = _settingsService.SettingsData.BeatmapMirrorUrl;
+        if (string.IsNullOrEmpty(mirrorUrl))
+            mirrorUrl = "https://catboy.best/d/";
+
+        var url = $"{mirrorUrl}{_contextMenuBeatmap.BeatmapSetId}";
+        await _clipboardWriter(url);
+    }
+
+    public void SetClipboardWriter(Func<string, Task>? writer)
+    {
+        _clipboardWriter = writer;
+        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
+    }
+
+    public void SelectBeatmapForContextMenu(Beatmap beatmap)
+    {
+        _isNavigating = true;
+        try
+        {
+            SelectedBeatmap = beatmap;
+        }
+        finally
+        {
+            _isNavigating = false;
+        }
+    }
+
+    public bool TryPrepareContextMenu(Beatmap beatmap)
+    {
+        // FolderName が存在すればメニューを表示（エクスプローラーで開く機能は BeatmapSetId 不要）
+        _contextMenuBeatmap = !string.IsNullOrEmpty(beatmap.FolderName) ? beatmap : null;
+        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
+        OpenInExplorerCommand.NotifyCanExecuteChanged();
+        return _contextMenuBeatmap is not null;
+    }
+
+    public void ClearContextMenuBeatmap()
+    {
+        _contextMenuBeatmap = null;
+        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
+        OpenInExplorerCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanOpenInExplorer() =>
+        _contextMenuBeatmap is not null &&
+        !string.IsNullOrEmpty(_contextMenuBeatmap.FolderName) &&
+        !string.IsNullOrEmpty(_settingsService.SettingsData.OsuFolderPath);
+
+    [RelayCommand(CanExecute = nameof(CanOpenInExplorer))]
+    private void OpenInExplorer()
+    {
+        if (_contextMenuBeatmap is null)
+            return;
+
+        var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
+        if (string.IsNullOrEmpty(osuFolderPath))
+            return;
+
+        var folderPath = Path.Combine(osuFolderPath, "Songs", _contextMenuBeatmap.FolderName);
+        if (Directory.Exists(folderPath))
+        {
+            Process.Start("explorer.exe", folderPath);
+        }
+    }
 
     private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
 

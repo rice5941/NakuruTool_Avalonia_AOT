@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "ระบบคะแนน",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "คัดลอก URL ดาวน์โหลด",
+    "OpenInExplorer": "เปิดโฟลเดอร์ใน Explorer"
   },
   "MapFilter": {
     "Title": "เงื่อนไขการกรอง",

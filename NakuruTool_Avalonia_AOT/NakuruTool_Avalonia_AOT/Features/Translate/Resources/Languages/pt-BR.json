@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "Sistema de pontuação",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "Copiar URL de download",
+    "OpenInExplorer": "Abrir pasta no Explorer"
   },
   "MapFilter": {
     "Title": "Condições de filtro",

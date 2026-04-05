@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "Hệ thống điểm",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "Sao chép URL tải xuống",
+    "OpenInExplorer": "Mở thư mục trong Explorer"
   },
   "MapFilter": {
     "Title": "Điều kiện lọc",

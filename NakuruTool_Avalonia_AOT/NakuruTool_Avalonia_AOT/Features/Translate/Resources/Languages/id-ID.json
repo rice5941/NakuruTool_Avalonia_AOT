@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "Sistem skor",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "Salin URL Unduhan",
+    "OpenInExplorer": "Buka Folder di Explorer"
   },
   "MapFilter": {
     "Title": "Kondisi filter",

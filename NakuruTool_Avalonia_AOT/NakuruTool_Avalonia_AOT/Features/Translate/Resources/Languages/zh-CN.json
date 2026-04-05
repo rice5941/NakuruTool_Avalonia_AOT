@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "分数系统",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "复制下载链接",
+    "OpenInExplorer": "在资源管理器中打开文件夹"
   },
   "MapFilter": {
     "Title": "筛选条件",

@@ -60,7 +60,9 @@
     "ModCategory.DoubleTime": "DT/NC",
     "ScoreSystemSwitcher": "Система подсчета очков",
     "ScoreSystem.Default": "v1(default)",
-    "ScoreSystem.ScoreV2": "v2"
+    "ScoreSystem.ScoreV2": "v2",
+    "CopyDownloadUrl": "Копировать ссылку для скачивания",
+    "OpenInExplorer": "Открыть папку в проводнике"
   },
   "MapFilter": {
     "Title": "Условия фильтра",

@@ -201,6 +201,16 @@
                       GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column"
                       SelectionMode="Single">
+                <DataGrid.ContextMenu>
+                    <ContextMenu Opening="OnContextMenuOpening"
+                                 Closing="OnContextMenuClosing">
+                        <MenuItem Header="{translate:Translate 'MapList.CopyDownloadUrl'}"
+                                  Command="{Binding CopyDownloadUrlCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="{translate:Translate 'MapList.OpenInExplorer'}"
+                                  Command="{Binding OpenInExplorerCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                 
                     <!-- 難易度値 -->

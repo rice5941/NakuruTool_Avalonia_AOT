@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Licences open source",
-    "Description": "Cette application utilise les logiciels open source suivants.",
+    "Description": "Cette application utilise les logiciels open source suivants. Chaque composant est soumis à ses propres conditions de licence.",
     "LicenseType": "Licence",
     "ViewFullText": "Voir le texte complet",
     "Close": "Fermer"

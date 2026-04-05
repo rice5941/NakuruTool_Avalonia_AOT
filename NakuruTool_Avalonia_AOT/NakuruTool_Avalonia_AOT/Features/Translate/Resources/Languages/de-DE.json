@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Open-Source-Lizenzen",
-    "Description": "Diese Anwendung verwendet die folgende Open-Source-Software.",
+    "Description": "Diese Anwendung verwendet die folgende Open-Source-Software. Jede Komponente unterliegt ihren eigenen Lizenzbedingungen.",
     "LicenseType": "Lizenz",
     "ViewFullText": "Volltext anzeigen",
     "Close": "Schließen"

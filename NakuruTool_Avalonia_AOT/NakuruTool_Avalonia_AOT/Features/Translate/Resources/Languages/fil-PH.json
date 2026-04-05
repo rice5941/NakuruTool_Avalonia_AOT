@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Mga lisensyang open source",
-    "Description": "Ginagamit ng application na ito ang mga sumusunod na open source software.",
+    "Description": "Ginagamit ng application na ito ang mga sumusunod na open source software. Ang bawat component ay may sariling mga tuntunin ng lisensya.",
     "LicenseType": "Lisensya",
     "ViewFullText": "Tingnan ang buong teksto",
     "Close": "Isara"

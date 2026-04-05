@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Licenças de código aberto",
-    "Description": "Este aplicativo usa os seguintes softwares de código aberto.",
+    "Description": "Este aplicativo usa os seguintes softwares de código aberto. Cada componente está sujeito aos seus próprios termos de licença.",
     "LicenseType": "Licença",
     "ViewFullText": "Ver texto completo",
     "Close": "Fechar"

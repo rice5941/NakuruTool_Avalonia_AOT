@@ -73,17 +73,11 @@ NakuruTool_Avalonia_AOT/
 
 ## ライセンス
 
-このプロジェクトは複数のオープンソースライブラリを使用しています:
+このリポジトリのオリジナルソースコード（C#、Rust 自作部分、AXAML 等）は [MIT License](LICENSE) でライセンスされています。
 
-### 主要なライブラリ
-- **Avalonia UI**: MIT License
-- **R3**: MIT License
-- **nakuru_audio**: MIT License (本プロジェクト)
-- **rodio**: MIT OR Apache-2.0
-- **csbindgen**: MIT License
-- **Pure.DI**: MIT License
+配布バイナリ（アプリケーションパッケージ）には、それぞれ固有のライセンスを持つ第三者コンポーネントが含まれます。
+アプリ全体が MIT のみでライセンスされているわけではありません。
 
-### 詳細
-- プロジェクト全体のライセンス情報: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
-- nakuru_audioライブラリの詳細: [native/nakuru_audio/THIRD-PARTY-NOTICES.md](native/nakuru_audio/THIRD-PARTY-NOTICES.md)
+- 第三者コンポーネントの一覧と各ライセンス: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
+- nakuru_audio (Rust) の依存関係: [native/nakuru_audio/THIRD-PARTY-NOTICES.md](native/nakuru_audio/THIRD-PARTY-NOTICES.md)
 - アプリケーション内ライセンスページ: 設定 → ライセンス

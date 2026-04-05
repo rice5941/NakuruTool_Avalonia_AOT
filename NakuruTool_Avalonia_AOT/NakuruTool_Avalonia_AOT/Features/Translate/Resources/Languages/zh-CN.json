@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "开源许可",
-    "Description": "此应用程序使用以下开源软件。",
+    "Description": "此应用程序使用以下开源软件。各组件遵循各自的许可条款。",
     "LicenseType": "许可证",
     "ViewFullText": "查看许可证全文",
     "Close": "关闭"

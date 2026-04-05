@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Giấy phép mã nguồn mở",
-    "Description": "Ứng dụng này sử dụng các phần mềm mã nguồn mở sau.",
+    "Description": "Ứng dụng này sử dụng các phần mềm mã nguồn mở sau. Mỗi thành phần tuân theo các điều khoản giấy phép riêng.",
     "LicenseType": "Giấy phép",
     "ViewFullText": "Xem toàn văn",
     "Close": "Đóng"

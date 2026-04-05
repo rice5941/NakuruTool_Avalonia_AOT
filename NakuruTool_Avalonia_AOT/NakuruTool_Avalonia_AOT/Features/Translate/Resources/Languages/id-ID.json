@@ -26,7 +26,7 @@
   },
   "Licenses": {
     "Title": "Lisensi open source",
-    "Description": "Aplikasi ini menggunakan perangkat lunak open source berikut.",
+    "Description": "Aplikasi ini menggunakan perangkat lunak open source berikut. Setiap komponen tunduk pada ketentuan lisensinya masing-masing.",
     "LicenseType": "Lisensi",
     "ViewFullText": "Lihat teks lengkap",
     "Close": "Tutup"

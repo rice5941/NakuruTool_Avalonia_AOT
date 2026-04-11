@@ -68,6 +68,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+    <PackageReference Include="NLayer" Version="1.16.0" />
+    <PackageReference Include="NLayer.NAudioSupport" Version="1.4.0" />
+    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
     <PackageReference Include="R3" Version="1.3.0" />
     <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
@@ -81,20 +86,33 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\SoundTouch\SoundTouch.cs" Link="Features\BeatmapGenerator\SoundTouch.cs" />
+    <Compile Include="..\..\Lame\LameMp3Encoder.cs" Link="Features\BeatmapGenerator\LameMp3Encoder.cs" />
+  </ItemGroup>
+
   <!-- Rust build integration -->
   <Target Name="BuildRustLibrary" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
     </PropertyGroup>
 
-    <!-- Build Rust library -->
+    <!-- Build nakuru_audio -->
     <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
+    <Copy SourceFiles="$(NativeLibPathAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAudio)')" />
 
-    <!-- Copy native library to output directory (Windows) -->
-    <Copy SourceFiles="$(NativeLibPath)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPath)')" />
+    <!-- Copy SoundTouch.dll -->
+    <Copy SourceFiles="$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll"
+          DestinationFiles="$(OutDir)SoundTouch.dll"
+          Condition="Exists('$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll')" />
+
+    <!-- Copy libmp3lame.dll -->
+    <Copy SourceFiles="$(ProjectDir)..\..\Lame\libmp3lame.dll"
+          DestinationFolder="$(OutDir)"
+          Condition="Exists('$(ProjectDir)..\..\Lame\libmp3lame.dll')" />
   </Target>
 
   <!-- Copy native library to publish directory for NativeAOT -->
@@ -102,12 +120,22 @@
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
     </PropertyGroup>
 
     <ItemGroup>
-      <ResolvedFileToPublish Include="$(NativeLibPath)" Condition="Exists('$(NativeLibPath)')">
+      <ResolvedFileToPublish Include="$(NativeLibPathAudio)" Condition="Exists('$(NativeLibPathAudio)')">
         <RelativePath>nakuru_audio.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll"
+                              Condition="Exists('$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll')">
+        <RelativePath>SoundTouch.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(ProjectDir)..\..\Lame\libmp3lame.dll"
+                              Condition="Exists('$(ProjectDir)..\..\Lame\libmp3lame.dll')">
+        <RelativePath>libmp3lame.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

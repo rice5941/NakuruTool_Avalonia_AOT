@@ -5,6 +5,7 @@
         xmlns:settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
         xmlns:licenses="using:NakuruTool_Avalonia_AOT.Features.Licenses"
         xmlns:importExport="using:NakuruTool_Avalonia_AOT.Features.ImportExport"
+        xmlns:beatmapGen="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
         xmlns:osuDatabase="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
         xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -72,9 +73,9 @@
                 <TabControl
                     Name="MainTab"
                     Margin="8,0"
-                    Padding="20,0,0,0"
+                    Padding="8,0,0,0"
                     TabStripPlacement="Left"
-                    SelectedIndex="{Binding SelectedTabIndex}"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
                     Classes.Dismiss="{Binding #ExpandButton.IsChecked}"
                     Theme="{DynamicResource ScrollLineTabControl}">
                     <TabControl.Styles>
@@ -97,6 +98,16 @@
                             </StackPanel>
                         </TabItem.Header>
                         <mapList:MapListPageView DataContext="{Binding MapListPageViewModel}"/>
+                    </TabItem>
+
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="Creation" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.BeatmapGeneration'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <beatmapGen:BeatmapGenerationPageView DataContext="{Binding BeatmapGenerationPageViewModel}"/>
                     </TabItem>
                 
                     <TabItem>

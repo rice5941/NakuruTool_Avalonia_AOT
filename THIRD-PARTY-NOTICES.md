@@ -2,8 +2,8 @@
 
 ## ライセンスについて
 
-このリポジトリのオリジナルソースコード（C#、Rust 自作部分、AXAML レイアウト等）は
-[MIT License](LICENSE) でライセンスされています。
+NakuruTool のオリジナルソースコードは
+MIT License (licenses/LICENSE) でライセンスされています。
 
 ただし、配布バイナリ（アプリケーションパッケージ）には以下に列挙する第三者コンポーネントが含まれます。
 これらのコンポーネントはそれぞれ固有のライセンス条件に従います。
@@ -31,7 +31,6 @@
 - **Font Source**: https://github.com/rsms/inter
 - **Font License**: https://github.com/rsms/inter/blob/master/LICENSE.txt
 - **Copyright**: Copyright (c) The Avalonia Project（パッケージ）/ Copyright (c) 2016 The Inter Project Authors（フォント）
-- **確認済み**: Inter フォントは SIL Open Font License 1.1 でライセンスされています（公式リポジトリの LICENSE.txt で確認）
 
 Avalonia 向け Inter フォントバンドル。配布物にフォントデータが含まれます。
 
@@ -119,14 +118,53 @@ AvaloniaのためのMaterial Design Iconsライブラリ。
 
 ---
 
-### HotAvalonia
-- **Version**: 3.1.0
+### NAudio
+- **Version**: 2.2.1
 - **License**: MIT License
-- **Repository**: https://github.com/Kir-Antipov/HotAvalonia
-- **Copyright**: Copyright (c) 2023 Kir_Antipov
-- **備考**: Debug ビルドのみで使用。Release / 配布バイナリには含まれません。
+- **Repository**: https://github.com/naudio/NAudio
+- **Copyright**: Copyright (c) 2020 Mark Heath
 
-Avaloniaのホットリロード機能。
+.NET 向けオーディオライブラリ。オーディオファイルの読み書き・再生に使用。
+
+---
+
+### NAudio.Vorbis
+- **Version**: 1.5.0
+- **License**: MIT License
+- **Repository**: https://github.com/naudio/Vorbis
+- **Copyright**: Copyright (c) Andrew Ward
+
+NAudio 向け Ogg Vorbis デコードプラグイン。
+
+---
+
+### NLayer
+- **Version**: 1.16.0
+- **License**: MIT License
+- **Repository**: https://github.com/naudio/NLayer
+- **Copyright**: Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
+
+Pure C# による MPEG Audio デコードライブラリ。
+
+---
+
+### NLayer.NAudioSupport
+- **Version**: 1.4.0
+- **License**: MIT License
+- **Repository**: https://github.com/naudio/NLayer
+- **Copyright**: Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
+
+NLayer の NAudio 統合プラグイン。
+
+---
+
+### OggVorbisEncoder
+- **Version**: 1.2.2
+- **License**: MIT License
+- **Repository**: https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder
+- **Copyright**: Copyright (c) 2016 Steve Lillis
+
+.NET 向け Ogg Vorbis エンコードライブラリ。
 
 ---
 
@@ -135,12 +173,34 @@ Avaloniaのホットリロード機能。
 ### nakuru_audio
 - **Version**: 0.1.0
 - **License**: MIT License
-- **Repository**: 本リポジトリ (`native/nakuru_audio/`)
+- **Repository**: https://github.com/rice5941/NakuruTool_Avalonia_AOT
 - **Copyright**: Copyright (c) 2025 NakuruTool Contributors
 
 このプロジェクトで開発されたオーディオ再生ライブラリ。rodioのC FFIラッパー。
 
-詳細は [native/nakuru_audio/LICENSE](native/nakuru_audio/LICENSE) および [native/nakuru_audio/THIRD-PARTY-NOTICES.md](native/nakuru_audio/THIRD-PARTY-NOTICES.md) を参照してください。
+---
+
+### SoundTouch
+- **Version**: 2.4.1
+- **License**: **GNU Lesser General Public License v2.1 (LGPL-2.1)**
+- **Repository**: https://codeberg.org/soundtouch/soundtouch
+- **Copyright**: Copyright (c) Olli Parviainen
+- **ライセンスファイル**: licenses/SoundTouch_COPYING.TXT
+- **備考**: DLLとして動的リンクで使用。LGPL-2.1に従いソースコードは上記リポジトリから入手可能です。
+
+テンポ／ピッチ変更のためのオーディオ処理ライブラリ。譜面レート変換（DT モード）で使用。
+
+---
+
+### LAME MP3 Encoder
+- **Version**: 3.100
+- **License**: **GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)**
+- **Website**: https://lame.sourceforge.io/
+- **Copyright**: Copyright (C) 1999-2017 The LAME Project
+- **ライセンスファイル**: licenses/LAME_COPYING.TXT
+- **備考**: DLLとして動的リンクで使用。LGPL-2.1に従いソースコードは上記サイトから入手可能です。
+
+MP3エンコード機能で使用。ユーザーは同じインターフェースを持つ互換DLLに差し替えることが可能。
 
 ---
 
@@ -151,17 +211,6 @@ Avaloniaのホットリロード機能。
 - **Copyright**: Copyright (c) The Rodio contributors
 
 Rustのクロスプラットフォームオーディオ再生ライブラリ。
-
----
-
-### csbindgen
-- **Version**: 1.9.7
-- **License**: MIT License
-- **Repository**: https://github.com/Cysharp/csbindgen
-- **Copyright**: Copyright (c) 2024 Cysharp, Inc.
-- **備考**: ビルド時依存。配布バイナリには直接含まれません。
-
-RustからC#へのFFIバインディング自動生成ツール。
 
 ---
 
@@ -238,6 +287,17 @@ are permitted provided that the following conditions are met:
    may be used to endorse or promote products derived from this software without
    specific prior written permission.
 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
 ---
 
 ### byteorder
@@ -284,15 +344,7 @@ tinyvec のプロシージャルマクロ補助クレート。
 - **SkiaSharp**: MIT License - 2Dグラフィックスライブラリ（Copyright (c) 2015-2016 Xamarin, Inc. / Copyright (c) 2017-2018 Microsoft Corporation. [GitHub](https://github.com/mono/SkiaSharp)）
 - **HarfBuzzSharp**: MIT License - テキストシェーピングライブラリ（同リポジトリ、[NuGet](https://www.nuget.org/packages/HarfBuzzSharp)）
 
-完全な依存関係ツリーについては、以下のコマンドで確認できます：
-
-```bash
-# Rust 依存関係
-cargo tree --manifest-path native/nakuru_audio/Cargo.toml
-
-# .NET 依存関係
-dotnet list NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT.csproj package --include-transitive
-```
+完全な依存関係ツリーについては、ソースリポジトリ (https://github.com/rice5941/NakuruTool_Avalonia_AOT) を参照してください。
 
 ## ライセンス全文
 

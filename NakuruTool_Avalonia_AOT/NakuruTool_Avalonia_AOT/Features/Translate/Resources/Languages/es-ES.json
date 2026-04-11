@@ -8,7 +8,8 @@
     "ImportExport": "Importar/Exportar",
     "Systems": "Sistema",
     "Settings": "Configuración",
-    "Licenses": "Licencias"
+    "Licenses": "Licencias",
+    "BeatmapGeneration": "Generación de beatmap"
   },
   "Settings": {
     "Language": "Idioma",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Copiar URL de descarga",
-    "OpenInExplorer": "Abrir carpeta en el Explorador"
+    "OpenInExplorer": "Abrir carpeta en el Explorador",
+    "GenerateBeatmap": "Generar beatmap..."
   },
   "MapFilter": {
     "Title": "Condiciones de filtro",
@@ -220,5 +222,40 @@
     "Repeat": "Repetir",
     "Toggle": "Alternar panel de audio",
     "Volume": "Volumen"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Seleccionar colección",
+    "SelectedCount": "Seleccionados:",
+    "RateGeneration": "Generación de rate",
+    "FLNGeneration": "Generación Full LN",
+    "ComingSoon": "Próximamente",
+    "Rate": "Rate",
+    "RateMode": "Multiplicador",
+    "FixedBpmMode": "BPM fijo",
+    "CalculatedRate": "Rate calculado:",
+    "CalculatedBpm": "BPM calculado:",
+    "BeatmapConfig": "Configuración de dificultad",
+    "OverrideHp": "Cambiar HP",
+    "OverrideOd": "Cambiar OD",
+    "BatchGenerate": "Generar en lote",
+    "Generate": "Generar",
+    "Close": "Cerrar",
+    "Cancel": "Cancelar",
+    "Cancelled": "Cancelado",
+    "DialogTitle": "Generar beatmap",
+    "Completed": "Completado",
+    "GenerationComplete": "Generación completada (x{0})",
+    "ProcessingOsuInfo": "Por favor, inicia osu! antes de generar",
+    "RefreshHint": "Presiona F5 en osu! para actualizar la lista de beatmaps",
+    "BatchComplete": "{1} de {0} beatmaps generados con éxito",
+    "UnknownError": "Error desconocido",
+    "ChangePitch": "Cambiar tono (modo NC)",
+    "OptionsGroup": "Opciones",
+    "Mp3Quality": "Calidad MP3",
+    "Mp3Standard": "Estándar",
+    "Mp3HighQuality": "Alta calidad",
+    "ValidationRequired": "Ingrese un valor",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

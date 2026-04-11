@@ -8,7 +8,8 @@
     "ImportExport": "Nhập/Xuất",
     "Systems": "Hệ thống",
     "Settings": "Cài đặt",
-    "Licenses": "Giấy phép"
+    "Licenses": "Giấy phép",
+    "BeatmapGeneration": "Tạo beatmap"
   },
   "Settings": {
     "Language": "Ngôn ngữ",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Sao chép URL tải xuống",
-    "OpenInExplorer": "Mở thư mục trong Explorer"
+    "OpenInExplorer": "Mở thư mục trong Explorer",
+    "GenerateBeatmap": "Tạo beatmap..."
   },
   "MapFilter": {
     "Title": "Điều kiện lọc",
@@ -220,5 +222,40 @@
     "Repeat": "Lặp lại",
     "Toggle": "Chuyển bảng âm thanh",
     "Volume": "Âm lượng"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Chọn bộ sưu tập",
+    "SelectedCount": "Đã chọn:",
+    "RateGeneration": "Tạo rate",
+    "FLNGeneration": "Tạo Full LN",
+    "ComingSoon": "Sắp ra mắt",
+    "Rate": "Rate",
+    "RateMode": "Hệ số nhân",
+    "FixedBpmMode": "BPM cố định",
+    "CalculatedRate": "Rate đã tính:",
+    "CalculatedBpm": "BPM đã tính:",
+    "BeatmapConfig": "Cài đặt độ khó",
+    "OverrideHp": "Thay đổi HP",
+    "OverrideOd": "Thay đổi OD",
+    "BatchGenerate": "Tạo hàng loạt",
+    "Generate": "Tạo",
+    "Close": "Đóng",
+    "Cancel": "Hủy",
+    "Cancelled": "Đã hủy",
+    "DialogTitle": "Tạo beatmap",
+    "Completed": "Hoàn thành",
+    "GenerationComplete": "Tạo hoàn tất (x{0})",
+    "ProcessingOsuInfo": "Vui lòng khởi động osu! trước khi tạo",
+    "RefreshHint": "Nhấn F5 trong osu! để làm mới danh sách beatmap",
+    "BatchComplete": "Đã tạo thành công {1} trong {0} beatmap",
+    "UnknownError": "Lỗi không xác định",
+    "ChangePitch": "Thay đổi pitch (chế độ NC)",
+    "OptionsGroup": "Tùy chọn",
+    "Mp3Quality": "Chất lượng MP3",
+    "Mp3Standard": "Tiêu chuẩn",
+    "Mp3HighQuality": "Chất lượng cao",
+    "ValidationRequired": "Vui lòng nhập giá trị",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

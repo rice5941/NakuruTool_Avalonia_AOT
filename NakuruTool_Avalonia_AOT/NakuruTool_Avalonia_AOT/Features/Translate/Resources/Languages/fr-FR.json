@@ -8,7 +8,8 @@
     "ImportExport": "Importer/Exporter",
     "Systems": "Système",
     "Settings": "Paramètres",
-    "Licenses": "Licences"
+    "Licenses": "Licences",
+    "BeatmapGeneration": "Génération de beatmap"
   },
   "Settings": {
     "Language": "Langue",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Copier l'URL de téléchargement",
-    "OpenInExplorer": "Ouvrir le dossier dans l'Explorateur"
+    "OpenInExplorer": "Ouvrir le dossier dans l'Explorateur",
+    "GenerateBeatmap": "Générer un beatmap..."
   },
   "MapFilter": {
     "Title": "Conditions de filtre",
@@ -220,5 +222,40 @@
     "Repeat": "Répéter",
     "Toggle": "Afficher/Masquer le panneau audio",
     "Volume": "Volume"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Sélectionner une collection",
+    "SelectedCount": "Sélectionnés:",
+    "RateGeneration": "Génération de rate",
+    "FLNGeneration": "Génération Full LN",
+    "ComingSoon": "Prochainement",
+    "Rate": "Rate",
+    "RateMode": "Multiplicateur",
+    "FixedBpmMode": "BPM fixe",
+    "CalculatedRate": "Rate calculé:",
+    "CalculatedBpm": "BPM calculé:",
+    "BeatmapConfig": "Paramètres de difficulté",
+    "OverrideHp": "Modifier HP",
+    "OverrideOd": "Modifier OD",
+    "BatchGenerate": "Génération en lot",
+    "Generate": "Générer",
+    "Close": "Fermer",
+    "Cancel": "Annuler",
+    "Cancelled": "Annulé",
+    "DialogTitle": "Générer un beatmap",
+    "Completed": "Terminé",
+    "GenerationComplete": "Génération terminée (x{0})",
+    "ProcessingOsuInfo": "Veuillez lancer osu! avant de générer",
+    "RefreshHint": "Appuyez sur F5 dans osu! pour actualiser la liste des beatmaps",
+    "BatchComplete": "{1} sur {0} beatmaps générés avec succès",
+    "UnknownError": "Erreur inconnue",
+    "ChangePitch": "Changer le pitch (mode NC)",
+    "OptionsGroup": "Options",
+    "Mp3Quality": "Qualité MP3",
+    "Mp3Standard": "Standard",
+    "Mp3HighQuality": "Haute qualité",
+    "ValidationRequired": "Veuillez entrer une valeur",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

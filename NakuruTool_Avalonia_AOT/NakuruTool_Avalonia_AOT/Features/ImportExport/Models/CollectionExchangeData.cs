@@ -26,9 +26,6 @@ public class CollectionExchangeBeatmap
 
     public string Md5 { get; set; } = string.Empty;
 
-    /// <summary>.osuファイル名</summary>
-    public string OsuFileName { get; set; } = string.Empty;
-
     /// <summary>Beatmap → DTO変換（エクスポート時）</summary>
     public static CollectionExchangeBeatmap FromBeatmap(Beatmap beatmap) => new()
     {
@@ -39,7 +36,6 @@ public class CollectionExchangeBeatmap
         Cs = (double)beatmap.KeyCount,
         BeatmapsetId = beatmap.BeatmapSetId,
         Md5 = beatmap.MD5Hash,
-        OsuFileName = beatmap.OsuFileName
     };
 }
 

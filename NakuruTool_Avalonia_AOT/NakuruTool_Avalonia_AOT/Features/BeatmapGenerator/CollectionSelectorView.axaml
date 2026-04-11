@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="400"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.CollectionSelectorView"
+             x:DataType="local:CollectionSelectorViewModel">
+
+    <ListBox Margin="8"
+                ItemsSource="{Binding Collections}"
+                SelectedItem="{Binding SelectedCollection}">
+        <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="osu:OsuCollection">
+                <TextBlock Text="{Binding Name}"/>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>
+</UserControl>

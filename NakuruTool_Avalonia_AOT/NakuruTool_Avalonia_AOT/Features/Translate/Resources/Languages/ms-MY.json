@@ -8,7 +8,8 @@
     "ImportExport": "Import/Eksport",
     "Systems": "Sistem",
     "Settings": "Tetapan",
-    "Licenses": "Lesen"
+    "Licenses": "Lesen",
+    "BeatmapGeneration": "Jana beatmap"
   },
   "Settings": {
     "Language": "Bahasa",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Salin URL Muat Turun",
-    "OpenInExplorer": "Buka Folder dalam Explorer"
+    "OpenInExplorer": "Buka Folder dalam Explorer",
+    "GenerateBeatmap": "Jana beatmap..."
   },
   "MapFilter": {
     "Title": "Syarat penapis",
@@ -220,5 +222,40 @@
     "Repeat": "Ulang",
     "Toggle": "Togol panel audio",
     "Volume": "Kelantangan"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Pilih koleksi",
+    "SelectedCount": "Dipilih:",
+    "RateGeneration": "Jana rate",
+    "FLNGeneration": "Jana Full LN",
+    "ComingSoon": "Akan datang",
+    "Rate": "Rate",
+    "RateMode": "Pengganda",
+    "FixedBpmMode": "BPM tetap",
+    "CalculatedRate": "Rate dikira:",
+    "CalculatedBpm": "BPM dikira:",
+    "BeatmapConfig": "Tetapan kesukaran",
+    "OverrideHp": "Tukar HP",
+    "OverrideOd": "Tukar OD",
+    "BatchGenerate": "Jana secara pukal",
+    "Generate": "Jana",
+    "Close": "Tutup",
+    "Cancel": "Batal",
+    "Cancelled": "Dibatalkan",
+    "DialogTitle": "Jana beatmap",
+    "Completed": "Selesai",
+    "GenerationComplete": "Penjanaan selesai (x{0})",
+    "ProcessingOsuInfo": "Sila lancarkan osu! sebelum menjana",
+    "RefreshHint": "Tekan F5 dalam osu! untuk menyegarkan senarai beatmap",
+    "BatchComplete": "{1} daripada {0} beatmap berjaya dijana",
+    "UnknownError": "Ralat tidak diketahui",
+    "ChangePitch": "Tukar pic (mod NC)",
+    "OptionsGroup": "Pilihan",
+    "Mp3Quality": "Kualiti MP3",
+    "Mp3Standard": "Standard",
+    "Mp3HighQuality": "Kualiti tinggi",
+    "ValidationRequired": "Sila masukkan nilai",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

@@ -599,6 +599,38 @@ flowchart LR
 
 テーマ変更は `Application.RequestedThemeVariant` のセッターがAvalonia内部でUI全体のスタイル再評価をトリガーするため、明示的な通知チェーンは不要。`UnregisterFollowSystemTheme()` でシステムのテーマ追従を解除する。
 
+---
+
+## 8. BeatmapGenerator ビートマップリスト表示フロー
+
+BeatmapGenerationPageViewの中央カラムに、選択コレクション内の譜面一覧をDataGridで表示する。
+
+```mermaid
+flowchart TD
+    CS["CollectionSelectorViewModel<br/>SelectedCollection変更"] -->|R3 ObserveProperty| RC["RefreshCollectionBeatmaps()"]
+    RC -->|MD5マッチング| DB["IDatabaseService<br/>.TryGetBeatmapByMd5()"]
+    DB --> RB["_resolvedBeatmaps配列"]
+    RB --> UPC["UpdateBeatmapPageCount()"]
+    RB --> USB["UpdateShowBeatmaps()"]
+
+    MOD["SelectedModCategory変更"] --> USB
+    SS["SelectedScoreSystemCategory変更"] --> USB
+    PAGE["CurrentBeatmapPage変更"] --> USB
+    PSIZE["BeatmapPageSize変更"] -->|UpdateBeatmapPageCount| USB
+    PU["PreferUnicode変更"] -->|R3 ObservePropertyAndSubscribe| USB
+
+    USB -->|"Span skip/take"| SB["ShowBeatmaps<br/>(AvaloniaList)"]
+    USB -->|"beatmap with {<br/>GetBestScore(scoreSystem, mod),<br/>GetBestAccuracy(scoreSystem, mod),<br/>GetGrade(scoreSystem, mod)}"| SB
+    SB -->|Binding| DG["DataGrid表示"]
+```
+
+### データフロー詳細
+
+1. **コレクション選択** — `CollectionSelectorViewModel.SelectedCollection` の変更をR3で監視し `RefreshCollectionBeatmaps()` を呼び出し
+2. **譜面解決** — コレクション内の各MD5ハッシュで `IDatabaseService.TryGetBeatmapByMd5()` を照合し `_resolvedBeatmaps` 配列を構築
+3. **表示更新** — `UpdateShowBeatmaps()` で `Span` スライスによるページ分のデータ取得後、`beatmap with { ... }` でMod/ScoreSystem対応の値に差し替えて `ShowBeatmaps` に転写
+4. **Mod/ScoreSystem切替** — `OnSelectedModCategoryChanged` / `OnSelectedScoreSystemCategoryChanged` が `UpdateShowBeatmaps()` を再呼び出し
+
 ### 7.5 IsAudioPanelMode変更時のチェーン
 
 オーディオパネルモードの切り替えは`MapListViewModel.OnIsAudioPanelModeChanged()`で処理される。R3リアクティブチェーンではなく、CommunityToolkit.Mvvmの`partial method`パターンを使用。
@@ -736,3 +768,85 @@ flowchart TD
 |---------|------|--------------|
 | `{AppDirectory}/exports/` | エクスポートJSON出力先 | `ExportAsync()` 呼び出し時に自動作成 |
 | `{AppDirectory}/imports/` | インポートJSON配置先 | `GetImportFiles()` 呼び出し時に自動作成 |
+
+---
+
+## 9. レート生成フロー
+
+BeatmapGeneratorモジュールによるレート変更版譜面の生成フロー。指定レート範囲で.osuファイルのタイミング変換とオーディオのレート変換を行い、Songsフォルダに出力する。DTモード（デフォルト）ではSoundTouchによるピッチ保持テンポ変更、NCモードではサンプルレート変更によるピッチ変更を伴うレート変換を行う。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant VM as RateGenerationViewModel
+    participant BRG as BeatmapRateGenerator
+    participant OFC as OsuFileRateConverter
+    participant ARC as AudioRateChanger
+    participant ST as SoundTouch (C/C++)
+    participant Songs as Songs/{folder}
+
+    User->>VM: 生成実行
+    VM->>BRG: GenerateAsync(options, progress, ct)
+
+    loop 各レート（min → max, step刻み）
+        BRG->>OFC: ConvertAsync(osuFilePath, rate, options)
+        Note over OFC: タイミングポイント・ノート・<br/>BPM・メタデータのレート変換
+        OFC-->>BRG: 変換済み.osuファイル出力
+
+        alt DT モード（changePitch = false）
+            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=false, ct)
+            ARC->>ST: SoundTouch.Tempo = rate
+            Note over ST: SoundTouch<br/>FeedAndDrain（ストリーミング）<br/>ピッチ保持テンポ変更
+            ST-->>ARC: テンポ変更済みサンプル（逐次出力）
+            alt 入力が .mp3 かつ 1-2ch
+                ARC->>ARC: LameMp3Encoder でMP3エンコード
+                ARC->>Songs: MP3出力（_dt サフィックス）
+            else 入力が .mp3 かつ 3ch以上
+                Note over ARC: OGGにフォールバック
+                ARC->>Songs: OGG出力（_dt サフィックス）
+            else 入力が .ogg
+                ARC->>Songs: OGG出力（_dt サフィックス）
+            else 入力が .wav
+                ARC->>Songs: WAV出力（_dt サフィックス）
+            end
+        else NC モード（changePitch = true）
+            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=true, ct)
+            Note over ARC: NAudioでデコード →<br/>SampleRateOverrideで速度変換<br/>（ピッチも変化、ストリーミング出力）
+            alt 入力が .mp3 かつ 1-2ch
+                ARC->>ARC: LameMp3Encoder でMP3エンコード
+                ARC->>Songs: MP3出力（_nc サフィックス）
+            else 入力が .mp3 かつ 3ch以上
+                Note over ARC: OGGにフォールバック
+                ARC->>Songs: OGG出力（_nc サフィックス）
+            else 入力が .ogg
+                ARC->>Songs: OGG出力（_nc サフィックス）
+            else 入力が .wav
+                ARC->>Songs: WAV出力（_nc サフィックス）
+            end
+        end
+    end
+
+    BRG->>BRG: BatchGenerationResult集計
+    BRG-->>VM: 完了（成功/スキップ/失敗件数）
+    VM-->>User: 結果表示
+```
+
+### 処理の流れ
+
+1. **ユーザー操作** — コレクション選択または単一譜面指定 → レート範囲・ステップ・モード（DT/NC）を設定 → 生成開始
+2. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換し、新しい.osuファイルを出力（DTモードではDTタグ、NCモードではNCタグを付与）
+3. **オーディオ変換**
+   - **DTモード（デフォルト）**: `AudioRateChanger` が元オーディオをNAudioでデコード → SoundTouch でピッチ保持テンポ変更 → ストリーミングで出力ファイルに書き込み（WAV/MP3/OGG）
+   - **NCモード**: `AudioRateChanger` がNAudioでデコード → サンプルレート変更によるレート変換（ピッチも変化） → ストリーミングで出力ファイルに書き込み（WAV/MP3/OGG）
+4. **出力先** — osu!のSongsフォルダ内の元譜面フォルダに、レート付きファイル名で出力（例: `audio_1.25x_dt.mp3`, `audio_1.25x_dt.ogg`, `audio_1.25x_nc.ogg`）
+
+### 出力形式の自動選択
+
+入力ファイルの拡張子に応じて出力形式が自動選択される。MP3エンコードにはLAME 3.100（`LameMp3Encoder`）を使用する。
+
+| 入力形式 | チャンネル数 | 出力形式 | エンコーダ |
+|---------|------------|---------|----------|
+| `.mp3` | 1-2ch | `.mp3` | LameMp3Encoder（VBR品質: 標準=4 / 高品質=0 の2択） |
+| `.mp3` | 3ch以上 | `.ogg` | OGGフォールバック（LAME非対応） |
+| `.ogg` | 任意 | `.ogg` | OGGエンコーダ |
+| `.wav` | 任意 | `.wav` | WAV出力 |

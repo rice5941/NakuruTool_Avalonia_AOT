@@ -8,7 +8,8 @@
     "ImportExport": "Import/Export",
     "Systems": "Systems",
     "Settings": "Settings",
-    "Licenses": "Licenses"
+    "Licenses": "Licenses",
+    "BeatmapGeneration": "Beatmap Generation"
   },
   "Settings": {
     "Language": "Language",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Copy Download URL",
-    "OpenInExplorer": "Open Folder in Explorer"
+    "OpenInExplorer": "Open Folder in Explorer",
+    "GenerateBeatmap": "Generate Beatmap..."
   },
   "MapFilter": {
     "Title": "Filter Conditions",
@@ -220,5 +222,40 @@
     "Repeat": "Repeat",
     "Toggle": "Toggle Audio Panel",
     "Volume": "Volume"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Select Collection",
+    "SelectedCount": "Selected:",
+    "RateGeneration": "Rate Generation",
+    "FLNGeneration": "Full LN Generation",
+    "ComingSoon": "Coming Soon",
+    "Rate": "Rate",
+    "RateMode": "Multiplier",
+    "FixedBpmMode": "Fixed BPM",
+    "CalculatedRate": "Calculated rate:",
+    "CalculatedBpm": "Calculated BPM:",
+    "BeatmapConfig": "Difficulty Settings",
+    "OverrideHp": "Change HP",
+    "OverrideOd": "Change OD",
+    "BatchGenerate": "Batch Generate",
+    "Generate": "Generate",
+    "Close": "Close",
+    "Cancel": "Cancel",
+    "Cancelled": "Cancelled",
+    "DialogTitle": "Generate Beatmap",
+    "Completed": "Completed",
+    "GenerationComplete": "Generation complete (x{0})",
+    "ProcessingOsuInfo": "Please launch osu! before generating",
+    "RefreshHint": "Press F5 in osu! to refresh the beatmap list",
+    "BatchComplete": "{1} of {0} beatmaps generated successfully",
+    "UnknownError": "Unknown error",
+    "ChangePitch": "Change Pitch (NC mode)",
+    "OptionsGroup": "Options",
+    "Mp3Quality": "MP3 Quality",
+    "Mp3Standard": "Standard",
+    "Mp3HighQuality": "High Quality",
+    "ValidationRequired": "Please enter a value",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

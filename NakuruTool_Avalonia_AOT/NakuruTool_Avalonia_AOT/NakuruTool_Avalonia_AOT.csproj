@@ -14,6 +14,13 @@
 	<ApplicationIcon>Assets\Nakurage-dot.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)..\..\</RepositoryRoot>
+    <BungeeSubmoduleDir>$(RepositoryRoot)native\nakuru_rate_audio\vendor\bungee</BungeeSubmoduleDir>
+    <CargoExe Condition="Exists('$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))\.cargo\bin\cargo.exe')">$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))\.cargo\bin\cargo.exe</CargoExe>
+    <CargoExe Condition="'$(CargoExe)' == ''">cargo</CargoExe>
+  </PropertyGroup>
+
   <!-- NativeAOT Settings (Release構成でのみ有効) -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PublishAot>true</PublishAot>
@@ -47,14 +54,15 @@
     <Content Include="Assets\Nakurage-dot.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.12" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+    <PackageReference Include="Avalonia" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.13" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.13">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.3.13" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <!--Condition below is needed to remove HotAvalonia package from build output in Release configuration.-->
     <PackageReference Include="HotAvalonia" Version="3.1.0">
@@ -68,11 +76,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="NLayer" Version="1.16.0" />
-    <PackageReference Include="NLayer.NAudioSupport" Version="1.4.0" />
-    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
+
     <PackageReference Include="R3" Version="1.3.0" />
     <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
@@ -87,22 +91,28 @@
   </ItemGroup>
 
   <!-- Rust build integration -->
-  <Target Name="BuildRustLibrary" BeforeTargets="BeforeBuild">
+  <Target Name="BuildRustLibrary" BeforeTargets="BeforeBuild" Condition="'$(DesignTimeBuild)' != 'true'">
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
-      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
-      <NativeLibPathStretch>$(ProjectDir)..\..\native\nakuru_stretch\target\$(RustProfile)\nakuru_stretch.dll</NativeLibPathStretch>
+      <NativeLibPathAudio>$(RepositoryRoot)native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathRateAudio>$(RepositoryRoot)native\nakuru_rate_audio\target\$(RustProfile)\nakuru_rate_audio.dll</NativeLibPathRateAudio>
     </PropertyGroup>
 
+    <Error Condition="!Exists('$(BungeeSubmoduleDir)\CMakeLists.txt')" Text="Bungee submodule is missing. Run 'git submodule update --init --recursive' from the repository root before building NakuruTool." />
+
     <!-- Build nakuru_audio -->
-    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
+    <Exec Command="&quot;$(CargoExe)&quot; build $(RustBuildFlag) --manifest-path &quot;$(RepositoryRoot)native\nakuru_audio\Cargo.toml&quot;" />
     <Copy SourceFiles="$(NativeLibPathAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAudio)')" />
 
-    <!-- Build nakuru_stretch -->
-    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_stretch\Cargo.toml&quot;" />
-    <Copy SourceFiles="$(NativeLibPathStretch)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathStretch)')" />
+    <!-- Build nakuru_rate_audio -->
+    <Exec Command="&quot;$(CargoExe)&quot; build $(RustBuildFlag) --manifest-path &quot;$(RepositoryRoot)native\nakuru_rate_audio\Cargo.toml&quot;" />
+    <Copy SourceFiles="$(NativeLibPathRateAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathRateAudio)')" />
+
+    <!-- Copy libmp3lame.dll if available -->
+    <Copy SourceFiles="$(RepositoryRoot)native\libmp3lame.dll" DestinationFolder="$(OutDir)" Condition="Exists('$(RepositoryRoot)native\libmp3lame.dll')" />
+
   </Target>
 
   <!-- Copy native library to publish directory for NativeAOT -->
@@ -110,8 +120,8 @@
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
-      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
-      <NativeLibPathStretch>$(ProjectDir)..\..\native\nakuru_stretch\target\$(RustProfile)\nakuru_stretch.dll</NativeLibPathStretch>
+      <NativeLibPathAudio>$(RepositoryRoot)native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathRateAudio>$(RepositoryRoot)native\nakuru_rate_audio\target\$(RustProfile)\nakuru_rate_audio.dll</NativeLibPathRateAudio>
     </PropertyGroup>
 
     <ItemGroup>
@@ -119,8 +129,12 @@
         <RelativePath>nakuru_audio.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
-      <ResolvedFileToPublish Include="$(NativeLibPathStretch)" Condition="Exists('$(NativeLibPathStretch)')">
-        <RelativePath>nakuru_stretch.dll</RelativePath>
+      <ResolvedFileToPublish Include="$(NativeLibPathRateAudio)" Condition="Exists('$(NativeLibPathRateAudio)')">
+        <RelativePath>nakuru_rate_audio.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(RepositoryRoot)native\libmp3lame.dll" Condition="Exists('$(RepositoryRoot)native\libmp3lame.dll')">
+        <RelativePath>libmp3lame.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

@@ -17,4 +17,10 @@ public sealed record OsuFileConvertOptions
 
     /// <summary>OD の上書き値。null の場合は元の値を維持</summary>
     public double? OdOverride { get; init; }
+
+    /// <summary>
+    /// DT/NC 判別用。現時点では .osu 変換ロジックに影響しないが、
+    /// 将来の拡張ポイントとして保持。
+    /// </summary>
+    public bool ChangePitch { get; init; }
 }

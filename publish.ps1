@@ -3,6 +3,11 @@
 
 $ErrorActionPreference = "Stop"
 
+$repoRoot = $PSScriptRoot
+$projectDir = Join-Path $repoRoot "NakuruTool_Avalonia_AOT\NakuruTool_Avalonia_AOT"
+$bungeeDir = Join-Path $repoRoot "native\nakuru_rate_audio\vendor\bungee"
+$cargoExe = Join-Path $env:USERPROFILE ".cargo\bin\cargo.exe"
+
 # vswhere.exeのパスを追加
 $vsWherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
 if (Test-Path $vsWherePath) {
@@ -12,16 +17,85 @@ if (Test-Path $vsWherePath) {
     Write-Host "Warning: vswhere.exe not found at $vsWherePath" -ForegroundColor Yellow
 }
 
-# プロジェクトディレクトリに移動
-$projectDir = Join-Path $PSScriptRoot "NakuruTool_Avalonia_AOT\NakuruTool_Avalonia_AOT"
+if (-not (Test-Path (Join-Path $bungeeDir "CMakeLists.txt"))) {
+    Write-Host "Error: native\nakuru_rate_audio\vendor\bungee is missing." -ForegroundColor Red
+    Write-Host "Run 'git submodule update --init --recursive' from the repository root and retry." -ForegroundColor Yellow
+    exit 1
+}
+
+if (-not (Test-Path $cargoExe) -and -not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: cargo was not found. Install Rust via rustup and ensure cargo is available." -ForegroundColor Red
+    exit 1
+}
+
+# libmp3lame.dll を vcpkg でビルドして native/ に配置する関数
+function Ensure-LibMp3Lame {
+    param([string]$TargetPath)
+
+    if (Test-Path $TargetPath) {
+        Write-Host "libmp3lame.dll: exists at native\libmp3lame.dll (skipping build)" -ForegroundColor DarkGray
+        return
+    }
+
+    # vcpkg を探す（VCPKG_ROOT 環境変数 → よくある場所 → PATH の順）
+    $vcpkgExe = $null
+    $vcpkgSearchPaths = @(
+        $env:VCPKG_ROOT,
+        "D:\work\vcpkg",
+        "C:\vcpkg",
+        "$env:USERPROFILE\vcpkg",
+        "C:\src\vcpkg"
+    )
+    foreach ($p in $vcpkgSearchPaths) {
+        if ($p -and (Test-Path (Join-Path $p "vcpkg.exe"))) {
+            $vcpkgExe = Join-Path $p "vcpkg.exe"
+            break
+        }
+    }
+    if (-not $vcpkgExe) {
+        $found = Get-Command vcpkg -ErrorAction SilentlyContinue
+        if ($found) { $vcpkgExe = $found.Source }
+    }
+
+    if (-not $vcpkgExe) {
+        Write-Host "Warning: vcpkg not found. MP3 output will be disabled." -ForegroundColor Yellow
+        Write-Host "  To enable MP3: install vcpkg, run 'vcpkg install mp3lame:x64-windows'," -ForegroundColor Yellow
+        Write-Host "  then copy libmp3lame.dll to native\libmp3lame.dll" -ForegroundColor Yellow
+        return
+    }
+
+    Write-Host "Building libmp3lame via vcpkg ($vcpkgExe)..." -ForegroundColor Cyan
+    & $vcpkgExe install "mp3lame:x64-windows"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: vcpkg install mp3lame:x64-windows failed. MP3 output will be disabled." -ForegroundColor Yellow
+        return
+    }
+
+    $vcpkgRoot = Split-Path $vcpkgExe -Parent
+    $vcpkgDll = Join-Path $vcpkgRoot "installed\x64-windows\bin\libmp3lame.dll"
+    if (Test-Path $vcpkgDll) {
+        Copy-Item -Path $vcpkgDll -Destination $TargetPath -Force
+        $sz = [math]::Round((Get-Item $TargetPath).Length / 1KB, 1)
+        Write-Host "libmp3lame.dll: copied from vcpkg ($sz KB)" -ForegroundColor Green
+    } else {
+        Write-Host "Warning: libmp3lame.dll not found at expected vcpkg path: $vcpkgDll" -ForegroundColor Yellow
+    }
+}
+
 Push-Location $projectDir
+
+try {
+
+# libmp3lame.dll を用意（vcpkg ビルド、既存なら再使用）
+Ensure-LibMp3Lame -TargetPath (Join-Path $repoRoot "native\libmp3lame.dll")
 
 Write-Host "Publishing NakuruTool with NativeAOT..." -ForegroundColor Cyan
 
 # NativeAOT publish
 dotnet publish -c Release -r win-x64
+$publishExitCode = $LASTEXITCODE
 
-if ($LASTEXITCODE -eq 0) {
+if ($publishExitCode -eq 0) {
     Write-Host "`nPublish successful!" -ForegroundColor Green
     Write-Host "Output: $projectDir\bin\Release\net10.0\win-x64\publish\" -ForegroundColor Green
 
@@ -29,6 +103,8 @@ if ($LASTEXITCODE -eq 0) {
     $publishDir = Join-Path $projectDir "bin\Release\net10.0\win-x64\publish"
     $exeFile = Join-Path $publishDir "NakuruTool.exe"
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
+    $rateAudioDllFile = Join-Path $publishDir "nakuru_rate_audio.dll"
+    $lameDllFile = Join-Path $publishDir "libmp3lame.dll"
     $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.url"
     $userGuideDestination = Join-Path $publishDir "USER_GUIDE.url"
     $presetsSource = Join-Path $PSScriptRoot "presets"
@@ -44,11 +120,19 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
 
-    $stretchDllFile = Join-Path $publishDir "nakuru_stretch.dll"
+    if (Test-Path $rateAudioDllFile) {
+        $rateAudioDllSize = (Get-Item $rateAudioDllFile).Length / 1MB
+        Write-Host "  nakuru_rate_audio.dll: $([math]::Round($rateAudioDllSize, 1)) MB" -ForegroundColor White
+    }
 
-    if (Test-Path $stretchDllFile) {
-        $stretchDllSize = (Get-Item $stretchDllFile).Length / 1MB
-        Write-Host "  nakuru_stretch.dll: $([math]::Round($stretchDllSize, 1)) MB" -ForegroundColor White
+    # libmp3lame.dll を配置（オプション依存）
+    $lameSource = Join-Path $repoRoot "native\libmp3lame.dll"
+    if (Test-Path $lameSource) {
+        Copy-Item -Path $lameSource -Destination $lameDllFile -Force
+        $lameDllSize = (Get-Item $lameDllFile).Length / 1MB
+        Write-Host "  libmp3lame.dll: $([math]::Round($lameDllSize, 1)) MB" -ForegroundColor White
+    } else {
+        Write-Host "  libmp3lame.dll: not found at native\libmp3lame.dll (MP3 output disabled)" -ForegroundColor Yellow
     }
     # 配布用のユーザーガイドを同梱
     if (Test-Path $userGuideSource) {
@@ -94,9 +178,10 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "  Warning: Version not found in .csproj, skipping versioned folder creation." -ForegroundColor Yellow
     }
 } else {
-    Write-Host "`nPublish failed with exit code $LASTEXITCODE" -ForegroundColor Red
-    Pop-Location
-    exit $LASTEXITCODE
+    Write-Host "`nPublish failed with exit code $publishExitCode" -ForegroundColor Red
+    exit $publishExitCode
 }
-
-Pop-Location
+}
+finally {
+    Pop-Location
+}

@@ -20,8 +20,10 @@
 | ソフトウェア | バージョン | 用途 |
 |------------|----------|------|
 | .NET SDK | 10.0以上 | C#プロジェクトのビルド |
-| Rust | 1.92.0以上 | nakuru_audioライブラリのビルド |
-| Visual Studio | 2022 | NativeAOTリンカー (Windows) |
+| Rust | 1.92.0以上 | nakuru_audio / nakuru_rate_audio ライブラリのビルド |
+| Visual Studio | 2022 | NativeAOTリンカー / C++ コンパイラ (Windows) |
+| CMake | 3.15以上 | nakuru_rate_audio の Bungee (C++) ビルド |
+| LLVM/Clang | 18.0以上 | nakuru_rate_audio の bindgen（C→Rust FFI 自動生成）に必要 |
 
 ### 動作確認済み環境
 
@@ -112,7 +114,7 @@ Get-Command vswhere.exe -ErrorAction SilentlyContinue
 C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe
 ```
 
-**PATHに追加** (publish.ps1/publish.batで自動設定されます):
+**PATHに追加** (publish.ps1で自動設定されます):
 ```powershell
 $env:PATH = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer;$env:PATH"
 ```
@@ -142,10 +144,10 @@ NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/bin/Debug/net10.0/
 ```
 
 **ビルドプロセス:**
-1. Rustライブラリ (`nakuru_audio`) のビルド (Debug構成)
-2. C# バインディング (`NativeMethods.g.cs`) の自動生成
+1. Rustライブラリ (`nakuru_audio` と `nakuru_rate_audio`) のビルド (Debug構成)
+2. BeatmapGenerator 配下の P/Invoke バインディング `.g.cs` の自動生成
 3. C# プロジェクトのビルド
-4. `nakuru_audio.dll` のコピー
+4. `nakuru_audio.dll` / `nakuru_rate_audio.dll` と `libmp3lame.dll`（存在する場合）のコピー
 
 ### 3. Releaseビルド
 
@@ -164,11 +166,6 @@ dotnet build -c Release
 .\publish.ps1
 ```
 
-**コマンドプロンプトの場合:**
-```cmd
-publish.bat
-```
-
 **手動での実行:**
 ```powershell
 # vswhere.exeをPATHに追加
@@ -184,11 +181,15 @@ NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/bin/Release/net10.0/win-x64/publ
 ```
 
 **出力ファイル:**
-- `NakuruTool_Avalonia_AOT.exe` (約30MB)
+- `NakuruTool.exe` (約30MB)
 - `nakuru_audio.dll` (約2.1MB)
+- `nakuru_rate_audio.dll` (Rust オーディオレート変換ライブラリ)
+- `libmp3lame.dll` (MP3エンコード、オプション)
 - その他のDLL (Avalonia, SkiaSharp等)
 
 ### 5. Rustライブラリの個別ビルド
+
+#### nakuru_audio
 
 nakuru_audioライブラリのみをビルドする場合:
 
@@ -205,6 +206,105 @@ cargo build --release --manifest-path native/nakuru_audio/Cargo.toml
 **出力先:**
 - Debug: `native/nakuru_audio/target/debug/nakuru_audio.dll`
 - Release: `native/nakuru_audio/target/release/nakuru_audio.dll`
+
+#### nakuru_rate_audio
+
+オーディオレート変換ライブラリ（Bungee/Symphonia ベース）のビルド手順。
+
+**前提条件:**
+- Rust toolchain (1.92.0以上)
+- CMake (Bungee の C++ ビルドに必要)
+- C++ コンパイラ (MSVC — Visual Studio 2022 の「C++デスクトップ開発」ワークロード)
+- LLVM/Clang (`libclang`) — bindgen による C→Rust FFI バインディング自動生成に必要。[公式サイト](https://releases.llvm.org/)からインストールするか、Visual Studio の「C++ Clang tools for Windows」コンポーネントを追加
+
+**1. Git submodule の初期化:**
+```powershell
+git submodule update --init --recursive
+```
+これにより `native/nakuru_rate_audio/vendor/bungee/` に Bungee ソースがチェックアウトされます。
+
+既存のクローンで `.gitmodules` をまだ取得していない場合は、先に以下も実行してください。
+
+```powershell
+git submodule sync --recursive
+```
+
+**2. Debug構成:**
+```powershell
+cargo build --manifest-path native/nakuru_rate_audio/Cargo.toml
+```
+
+**3. Release構成:**
+```powershell
+cargo build --release --manifest-path native/nakuru_rate_audio/Cargo.toml
+```
+
+**出力先:**
+- Debug: `native/nakuru_rate_audio/target/debug/nakuru_rate_audio.dll`
+- Release: `native/nakuru_rate_audio/target/release/nakuru_rate_audio.dll`
+
+**ビルド時の注意:**
+- `build.rs` が CMake 経由で Bungee (C++) をビルドし、csbindgen で C# バインディングを自動生成します
+- 初回ビルドでは Bungee の C++ コンパイルに時間がかかります（2回目以降はキャッシュされます）
+- CMake が PATH に存在しない場合は Visual Studio 付属の CMake を使用してください
+
+### 6. libmp3lame.dll のビルド（オプション）
+
+MP3 出力機能を有効にするには `libmp3lame.dll` が必要です。DLL が存在しなくても WAV / OGG 出力は正常に動作します。
+
+> **ライセンス注意**: LAME は LGPL-2.0 でライセンスされています。LGPL に準拠するため、`libmp3lame.dll` は動的リンク（DLL 分離）としています。ユーザーは自分でビルドした DLL に差し替え可能です。
+
+#### 6.1 ソースの入手
+
+- **公式サイト**: https://lame.sourceforge.io/
+- **ソースダウンロード**: https://sourceforge.net/projects/lame/files/lame/ から最新の `lame-3.100.tar.gz` を取得
+
+#### 6.2 Windows (MSVC) でのビルド
+
+```powershell
+# 1. ソースを展開
+tar -xzf lame-3.100.tar.gz
+cd lame-3.100
+
+# 2. Visual Studio Developer Command Prompt (x64) を開く
+#    または "x64 Native Tools Command Prompt for VS 2022" を使用
+
+# 3. MSVC でビルド
+nmake -f Makefile.MSVC
+#    → output\libmp3lame.dll が生成される
+#
+# 代替: CMake を使う場合
+mkdir build && cd build
+cmake .. -G "Visual Studio 17 2022" -A x64 -DBUILD_SHARED_LIBS=ON
+cmake --build . --config Release
+#    → Release\libmp3lame.dll が生成される
+```
+
+> **注意**: LAME のビルドでは一部の `.asm` ファイルに NASM が必要になる場合があります。ASM 最適化なしでビルドする場合は `HAVE_NASM` を無効にしてください。
+
+#### 6.3 Windows (MSYS2/MinGW) でのビルド
+
+```bash
+# MSYS2 MinGW64 シェルで実行
+tar -xzf lame-3.100.tar.gz
+cd lame-3.100
+./configure --enable-shared --disable-static --prefix=/mingw64
+make -j$(nproc)
+# → libmp3lame-0.dll が生成される（libmp3lame.dll にリネーム）
+```
+
+#### 6.4 DLL の配置
+
+生成された `libmp3lame.dll` を以下に配置します:
+
+```text
+native/
+└── libmp3lame.dll
+```
+
+- MSBuild ターゲットが publish / OutDir に自動コピーします
+- `libmp3lame.dll` はリポジトリにはコミットしません（LGPL のため）
+- `.gitignore` に `native/libmp3lame.dll` が追加されていることを確認してください
 
 ---
 
@@ -240,7 +340,7 @@ $env:PATH = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer;$env:PAT
 )
 ```
 
-3. `publish.ps1`または`publish.bat`を使用 (自動的にPATHを設定)
+3. `publish.ps1`を使用 (自動的にPATHを設定)
 
 ### 問題2: リンカーエラー (link.exe)
 
@@ -289,7 +389,25 @@ $env:PATH -split ';' | Select-String "\.cargo"
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 ```
 
-### 問題4: Avalonia resourcesファイルのロック
+### 問題4: `vendor/bungee` が見つからない
+
+**エラーメッセージ:**
+```
+Bungee submodule is missing.
+```
+
+**原因:**
+- `native/nakuru_rate_audio/vendor/bungee` が未取得
+- 古いクローンで `.gitmodules` の更新が反映されていない
+
+**解決策:**
+
+```powershell
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+### 問題5: Avalonia resourcesファイルのロック
 
 **エラーメッセージ:**
 ```
@@ -319,34 +437,35 @@ Remove-Item -Recurse -Force obj, bin
 dotnet build -c Debug
 ```
 
-### 問題5: C# バインディング生成エラー
+### 問題6: C# バインディング生成エラー
 
 **エラーメッセージ:**
 ```
-error: NativeMethods.g.cs could not be generated
+ error: BeatmapGenerator 配下の *.g.cs could not be generated
 ```
 
 **原因:**
 - csbindgenのビルドスクリプト (build.rs) が失敗
-- 生成先ディレクトリが存在しない
+- `vendor/bungee` / LLVM / CMake などの前提条件が不足
 
 **解決策:**
 
-1. 生成先ディレクトリを確認:
+1. サブモジュールと前提ツールを確認:
 ```powershell
-New-Item -ItemType Directory -Force -Path NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/Features/AudioPlayer
+git submodule update --init --recursive
+cmake --version
 ```
 
 2. Rustライブラリを手動でビルド:
 ```powershell
-cd native/nakuru_audio
+cd native/nakuru_rate_audio
 cargo clean
 cargo build
 ```
 
 3. 生成されたファイルを確認:
 ```powershell
-ls ../../NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/Features/AudioPlayer/NativeMethods.g.cs
+Get-ChildItem ../../NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/Features/BeatmapGenerator/*.g.cs
 ```
 
 ---
@@ -404,7 +523,9 @@ dotnet build -c Release -r osx-x64
 
 **処理:**
 1. Debug/Release構成に応じてRustをビルド
-2. 生成された`nakuru_audio.dll`をC#の出力ディレクトリにコピー
+2. `vendor/bungee` の有無を先に検証
+3. 生成された `nakuru_audio.dll` / `nakuru_rate_audio.dll` を C# の出力ディレクトリにコピー
+4. `libmp3lame.dll` が存在する場合は同梱
 
 #### 2. CopyNativeLibraryToPublish (BeforeTargets: ComputeResolvedFilesToPublishList)
 

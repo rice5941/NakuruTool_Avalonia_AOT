@@ -15,6 +15,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
     {
         None,
         General,
+        Editor,
         Metadata,
         Difficulty,
         Events,
@@ -70,6 +71,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
                     var transformed = currentSection switch
                     {
                         OsuSection.General => TransformGeneralLine(line, options),
+                        OsuSection.Editor => TransformEditorLine(line, options.Rate),
                         OsuSection.Metadata => TransformMetadataLine(line, options),
                         OsuSection.Difficulty => TransformDifficultyLine(line, options),
                         OsuSection.Events => TransformEventLine(line, options.Rate),
@@ -99,6 +101,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         return line switch
         {
             "[General]" => OsuSection.General,
+            "[Editor]" => OsuSection.Editor,
             "[Metadata]" => OsuSection.Metadata,
             "[Difficulty]" => OsuSection.Difficulty,
             "[Events]" => OsuSection.Events,
@@ -106,6 +109,25 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
             "[HitObjects]" => OsuSection.HitObjects,
             _ => OsuSection.Other
         };
+    }
+
+    private static string TransformEditorLine(string line, decimal rate)
+    {
+        if (!line.StartsWith("Bookmarks:", StringComparison.Ordinal))
+            return line;
+
+        var valueStr = line["Bookmarks:".Length..].Trim();
+        if (string.IsNullOrWhiteSpace(valueStr))
+            return line;
+
+        var bookmarks = valueStr.Split(',');
+        for (var i = 0; i < bookmarks.Length; i++)
+        {
+            if (int.TryParse(bookmarks[i].Trim(), CultureInfo.InvariantCulture, out var value))
+                bookmarks[i] = ScaleTime(value, rate).ToString(CultureInfo.InvariantCulture);
+        }
+
+        return $"Bookmarks: {string.Join(',', bookmarks)}";
     }
 
     private static string TransformGeneralLine(string line, OsuFileConvertOptions options)
@@ -171,6 +193,16 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
             {
                 parts[1] = ScaleTime(startTime, rate).ToString(CultureInfo.InvariantCulture);
                 parts[2] = ScaleTime(endTime, rate).ToString(CultureInfo.InvariantCulture);
+                return string.Join(',', parts);
+            }
+        }
+
+        // Background: 0,startTime,"filename.ext",xOffset,yOffset
+        if (parts[0] == "0" && parts.Length >= 2)
+        {
+            if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var bgStartTime) && bgStartTime != 0)
+            {
+                parts[1] = ScaleTime(bgStartTime, rate).ToString(CultureInfo.InvariantCulture);
                 return string.Join(',', parts);
             }
         }

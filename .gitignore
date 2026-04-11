@@ -201,3 +201,7 @@ crash.txt
 # Logs
 *.log
 logs/
+
+# Native dependencies / Rust build outputs
+native/libmp3lame.dll
+native/**/target/

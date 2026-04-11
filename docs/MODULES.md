@@ -17,7 +17,7 @@
 ### 責務
 
 - アプリケーションのルートウィンドウとして機能
-- 左サイドバーのタブナビゲーション（MapList, Import/Export, Settings, Licenses）
+- 左サイドバーのタブナビゲーション（MapList, BeatmapGeneration, Import/Export, Settings, Licenses）
 - データベース読み込み中のオーバーレイ表示制御（`IsLoadingOverlayVisible`）
 - 読み込みエラー発生時の設定タブへの自動遷移
 
@@ -25,6 +25,8 @@
 
 - **OsuDatabase** — `IDatabaseLoadingViewModel` を通じてDB読み込み進捗を表示
 - **MapList** — `MapListPageViewModel` をMapListタブに配置
+- **BeatmapGenerator** — `BeatmapGenerationPageViewModel` を譜面生成タブに配置
+- **ImportExport** — `ImportExportPageViewModel` を入出力タブに配置
 - **Settings** — `ISettingsViewModel` を設定タブに配置、`ISettingsService` でフォルダパス変更を監視
 - **Licenses** — `ILicensesViewModel` をライセンスタブに配置
 - **Shared** — `ViewModelBase` を継承
@@ -38,8 +40,8 @@
 
 ### 主要挙動
 
-1. **起動時読み込み** — `Window.Opened` → `StartLoadingAsync()` → `DatabaseLoadingViewModel.InitialLoadAsync()` → `MapListPageViewModel.Initialize()` → オーバーレイ非表示
-2. **エラー時の設定タブ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合、`SelectedTabIndex` を設定タブ（インデックス 4）に切り替え
+1. **起動時読み込み** — `Window.Opened` → `StartLoadingAsync()` → `DatabaseLoadingViewModel.InitialLoadAsync()` → `MapListPageViewModel.Initialize()` / `ImportExportPageViewModel.Initialize()` / `BeatmapGenerationPageViewModel.Initialize()` → オーバーレイ非表示
+2. **エラー時の設定タブ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合、`SelectedTabIndex` を設定タブ（インデックス 5）に切り替え
 3. **フォルダパス変更監視** — `ISettingsData.OsuFolderPath` をR3の `ObserveProperty` で監視し、変更時に `ReloadDatabaseAsync()` を実行
 
 ### タブインデックス定数
@@ -47,7 +49,7 @@
 | 定数 | 値 | 対応タブ |
 |------|---|---------|
 | `TabIndexMapList` | 1 | 譜面一覧 |
-| `TabIndexSettings` | 4 | 設定 |
+| `TabIndexSettings` | 5 | 設定 |
 
 ---
 
@@ -1447,7 +1449,7 @@ ImportExportPageViewModel  ──IsAnyProcessing──▶  ImportViewModel（逆
 
 ### 概要
 
-osu!mania beatmapのレート変更版（倍速・減速）を自動生成するモジュール。指定レート範囲で.osuファイルのタイミング変換とオーディオファイルのレート変換を行い、Songsフォルダに出力する。DT（Double Time）モードではピッチを保持したタイムストレッチ、NC（NightCore）モードではピッチ変更を伴うレート変換を選択可能。
+osu!mania beatmapのレート変更版（倍速・減速）を自動生成するモジュール。指定レート範囲で.osuファイルのタイミング変換とオーディオファイルのレート変換を行い、Songsフォルダに出力する。DT（Double Time）モードでは Bungee によるピッチを保持したタイムストレッチ、NC（NightCore）モードではピッチ変更を伴うレート変換を選択可能。オーディオ処理はすべて `nakuru_rate_audio` (Rust) 経由で実行される。
 
 ### 構成ファイル一覧
 
@@ -1461,7 +1463,7 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `IAudioRateChanger.cs` | インターフェース | オーディオレート変換の契約定義 |
 | `IOsuFileRateConverter.cs` | インターフェース | .osuファイルレート変換の契約定義 |
 | `IBeatmapRateGenerator.cs` | インターフェース | レート生成オーケストレータの契約定義 |
-| `AudioRateChanger.cs` | サービス | NAudioによるオーディオレート変換（WAV出力） |
+| `AudioRateChanger.cs` | サービス | nakuru_rate_audio (Rust/Bungee) によるオーディオレート変換 |
 | `SampleRateOverrideSampleProvider.cs` | ヘルパー | サンプルレート変更用のISampleProvider実装 |
 | `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換 |
 | `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（.osu変換 + オーディオ変換を統合） |
@@ -1475,9 +1477,9 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `RateGenerationView.axaml` | View | レート設定UI |
 | `RateGenerationView.axaml.cs` | CodeBehind | |
 | `SingleBeatmapGenerationViewModel.cs` | ViewModel | 単一譜面指定のレート生成 |
-| `SingleBeatmapGenerationWindow.axaml` | View | 単一譜面生成ウィンドウ |
-| `SingleBeatmapGenerationWindow.axaml.cs` | CodeBehind | |
-| `NativeStretchMethods.g.cs` | 自動生成 | nakuru_stretch P/Invoke バインディング（CSBindgen生成） |
+| `*.g.cs` | 自動生成 | BeatmapGenerator 配下の P/Invoke バインディング（CSBindgen生成） |
+
+`SingleBeatmapGenerationViewModel` は独立ウィンドウではなく、`MapListPageView` の単体生成オーバーレイから利用される。
 
 ### 依存モジュール
 
@@ -1485,13 +1487,12 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - **Settings** — `ISettingsService`（osu!フォルダパス取得）
 - **Shared** — `ViewModelBase` を継承
 - **Translate** — UIの多言語化
-- **NAudio / NAudio.Vorbis** — オーディオファイルの読み込み・レート変換・WAV出力
-- **nakuru_stretch (Rust)** — SignalsmithStretchによるタイムストレッチ処理（DT/NCモード）
+- **nakuru_rate_audio (Rust)** — Bungeeによるタイムストレッチ、Symphoniaによるデコード、hound/vorbis_rs/LAMEによるエンコード（DT/NCモード）
 
 ### NativeAOT対応
 
-- nakuru_stretch の P/Invoke は `[DllImport]` による静的バインディング（CSBindgen自動生成）
-- OGG出力は OggVorbisEncoder（リフレクション不使用）、WAV出力は NAudio の WaveFileWriter を使用
+- nakuru_rate_audio の P/Invoke は `[DllImport]` による静的バインディング（CSBindgen自動生成）
+- オーディオのデコード・エンコードは Rust 側で実行し、補助的なサンプルレート制御では NAudio の型を利用する
 - ReflectionBindingは不使用（全Viewに `x:DataType` 指定）
 
 ---

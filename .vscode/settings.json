@@ -6,6 +6,7 @@
         "Push-Location": true,
         "Pop-Location": true,
         "Show-Lines": true,
-        "ForceNoAlign": true
+        "ForceNoAlign": true,
+        "cargo metadata": true
     }
 }

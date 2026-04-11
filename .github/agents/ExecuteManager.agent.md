@@ -51,7 +51,7 @@ agents: ['_sub_Implement', '_sub_DiffVerify_opus', '_sub_DiffVerify_codex']
 - agentName: _sub_DiffVerify_codex
 
 調査後、2ファイルの結果を集約し、必要に応じて修正を実施してください。
-- agentName: _sub_DiffVerify_opus
+- agentName: _sub_Implement
 
 #### 3. 最終品質管理
 

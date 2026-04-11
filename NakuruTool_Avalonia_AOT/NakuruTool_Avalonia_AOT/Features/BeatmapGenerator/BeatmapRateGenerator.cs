@@ -102,7 +102,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             try
             {
                 audioSuccess = await _audioRateChanger.ChangeRateAsync(
-                    inputAudioPath, audioOutputPath, rate, options.ChangePitch, cancellationToken);
+                    inputAudioPath, audioOutputPath, rate, options.ChangePitch, cancellationToken: cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -144,6 +144,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             NewDifficultyName = newDiffName,
             HpOverride = options.HpOverride,
             OdOverride = options.OdOverride,
+            ChangePitch = options.ChangePitch,
         };
 
         try
@@ -285,8 +286,13 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     {
         var nameWithoutExt = Path.GetFileNameWithoutExtension(originalName);
         var inputExt = Path.GetExtension(originalName).ToLowerInvariant();
-        // WAV入力はWAV出力、それ以外（MP3/OGG）はOGG出力
-        var outputExt = inputExt == ".wav" ? ".wav" : ".ogg";
+        var outputExt = inputExt switch
+        {
+            ".wav" => ".wav",
+            ".ogg" => ".ogg",
+            ".mp3" => RateAudioInterop.IsMp3Available() ? ".mp3" : ".ogg",
+            _ => ".ogg",
+        };
         var modeTag = changePitch ? "nc" : "dt";
         return string.Create(CultureInfo.InvariantCulture,
             $"{nameWithoutExt}_{rate:0.00}x_{modeTag}{outputExt}");

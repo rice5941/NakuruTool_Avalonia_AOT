@@ -144,24 +144,126 @@ Avaloniaのホットリロード機能。
 
 ---
 
-### nakuru_stretch
+### nakuru_rate_audio
 - **Version**: 0.1.0
 - **License**: MIT License
-- **Repository**: 本リポジトリ (`native/nakuru_stretch/`)
+- **Repository**: 本リポジトリ (`native/nakuru_rate_audio/`)
 - **Copyright**: Copyright (c) 2025 NakuruTool Contributors
 
-このプロジェクトで開発されたタイムストレッチライブラリ。SignalsmithStretchのRust FFIラッパー。
+このプロジェクトで開発されたオーディオレート変換ライブラリ。Bungee（タイムストレッチ）、Symphonia（デコード）、hound（WAVエンコード）、vorbis_rs（OGGエンコード）を統合し、C FFI を提供する Rust crate。
 
-詳細は [native/nakuru_stretch/THIRD-PARTY-NOTICES.md](native/nakuru_stretch/THIRD-PARTY-NOTICES.md) を参照してください。
+詳細は [native/nakuru_rate_audio/THIRD-PARTY-NOTICES.md](native/nakuru_rate_audio/THIRD-PARTY-NOTICES.md) を参照してください。
 
 ---
 
-### SignalsmithStretch (C++ Library)
-- **License**: MIT License
-- **Repository**: https://github.com/SignalsmithAudio/signalsmith-stretch
-- **Copyright**: Copyright (c) Signalsmith Audio Ltd.
+### Bungee (C++ Library)
+- **License**: MPL-2.0 (Mozilla Public License 2.0)
+- **Repository**: https://github.com/bungee-audio-stretch/bungee
+- **Copyright**: Copyright (c) Bungee contributors
+- **備考**: nakuru_rate_audio.dll にスタティックリンク。ファイル単位コピーレフト。ソースは未改変で使用
 
-高品質なタイムストレッチ／ピッチシフト C++ ライブラリ。nakuru_stretch が内部的に使用。
+高品質なオーディオタイムストレッチ C++ ライブラリ。DTモードでのピッチ保持レート変換に使用。
+
+---
+
+### Eigen (C++ Library)
+- **License**: MPL-2.0 (Mozilla Public License 2.0)
+- **Repository**: https://gitlab.com/libeigen/eigen
+- **Copyright**: Copyright (c) Eigen contributors
+- **備考**: Bungee の依存ライブラリとして nakuru_rate_audio.dll にスタティックリンク
+
+線形代数 C++ テンプレートライブラリ。Bungee が内部的に使用。
+
+---
+
+### PFFFT (C Library)
+- **License**: BSD-like (FFTPACK derivative)
+- **Repository**: https://bitbucket.org/jpommier/pffft
+- **Copyright**: Copyright (c) 2013 Julien Pommier / Copyright (c) 2004 the University Corporation for Atmospheric Research (FFTPACK)
+- **備考**: Bungee の依存ライブラリとして nakuru_rate_audio.dll にスタティックリンク
+
+高速 FFT ライブラリ。Bungee が内部的に使用。
+
+Copyright (c) 2013 Julien Pommier ( pommier@modartt.com )
+Copyright (c) 2004 the University Corporation for Atmospheric Research ("UCAR").
+
+Redistribution and use of the Software in source and binary forms, with or without
+modification, is permitted provided that the following conditions are met:
+
+- Neither the names of the copyright holders nor the names of their institutions may
+  be used to endorse or promote products derived from this Software without specific
+  prior written permission.
+- Redistributions of source code must retain the above copyright notices, this list
+  of conditions, and the disclaimer below.
+- Redistributions in binary form must reproduce the above copyright notice, this list
+  of conditions, and the disclaimer below in the documentation and/or other materials
+  provided with the distribution.
+
+---
+
+### Symphonia
+- **License**: MPL-2.0 (Mozilla Public License 2.0)
+- **Repository**: https://github.com/pdeljanov/Symphonia
+- **Copyright**: Copyright (c) Symphonia contributors
+- **備考**: nakuru_rate_audio.dll にリンク。ファイル単位コピーレフト。ソースは未改変で使用
+
+Rust のオーディオデコードライブラリ。MP3/OGG/WAV 等の入力デコードに使用。
+
+---
+
+### vorbis_rs
+- **License**: BSD-3-Clause
+- **Repository**: https://github.com/ComunidadAyworthy/vorbis_rs
+- **Copyright**: Copyright (c) vorbis_rs contributors
+
+OGG Vorbis エンコードライブラリ（libvorbis / libogg の Rust バインディング）。
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software without
+   specific prior written permission.
+
+---
+
+### LAME
+- **Version**: 3.100
+- **License**: LGPL-2.0-or-later (GNU Lesser General Public License v2.0 or later)
+- **Website**: https://lame.sourceforge.io/
+- **Source**: https://sourceforge.net/projects/lame/files/lame/
+- **Copyright**: Copyright (c) 1999-2011 The LAME Project, Copyright (c) 1999-2004 Mark Taylor, Copyright (c) 2000-2004 Takehiro Tominaga
+- **備考**: `libmp3lame.dll` として**動的リンク**。ユーザーが DLL を差し替え可能。DLL が存在しない場合は MP3 出力が無効になるのみでアプリは正常動作する
+
+MP3 エンコードライブラリ。LGPL ライセンスに準拠するため、動的リンク（DLL 分離）としている。
+ソースコードは上記公式サイトから入手可能。
+
+---
+
+### libloading
+- **Version**: 0.8
+- **License**: ISC License
+- **Repository**: https://github.com/nagisa/rust_libloading
+- **Copyright**: Copyright (c) libloading contributors
+- **備考**: nakuru_rate_audio 内で LAME DLL の動的ロードに使用
+
+Rust のプラットフォーム非依存な動的ライブラリローディングライブラリ。
+
+---
+
+### thiserror
+- **Version**: 2
+- **License**: MIT License OR Apache License 2.0
+- **Repository**: https://github.com/dtolnay/thiserror
+- **Copyright**: Copyright (c) David Tolnay
+- **備考**: ビルド時依存（derive マクロ）。配布バイナリには直接含まれません
+
+Rust のエラー型 derive マクロライブラリ。nakuru_rate_audio のエラー型定義に使用。
 
 ---
 
@@ -222,7 +324,7 @@ Pure RustによるMP3デコードライブラリ。rodio経由で使用。
 - **Repository**: https://github.com/ruuda/hound
 - **Copyright**: Copyright (c) Ruud van Asseldonk
 
-WAVファイルの読み書きライブラリ。rodio経由で使用。
+WAVファイルの読み書きライブラリ。rodio 経由および nakuru_rate_audio で WAV エンコードに使用。
 
 ---
 
@@ -310,6 +412,7 @@ tinyvec のプロシージャルマクロ補助クレート。
 ```bash
 # Rust 依存関係
 cargo tree --manifest-path native/nakuru_audio/Cargo.toml
+cargo tree --manifest-path native/nakuru_rate_audio/Cargo.toml
 
 # .NET 依存関係
 dotnet list NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT.csproj package --include-transitive

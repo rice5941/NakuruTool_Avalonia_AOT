@@ -1,0 +1,3 @@
+[submodule "native/nakuru_rate_audio/vendor/bungee"]
+	path = native/nakuru_rate_audio/vendor/bungee
+	url = https://github.com/bungee-audio-stretch/bungee.git

@@ -8,7 +8,8 @@
     "ImportExport": "インポート/エクスポート",
     "Systems": "システム",
     "Settings": "設定",
-    "Licenses": "ライセンス"
+    "Licenses": "ライセンス",
+    "BeatmapGeneration": "beatmap生成"
   },
   "Settings": {
     "Language": "Language/言語",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "ダウンロードURLをコピー",
-    "OpenInExplorer": "フォルダをエクスプローラーで開く"
+    "OpenInExplorer": "フォルダをエクスプローラーで開く",
+    "GenerateBeatmap": "beatmap生成..."
   },
   "MapFilter": {
     "Title": "フィルタ条件",
@@ -220,5 +222,40 @@
     "Repeat": "リピート",
     "Toggle": "オーディオパネル切替",
     "Volume": "音量"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "コレクション選択",
+    "SelectedCount": "選択中:",
+    "RateGeneration": "レート生成",
+    "FLNGeneration": "Full LN生成",
+    "ComingSoon": "今後実装予定",
+    "Rate": "レート",
+    "RateMode": "倍率",
+    "FixedBpmMode": "固定BPM",
+    "CalculatedRate": "計算倍率:",
+    "CalculatedBpm": "計算BPM:",
+    "BeatmapConfig": "難易度設定",
+    "OverrideHp": "HP変更",
+    "OverrideOd": "OD変更",
+    "BatchGenerate": "一括生成",
+    "Generate": "生成",
+    "Close": "閉じる",
+    "Cancel": "キャンセル",
+    "Cancelled": "キャンセルされました",
+    "DialogTitle": "beatmap生成",
+    "Completed": "完了",
+    "GenerationComplete": "生成が完了しました (x{0})",
+    "ProcessingOsuInfo": "osu!を起動してから生成を行ってください",
+    "RefreshHint": "osu!でF5を押して譜面一覧を更新してください",
+    "BatchComplete": "{0}曲中{1}曲の生成が完了しました",
+    "UnknownError": "不明なエラー",
+    "ChangePitch": "ピッチ変更（NC方式）",
+    "OptionsGroup": "オプション",
+    "Mp3Quality": "MP3品質",
+    "Mp3Standard": "標準",
+    "Mp3HighQuality": "高品質",
+    "ValidationRequired": "入力範囲外です",
+    "BeatmapList": "譜面一覧",
+    "BeatmapCount": "{0}件"
   }
 }

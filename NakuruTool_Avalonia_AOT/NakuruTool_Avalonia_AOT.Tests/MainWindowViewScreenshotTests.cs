@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
@@ -18,7 +19,9 @@ using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using R3;
+using System;
 using System.ComponentModel;
+using System.Threading;
 using Xunit;
 
 namespace NakuruTool_Avalonia_AOT.Tests;
@@ -51,6 +54,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceA = new MockDatabaseService();
         var mockImportExportServiceA = new MockImportExportService();
         var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA, mockSettingsService, new NullBeatmapDownloadService());
+        var mockBeatmapGenerationPageViewModelA = new BeatmapGenerationPageViewModel(mockDatabaseServiceA, new MockBeatmapRateGenerator(), mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -59,6 +63,7 @@ public class MainWindowViewScreenshotTests
             mockMapListViewModel,
             mockMapListPageViewModel,
             mockImportExportPageViewModelA,
+            mockBeatmapGenerationPageViewModelA,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -125,6 +130,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceB = new MockDatabaseService();
         var mockImportExportServiceB = new MockImportExportService();
         var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB, mockSettingsService, new NullBeatmapDownloadService());
+        var mockBeatmapGenerationPageViewModelB = new BeatmapGenerationPageViewModel(mockDatabaseServiceB, new MockBeatmapRateGenerator(), mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -133,6 +139,7 @@ public class MainWindowViewScreenshotTests
             mockMapListViewModel,
             mockMapListPageViewModel,
             mockImportExportPageViewModelB,
+            mockBeatmapGenerationPageViewModelB,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -216,6 +223,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceC = new MockDatabaseService();
         var mockImportExportServiceC = new MockImportExportService();
         var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC, mockSettingsService, new NullBeatmapDownloadService());
+        var mockBeatmapGenerationPageViewModelC = new BeatmapGenerationPageViewModel(mockDatabaseServiceC, new MockBeatmapRateGenerator(), mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -224,6 +232,7 @@ public class MainWindowViewScreenshotTests
             mockMapListViewModel,
             mockMapListPageViewModel,
             mockImportExportPageViewModelC,
+            mockBeatmapGenerationPageViewModelC,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -281,6 +290,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseService3 = new MockDatabaseService();
         var mockImportExportService3 = new MockImportExportService();
         var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3, mockSettingsService, new NullBeatmapDownloadService());
+        var mockBeatmapGenerationPageViewModel3 = new BeatmapGenerationPageViewModel(mockDatabaseService3, new MockBeatmapRateGenerator(), mockSettingsService);
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -289,6 +299,7 @@ public class MainWindowViewScreenshotTests
             mockMapListViewModel,
             mockMapListPageViewModel,
             mockImportExportPageViewModel3,
+            mockBeatmapGenerationPageViewModel3,
             mockLicensesViewModel,
             mockSettingsService);
 
@@ -506,6 +517,7 @@ public class MockSettingsViewModel : ISettingsViewModel
     public bool PreferUnicode { get; set; } = false;
     public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(["https://catboy.best/d/", "https://api.nerinyan.moe/d/"]);
     public string SelectedMirrorUrl { get; set; } = "https://catboy.best/d/";
+    public bool AutoBatchGenerateOnStartup { get; set; } = false;
     public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
@@ -574,7 +586,8 @@ public class MockMapListPageViewModel : MapListPageViewModel
         new MockFilterPresetService(),
         new MockAudioPlayerViewModel(),
         CreatePanelViewModel(),
-        new MockSettingsService())
+        new MockSettingsService(),
+        new MockBeatmapRateGenerator())
     {
     }
 }
@@ -738,6 +751,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public bool PreferUnicode { get; set; } = false;
     public bool IsDarkTheme { get; set; } = true;
     public string BeatmapMirrorUrl { get; set; } = "https://catboy.best/d/";
+    public bool AutoBatchGenerateOnStartup { get; set; } = false;
 }
 
 /// <summary>
@@ -785,6 +799,26 @@ public class NullBeatmapDownloadService : IBeatmapDownloadService
     public void EnqueueDownload(ImportExportBeatmapItem item, IReadOnlyList<ImportExportBeatmapItem> allItems) { }
     public Task CancelAllAsync() => Task.CompletedTask;
     public void Dispose() { }
+}
+
+/// <summary>
+/// テスト用のモックBeatmapRateGenerator
+/// </summary>
+public class MockBeatmapRateGenerator : IBeatmapRateGenerator
+{
+    public Task<RateGenerationResult> GenerateAsync(
+        Beatmap beatmap,
+        RateGenerationOptions options,
+        IProgress<RateGenerationProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(new RateGenerationResult { Success = false, SourceBeatmap = beatmap });
+
+    public Task<BatchGenerationResult> GenerateBatchAsync(
+        ReadOnlyMemory<Beatmap> beatmaps,
+        RateGenerationOptions options,
+        IProgress<RateGenerationProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(new BatchGenerationResult { Results = [] });
 }
 
 /// <summary>

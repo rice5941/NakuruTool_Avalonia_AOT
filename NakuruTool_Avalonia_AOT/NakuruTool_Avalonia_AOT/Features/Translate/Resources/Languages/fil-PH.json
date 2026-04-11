@@ -8,7 +8,8 @@
     "ImportExport": "Import/Export",
     "Systems": "Sistema",
     "Settings": "Mga Setting",
-    "Licenses": "Mga Lisensya"
+    "Licenses": "Mga Lisensya",
+    "BeatmapGeneration": "Paggawa ng beatmap"
   },
   "Settings": {
     "Language": "Wika",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Kopyahin ang Download URL",
-    "OpenInExplorer": "Buksan ang Folder sa Explorer"
+    "OpenInExplorer": "Buksan ang Folder sa Explorer",
+    "GenerateBeatmap": "Gumawa ng beatmap..."
   },
   "MapFilter": {
     "Title": "Mga kondisyon ng filter",
@@ -220,5 +222,40 @@
     "Repeat": "Ulitin",
     "Toggle": "I-toggle ang audio panel",
     "Volume": "Volume"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Pumili ng koleksyon",
+    "SelectedCount": "Napili:",
+    "RateGeneration": "Paggawa ng rate",
+    "FLNGeneration": "Paggawa ng Full LN",
+    "ComingSoon": "Paparating na",
+    "Rate": "Rate",
+    "RateMode": "Rate multiplier",
+    "FixedBpmMode": "Naayos na BPM",
+    "CalculatedRate": "Kinakalkula rate:",
+    "CalculatedBpm": "Kinakalkula BPM:",
+    "BeatmapConfig": "Beatmap config",
+    "OverrideHp": "Baguhin ang HP",
+    "OverrideOd": "Baguhin ang OD",
+    "BatchGenerate": "Batch na henerasyon",
+    "Generate": "Gumawa",
+    "Close": "Isara",
+    "Cancel": "Ikansela",
+    "Cancelled": "Nakansela",
+    "DialogTitle": "Gumawa ng beatmap",
+    "Completed": "Tapos na",
+    "GenerationComplete": "Natapos ang henerasyon (x{0})",
+    "ProcessingOsuInfo": "Pakipatakbo ang osu! bago gumawa",
+    "RefreshHint": "Pindutin ang F5 sa osu! para i-refresh ang listahan ng beatmap",
+    "BatchComplete": "{1} sa {0} beatmaps na matagumpay na nagawa",
+    "UnknownError": "Hindi kilalang error",
+    "ChangePitch": "Baguhin ang tono (NC mode)",
+    "OptionsGroup": "Mga Opsyon",
+    "Mp3Quality": "Kalidad ng MP3",
+    "Mp3Standard": "Karaniwan",
+    "Mp3HighQuality": "Mataas na kalidad",
+    "ValidationRequired": "Mangyaring maglagay ng halaga",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

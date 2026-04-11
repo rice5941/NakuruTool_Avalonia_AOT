@@ -1,0 +1,173 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.RateGenerationView"
+             x:DataType="local:RateGenerationViewModel">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </UserControl.Resources>
+    
+    <ScrollViewer>
+		<Grid Grid.ColumnDefinitions="*,10">
+		    <StackPanel Orientation="Vertical" Spacing="8" Margin="0,4" Grid.Column="0">
+                <!-- グループ1: レート倍率 -->
+                <HeaderedContentControl
+                    Theme="{StaticResource GroupBox}">
+                    <HeaderedContentControl.Header>
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.Rate'}" Margin="0,-8"/>
+                    </HeaderedContentControl.Header>
+                    <StackPanel Orientation="Vertical" Spacing="16" Margin="0,-4">
+                        <!-- 倍率モード -->
+                        <StackPanel Orientation="Vertical" Spacing="12">
+                            <RadioButton GroupName="Rate"
+                                         Content="{translate:Translate 'BeatmapGen.RateMode'}"
+                                         IsChecked="{Binding IsFixedBpmMode, Converter={StaticResource InverseBooleanConverter}}"
+                                         VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal">
+                                <NumericUpDown Value="{Binding Rate}"
+                                               Margin=" 24,0,0,0"
+                                               Increment="0.05"
+                                               FormatString="0.00"
+                                               IsEnabled="{Binding !IsFixedBpmMode}"
+                                               Width="120"
+                                               HorizontalAlignment="Left"/>
+                                <StackPanel Orientation="Vertical" Spacing="4" 
+                                            IsVisible="{Binding IsFixedBpmMode, Converter={StaticResource InverseBooleanConverter}}">
+                                    <TextBlock Text="{translate:Translate 'BeatmapGen.ValidationRequired'}"
+                                               FontSize="11"
+                                               Classes="Danger"
+                                               IsVisible="{Binding RateHasError}"
+                                               Margin="16,0,0,0"/>
+
+                                    <ContentControl IsVisible="{Binding CalculatedBpm, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0"
+                                                    IsVisible="{Binding RateHasError, Converter={StaticResource InverseBooleanConverter}}">
+                                            <TextBlock Text="{translate:Translate 'BeatmapGen.CalculatedBpm'}"
+                                                       FontSize="12" Opacity="0.8"/>
+                                            <TextBlock Text="{Binding CalculatedBpm, StringFormat={}{0:0}}"
+                                                       FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </ContentControl>
+                                </StackPanel>    
+                            </StackPanel>
+                        </StackPanel>
+                
+                        <StackPanel Orientation="Vertical" Spacing="12">
+                            <RadioButton GroupName="Rate"
+                                         Content="{translate:Translate 'BeatmapGen.FixedBpmMode'}"
+                                         IsChecked="{Binding IsFixedBpmMode}"
+                                         VerticalAlignment="Center"/>
+                                    
+                            <StackPanel Orientation="Horizontal">
+                                <NumericUpDown Value="{Binding FixedBpm}"
+                                               Margin=" 24,0,0,0"
+                                               Increment="1"
+                                               FormatString="0"
+                                               IsEnabled="{Binding IsFixedBpmMode}"
+                                               Width="120"
+                                               HorizontalAlignment="Left"/>
+
+                                <StackPanel Orientation="Vertical" Spacing="4"
+                                            IsVisible="{Binding IsFixedBpmMode}">
+                                    <TextBlock Text="{translate:Translate 'BeatmapGen.ValidationRequired'}"
+                                               FontSize="11"
+                                               Classes="Danger"
+                                               IsVisible="{Binding FixedBpmHasError}"
+                                               Margin="16,0,0,0"/>
+                                    <ContentControl IsVisible="{Binding CalculatedRate, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="16,0,0,0"
+                                                    IsVisible="{Binding FixedBpmHasError, Converter={StaticResource InverseBooleanConverter}}">
+                                            <TextBlock Text="{translate:Translate 'BeatmapGen.CalculatedRate'}"
+                                                       FontSize="12" Opacity="0.8"/>
+                                            <TextBlock Text="{Binding CalculatedRate, StringFormat={}{0:0.00}}"
+                                                       FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </ContentControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </HeaderedContentControl>
+
+                <!-- グループ2: HP / OD -->
+                <HeaderedContentControl
+                    Theme="{StaticResource GroupBox}">
+                    <HeaderedContentControl.Header>
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.BeatmapConfig'}" Margin="0,-8"/>
+                    </HeaderedContentControl.Header>
+                    <StackPanel Orientation="Vertical" Spacing="16" Margin="0,-4">
+                        <!-- HP -->
+                        <StackPanel Orientation="Vertical" Spacing="12">
+                            <CheckBox Content="{translate:Translate 'BeatmapGen.OverrideHp'}"
+                                      IsChecked="{Binding IsHpOverrideEnabled}"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="24,0,0,0">
+                                <NumericUpDown Value="{Binding HpValue}"
+                                               Increment="0.1"
+                                               FormatString="0.0"
+                                               IsEnabled="{Binding IsHpOverrideEnabled}"
+                                               Width="100"
+                                               HorizontalAlignment="Left"/>
+                                    
+                                <TextBlock Text="{translate:Translate 'BeatmapGen.ValidationRequired'}"
+                                           FontSize="11"
+                                           Classes="Danger"
+                                           IsVisible="{Binding HpHasError}"
+                                           Margin="16,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- OD -->
+                        <StackPanel Orientation="Vertical" Spacing="12">
+                            <CheckBox Content="{translate:Translate 'BeatmapGen.OverrideOd'}"
+                                      IsChecked="{Binding IsOdOverrideEnabled}"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="24,0,0,0">
+                        
+                                <NumericUpDown Value="{Binding OdValue}"
+                                               Increment="0.1"
+                                               FormatString="0.0"
+                                               IsEnabled="{Binding IsOdOverrideEnabled}"
+                                               Width="100"/>
+                                <TextBlock Text="{translate:Translate 'BeatmapGen.ValidationRequired'}"
+                                           FontSize="11"
+                                           Classes="Danger"
+                                           IsVisible="{Binding OdHasError}"
+                                           Margin="16,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </HeaderedContentControl>
+
+                <!-- グループ3: オプション -->
+                <HeaderedContentControl
+                    Theme="{StaticResource GroupBox}">
+                    <HeaderedContentControl.Header>
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.OptionsGroup'}" Margin="0,-8"/>
+                    </HeaderedContentControl.Header>
+                    <StackPanel Orientation="Vertical" Spacing="16" Margin="0,-4">
+                        <CheckBox Content="{translate:Translate 'BeatmapGen.ChangePitch'}"
+                                  IsChecked="{Binding ChangePitch}"/>
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.Mp3Quality'}"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton GroupName="Mp3Quality"
+                                         Content="{translate:Translate 'BeatmapGen.Mp3Standard'}"
+                                         IsChecked="{Binding IsHighQualityMp3, Converter={StaticResource InverseBooleanConverter}}"/>
+                            <RadioButton GroupName="Mp3Quality"
+                                         Content="{translate:Translate 'BeatmapGen.Mp3HighQuality'}"
+                                         IsChecked="{Binding IsHighQualityMp3}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </HeaderedContentControl>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+
+</UserControl>

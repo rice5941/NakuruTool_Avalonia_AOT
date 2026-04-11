@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
+             xmlns:BeatmapGen="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
@@ -26,99 +27,168 @@
     </UserControl.Styles>
 
     <Panel>
-    <Grid RowDefinitions="*,Auto" ColumnDefinitions="320,*">
-        <!-- 左側: フィルタパネル -->
-        <MapList:MapFilterView Grid.Row="0" Grid.Column="0"
-                               DataContext="{Binding FilterViewModel}"/>
+        <Grid RowDefinitions="*,Auto" ColumnDefinitions="320,*">
+            <!-- 左側: フィルタパネル -->
+            <MapList:MapFilterView Grid.Row="0" Grid.Column="0"
+                                   DataContext="{Binding FilterViewModel}"/>
                 
-        <!-- コレクション生成パネル -->
-        <Border Grid.Row="1" Grid.Column="0"
-                BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}" 
-                Background="{DynamicResource SemiGrey0}" Margin="0,8,0,0">
-            <Grid RowDefinitions="Auto,Auto">
-                <!-- ヘッダー -->
-                <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}" 
-                        BorderBrush="{DynamicResource SemiGrey3}" 
-                        BorderThickness="0,0,0,1" 
-                        Padding="12,8"
-                        Margin="0,0,0,8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <mi:MaterialIcon Kind="Create" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
-                        <TextBlock Text="{translate:Translate 'Collection.GenerateCollection'}" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="1" Classes="card">
-						<!-- コレクション名入力と追加ボタン -->
-                    <Grid Grid.Row="1" RowDefinitions="auto,auto,auto" ColumnDefinitions="*,auto">
-                        <TextBox Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
-                                 Text="{Binding CollectionName, Mode=TwoWay}"
-                                 Watermark="{translate:Translate 'Collection.EnterCollectionName'}"/>
-
-                        <Button Grid.Column="1" Grid.Row="0"  Margin="12,0,0,0" Width="32" Height="32"
-                                Command="{Binding AddToCollectionCommand}" Theme="{StaticResource SolidButton}" >
-                            <mi:MaterialIcon Kind="ContentSave" Height="28" Width="28"/>
-                        </Button>
-                                
-                        <!-- ステータスメッセージと進捗バー -->
-                        <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,8,0,0">
-                            <TextBlock Text="{Binding GenerationStatusMessage}" FontSize="12" Foreground="{DynamicResource SemiGrey7}"/>
-                            <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100" 
-                                         Height="4" Margin="0,8,0,0"/>
+            <!-- コレクション生成パネル -->
+            <Border Grid.Row="1" Grid.Column="0"
+                    BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}" 
+                    Background="{DynamicResource SemiGrey0}" Margin="0,8,0,0">
+                <Grid RowDefinitions="Auto,Auto">
+                    <!-- ヘッダー -->
+                    <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}" 
+                            BorderBrush="{DynamicResource SemiGrey3}" 
+                            BorderThickness="0,0,0,1" 
+                            Padding="12,8"
+                            Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Create" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="{translate:Translate 'Collection.GenerateCollection'}" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
                         </StackPanel>
-                    </Grid>
-                </Border>
-            </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Classes="card">
+						    <!-- コレクション名入力と追加ボタン -->
+                        <Grid Grid.Row="1" RowDefinitions="auto,auto,auto" ColumnDefinitions="*,auto">
+                            <TextBox Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
+                                     Text="{Binding CollectionName, Mode=TwoWay}"
+                                     Watermark="{translate:Translate 'Collection.EnterCollectionName'}"/>
+
+                            <Button Grid.Column="1" Grid.Row="0"  Margin="12,0,0,0" Width="32" Height="32"
+                                    Command="{Binding AddToCollectionCommand}" Theme="{StaticResource SolidButton}" >
+                                <mi:MaterialIcon Kind="ContentSave" Height="28" Width="28"/>
+                            </Button>
+                                
+                            <!-- ステータスメッセージと進捗バー -->
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,8,0,0">
+                                <TextBlock Text="{Binding GenerationStatusMessage}" FontSize="12" Foreground="{DynamicResource SemiGrey7}"/>
+                                <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100" 
+                                             Height="4" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- 右側: 譜面リスト（通常表示時） -->
+            <Panel Grid.Column="1" Grid.RowSpan="2"
+                   Margin="8,0,0,0"
+                   IsVisible="{Binding !IsPresetEditorVisible}">
+                <MapList:MapListView DataContext="{Binding ListViewModel}"/>
+            </Panel>
+
+            <!-- 右側: プリセット編集（編集モード時） -->
+            <Panel Grid.Column="1" Grid.RowSpan="2"
+                   Margin="8,0,0,0"
+                   IsVisible="{Binding IsPresetEditorVisible}">
+                <MapList:PresetEditorView DataContext="{Binding PresetEditorViewModel}"/>
+            </Panel>
+        </Grid>
+
+        <!-- 大量件数確認オーバーレイ -->
+        <Border IsVisible="{Binding IsLargeCollectionConfirmVisible}"
+                Background="#80000000"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Theme="{DynamicResource CardBorder}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="400" MaxWidth="500" Padding="24">
+                <StackPanel Spacing="16">
+                    <!-- 警告アイコン + タイトル -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <mi:MaterialIcon Kind="AlertCircleOutline" Width="24" Height="24"
+                                         Foreground="#E6A700"/>
+                        <TextBlock Text="{translate:Translate 'Collection.ConfirmLargeCollectionTitle'}"
+                                   FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- 確認メッセージ（件数を含む動的テキスト） -->
+                    <TextBlock Text="{Binding LargeCollectionConfirmMessage}"
+                               TextWrapping="Wrap" TextAlignment="Center"/>
+
+                    <!-- OK / キャンセル ボタン -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Command="{Binding ConfirmLargeCollectionCommand}"
+                                Content="{translate:Translate 'Collection.ConfirmOk'}"
+                                Theme="{StaticResource SolidButton}"
+                                MinWidth="100"/>
+                        <Button Command="{Binding CancelLargeCollectionCommand}"
+                                Content="{translate:Translate 'Collection.ConfirmCancel'}"
+                                MinWidth="100"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Border>
 
-        <!-- 右側: 譜面リスト（通常表示時） -->
-        <Panel Grid.Column="1" Grid.RowSpan="2"
-               Margin="8,0,0,0"
-               IsVisible="{Binding !IsPresetEditorVisible}">
-            <MapList:MapListView DataContext="{Binding ListViewModel}"/>
-        </Panel>
+        <!-- 単体beatmap生成オーバーレイ -->
+        <Border IsVisible="{Binding IsSingleGenerationOverlayVisible}"
+                Background="#80000000">
+            <Border Theme="{DynamicResource CardBorder}"
+                    Background="{DynamicResource SemiGrey0}" 
+                    HorizontalAlignment="Center" VerticalAlignment="Center" 
+                    MinWidth="420" MaxWidth="500" Padding="16">
 
-        <!-- 右側: プリセット編集（編集モード時） -->
-        <Panel Grid.Column="1" Grid.RowSpan="2"
-               Margin="8,0,0,0"
-               IsVisible="{Binding IsPresetEditorVisible}">
-            <MapList:PresetEditorView DataContext="{Binding PresetEditorViewModel}"/>
-        </Panel>
-    </Grid>
+                <Grid RowDefinitions="auto,*,auto" RowSpacing="8" ColumnSpacing="8">
+                    <!-- 上部: 曲情報 -->
+                    <StackPanel Grid.Row="0">
+                        <!-- タイトル -->
+                        <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Title}"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource SemiGrey9}"/>
+                        <!-- バージョン -->
+                        <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Version}"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource SemiGrey9}"/>
+                        <!-- アーティスト + クリエイター -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Artist}"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource SemiGrey7}"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Creator}"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource SemiGrey7}"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
 
-    <!-- 大量件数確認オーバーレイ -->
-    <Border IsVisible="{Binding IsLargeCollectionConfirmVisible}"
-            Background="#80000000"
-            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Border Theme="{DynamicResource CardBorder}"
-                HorizontalAlignment="Center" VerticalAlignment="Center"
-                MinWidth="400" MaxWidth="500" Padding="24">
-            <StackPanel Spacing="16">
-                <!-- 警告アイコン + タイトル -->
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                    <mi:MaterialIcon Kind="AlertCircleOutline" Width="24" Height="24"
-                                     Foreground="#E6A700"/>
-                    <TextBlock Text="{translate:Translate 'Collection.ConfirmLargeCollectionTitle'}"
-                               FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- 確認メッセージ（件数を含む動的テキスト） -->
-                <TextBlock Text="{Binding LargeCollectionConfirmMessage}"
-                           TextWrapping="Wrap" TextAlignment="Center"/>
-
-                <!-- OK / キャンセル ボタン -->
-                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                    <Button Command="{Binding ConfirmLargeCollectionCommand}"
-                            Content="{translate:Translate 'Collection.ConfirmOk'}"
-                            Theme="{StaticResource SolidButton}"
-                            MinWidth="100"/>
-                    <Button Command="{Binding CancelLargeCollectionCommand}"
-                            Content="{translate:Translate 'Collection.ConfirmCancel'}"
-                            MinWidth="100"/>
-                </StackPanel>
-            </StackPanel>
+                    <!-- レート設定 -->
+                    <BeatmapGen:RateGenerationView  Grid.Row="1" DataContext="{Binding SingleGenerationViewModel.RateGeneration}"/>
+                    <!-- 進捗 -->
+                    <StackPanel Grid.Row="2" Spacing="8">
+                        <TextBlock Text="{Binding SingleGenerationViewModel.GenerationStatusMessage}" TextWrapping="Wrap"/>
+                        <ProgressBar Value="{Binding SingleGenerationViewModel.GenerationProgressValue}" Maximum="100"/>
+                        <Border Background="{DynamicResource SemiYellow0}"
+                                BorderBrush="{DynamicResource SemiYellow3}"
+                                Padding="12,6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
+                                                 Foreground="{DynamicResource SemiYellow7}"
+                                                 VerticalAlignment="Center"/>
+                                <TextBlock Text="{translate:Translate 'BeatmapGen.ProcessingOsuInfo'}"
+                                           Foreground="{DynamicResource SemiYellow9}"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- ボタン -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                            <Button Content="{translate:Translate 'BeatmapGen.Generate'}"
+                                    Command="{Binding SingleGenerationViewModel.GenerateCommand}"/>
+                            <Button Content="{translate:Translate 'BeatmapGen.Close'}"
+                                    Command="{Binding CloseSingleGenerationCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Border>
-    </Border>
     </Panel>
 
 </UserControl>

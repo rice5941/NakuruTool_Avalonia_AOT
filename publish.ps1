@@ -43,6 +43,55 @@ if ($LASTEXITCODE -eq 0) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
+
+    $soundTouchDllFile = Join-Path $publishDir "SoundTouch.dll"
+
+    if (Test-Path $soundTouchDllFile) {
+        $soundTouchDllSize = (Get-Item $soundTouchDllFile).Length / 1MB
+        Write-Host "  SoundTouch.dll: $([math]::Round($soundTouchDllSize, 1)) MB" -ForegroundColor White
+    }
+    # ライセンスファイルを licenses/ フォルダに集約して同梱
+    $licensesDir = Join-Path $publishDir "licenses"
+    if (-not (Test-Path $licensesDir)) {
+        New-Item -ItemType Directory -Path $licensesDir -Force | Out-Null
+    }
+
+    # プロジェクト LICENSE (MIT)
+    $licenseSource = Join-Path $PSScriptRoot "LICENSE"
+    if (Test-Path $licenseSource) {
+        Copy-Item -Path $licenseSource -Destination (Join-Path $licensesDir "LICENSE") -Force
+        Write-Host "  Included LICENSE" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: LICENSE not found, skipping." -ForegroundColor Yellow
+    }
+
+    # THIRD-PARTY-NOTICES.md
+    $thirdPartySource = Join-Path $PSScriptRoot "THIRD-PARTY-NOTICES.md"
+    if (Test-Path $thirdPartySource) {
+        Copy-Item -Path $thirdPartySource -Destination (Join-Path $licensesDir "THIRD-PARTY-NOTICES.md") -Force
+        Write-Host "  Included THIRD-PARTY-NOTICES.md" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: THIRD-PARTY-NOTICES.md not found, skipping." -ForegroundColor Yellow
+    }
+
+    # SoundTouch LGPL ライセンスファイル
+    $soundTouchLicenseSource = Join-Path $PSScriptRoot "SoundTouch\COPYING.TXT"
+    if (Test-Path $soundTouchLicenseSource) {
+        Copy-Item -Path $soundTouchLicenseSource -Destination (Join-Path $licensesDir "SoundTouch_COPYING.TXT") -Force
+        Write-Host "  Included SoundTouch COPYING.TXT" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: SoundTouch COPYING.TXT not found, skipping." -ForegroundColor Yellow
+    }
+
+    # LAME LGPL ライセンスファイル
+    $lameLicenseSource = Join-Path $PSScriptRoot "Lame\COPYING.TXT"
+    if (Test-Path $lameLicenseSource) {
+        Copy-Item -Path $lameLicenseSource -Destination (Join-Path $licensesDir "LAME_COPYING.TXT") -Force
+        Write-Host "  Included LAME COPYING.TXT" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: LAME COPYING.TXT not found, skipping." -ForegroundColor Yellow
+    }
+
     # 配布用のユーザーガイドを同梱
     if (Test-Path $userGuideSource) {
         Copy-Item -Path $userGuideSource -Destination $userGuideDestination -Force
@@ -79,7 +128,7 @@ if ($LASTEXITCODE -eq 0) {
     if ($version) {
         $versionedDir = Join-Path $PSScriptRoot "NakuruTool_$version"
         if (Test-Path $versionedDir) {
-            Remove-Item -Path $versionedDir -Recurse -Force
+            Remove-Item -Path $versionedDir -Recurse -Force -ErrorAction SilentlyContinue
         }
         Copy-Item -Path $publishDir -Destination $versionedDir -Recurse -Force
         Write-Host "  Copied to: $versionedDir" -ForegroundColor Cyan

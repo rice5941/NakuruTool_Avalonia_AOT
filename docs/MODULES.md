@@ -1443,6 +1443,86 @@ ImportExportPageViewModel  ──IsAnyProcessing──▶  ImportViewModel（逆
 
 ---
 
+## 10. BeatmapGenerator
+
+### 概要
+
+osu!mania beatmapのレート変更版（倍速・減速）を自動生成するモジュール。指定レート範囲で.osuファイルのタイミング変換とオーディオファイルのレート変換を行い、Songsフォルダに出力する。DT（Double Time）モードではピッチを保持したタイムストレッチ、NC（NightCore）モードではピッチ変更を伴うレート変換を選択可能。出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。MP3出力にはLAME 3.100（libmp3lame.dll）を使用し、3ch以上の場合はOGGにフォールバックする。
+
+### 構成ファイル一覧
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `RateGenerationOptions.cs` | モデル | レート生成オプション（レート範囲・ステップ・出力先など） |
+| `RateGenerationResult.cs` | モデル | 単一レート生成の結果 |
+| `BatchGenerationResult.cs` | モデル | バッチ生成の集計結果 |
+| `RateGenerationProgress.cs` | モデル | 生成進捗データ |
+| `OsuFileConvertOptions.cs` | モデル | .osuファイル変換オプション |
+| `IAudioRateChanger.cs` | インターフェース | オーディオレート変換の契約定義 |
+| `IOsuFileRateConverter.cs` | インターフェース | .osuファイルレート変換の契約定義 |
+| `IBeatmapRateGenerator.cs` | インターフェース | レート生成オーケストレータの契約定義 |
+| `AudioRateChanger.cs` | サービス | NAudioによるオーディオレート変換（ストリーミング処理、MP3/OGG/WAV出力、入力形式自動判定） |
+| `SampleRateOverrideSampleProvider.cs` | ヘルパー | サンプルレート変更用のISampleProvider実装 |
+| `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み） |
+| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（.osu変換 + オーディオ変換を統合） |
+| `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替） |
+| `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト |
+| `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |
+| `CollectionSelectorViewModel.cs` | ViewModel | コレクション選択・一括レート生成 |
+| `CollectionSelectorView.axaml` | View | コレクション選択UI |
+| `CollectionSelectorView.axaml.cs` | CodeBehind | |
+| `RateGenerationViewModel.cs` | ViewModel | レート範囲・オプション設定UI |
+| `RateGenerationView.axaml` | View | レート設定UI |
+| `RateGenerationView.axaml.cs` | CodeBehind | |
+| `SingleBeatmapGenerationViewModel.cs` | ViewModel | 単一譜面指定のレート生成 |
+| `SingleBeatmapGenerationWindow.axaml` | View | 単一譜面生成ウィンドウ |
+| `SingleBeatmapGenerationWindow.axaml.cs` | CodeBehind | |
+| `SoundTouch.cs` (リンク) | P/Invoke | SoundTouch DLL P/Invoke ラッパー（SoundTouch/ からリンク） |
+| `LameMp3Encoder.cs` (リンク) | P/Invoke | LAME MP3エンコーダ P/Invoke ラッパー（Lame/ からリンク、LibraryImport Source Generator） |
+
+### 依存モジュール
+
+- **OsuDatabase** — `IDatabaseService`（コレクション・譜面データの参照）
+- **Settings** — `ISettingsService`（osu!フォルダパス取得、`PreferUnicode` 監視）
+- **Shared** — `ViewModelBase` を継承
+- **Translate** — UIの多言語化
+- **NAudio / NAudio.Vorbis** — オーディオファイルの読み込み・レート変換・WAV出力
+- **SoundTouch (C/C++)** — SoundTouch 2.4.1 によるテンポ変更処理（DTモード、LGPL-2.1）
+- **LAME (libmp3lame.dll)** — LAME 3.100 によるMP3エンコード（VBR品質: 標準=4 / 高品質=0 の2択、LGPL-2.1）
+
+### ビートマップリスト表示機能
+
+`BeatmapGenerationPageView` は5カラム構成で、中央カラムにコレクション内譜面のDataGridを表示する。
+
+#### DataGrid列構成
+
+| 列 | 概要 |
+|---|------|
+| 曲情報 | Title・Artist・Version（`UnicodeDisplayConverter` 対応） |
+| BPM | BPM値 |
+| LN率 | LongNoteRate（%表示） |
+| スコア情報 | BestScore・BestAccuracy・Grade（Mod/ScoreSystem依存） |
+
+#### Mod / ScoreSystem切替
+
+- `SelectedModCategory`（NoMod / HT / DT）と `SelectedScoreSystemCategory`（Default / v1 / v2）でスコア表示を切替
+- 切替時は `UpdateShowBeatmaps()` でDataGrid行を再構築し、`Beatmap.GetBestScore()` / `GetBestAccuracy()` / `GetGrade()` で対応する値を表示
+
+#### ページネーション
+
+- ページサイズ: 10 / 20 / 50 / 100（デフォルト: 20）
+- `RefreshCollectionBeatmaps()` でコレクション選択時にMD5マッチングで譜面を解決し `_resolvedBeatmaps` に格納
+- `UpdateShowBeatmaps()` で `Span` スライスによりページ分のデータを `ShowBeatmaps`（`AvaloniaList`）に転写
+
+### NativeAOT対応
+
+- SoundTouch の P/Invoke は `[DllImport]` による静的バインディング（SoundTouch.cs ラッパー）
+- LAME の P/Invoke は `[LibraryImport]`（Source Generator）による静的バインディング（LameMp3Encoder.cs）
+- OGG出力は OggVorbisEncoder（リフレクション不使用）、WAV出力は NAudio の WaveFileWriter、MP3出力は LameMp3Encoder を使用
+- ReflectionBindingは不使用（全Viewに `x:DataType` 指定）
+
+---
+
 ## 関連ドキュメント
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — アーキテクチャ全体像・技術スタック・DI構成

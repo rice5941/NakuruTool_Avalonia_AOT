@@ -186,6 +186,15 @@ $RECYCLE.BIN/
 # Application specific
 # =============================================================================
 
+# Publish output versioned folders
+NakuruTool_*/
+
+# Temporary agent work files
+agent_tmp/
+
+# Rust build artifacts
+native/nakuru_audio/target/
+
 # Crash dumps
 *.dmp
 crash.log

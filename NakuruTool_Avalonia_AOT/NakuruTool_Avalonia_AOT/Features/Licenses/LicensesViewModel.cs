@@ -209,7 +209,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
 
     private static string InterFontLicenseText =>
         """
-        Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
+        Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
 
         This Font Software is licensed under the SIL Open Font License, Version 1.1.
         This license is copied below, and is also available with a FAQ at:
@@ -1104,6 +1104,183 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
         3. This notice may not be removed or altered from any source distribution.
         """;
 
+    private static string LameLicenseText =>
+        """
+        LAME MP3 Encoder
+        Copyright (C) 1999-2017 The LAME Project
+
+        This library is free software; you can redistribute it and/or
+        modify it under the terms of the GNU Lesser General Public
+        License as published by the Free Software Foundation; either
+        version 2.1 of the License, or (at your option) any later version.
+
+        This library is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+        Lesser General Public License for more details.
+
+        You should have received a copy of the GNU Lesser General Public
+        License along with this library; if not, write to the Free Software
+        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+        ---
+
+        The full text of the GNU Lesser General Public License version 2.1
+        is included in the distribution as licenses/LAME_COPYING.TXT and is also
+        available at: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+        """;
+
+    private static string SoundTouchLicenseText =>
+        """
+        SoundTouch audio processing library
+        Copyright (c) Olli Parviainen
+
+        This library is free software; you can redistribute it and/or
+        modify it under the terms of the GNU Lesser General Public
+        License as published by the Free Software Foundation; either
+        version 2.1 of the License, or (at your option) any later version.
+
+        This library is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+        Lesser General Public License for more details.
+
+        You should have received a copy of the GNU Lesser General Public
+        License along with this library; if not, write to the Free Software
+        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+        ---
+
+        The full text of the GNU Lesser General Public License version 2.1
+        is included in the distribution as licenses/SoundTouch_COPYING.TXT and is also
+        available at: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+        """;
+
+    private static string NAudioLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2020 Mark Heath
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
+    private static string NLayerLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
+    private static string NAudioVorbisLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) Andrew Ward
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
+    private static string OggVorbisEncoderLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2016 Steve Lillis
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
+    private static string NakuruAudioLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2025 NakuruTool Contributors
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
     public LicensesViewModel()
     {
         var licenses = new AvaloniaList<LicenseItem>
@@ -1123,7 +1300,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
                 Version = "11.3.12",
                 LicenseType = "MIT (package) / SIL OFL 1.1 (Inter font)",
                 Url = "https://github.com/rsms/inter",
-                Copyright = "Copyright 2020 The Inter Project Authors",
+                Copyright = "Copyright (c) The Avalonia Project (package) / Copyright (c) 2016 The Inter Project Authors (font)",
                 LicenseText = InterFontLicenseText
             },
             new LicenseItem
@@ -1209,6 +1386,78 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             },
             new LicenseItem
             {
+                PackageName = "NAudio",
+                Version = "2.2.1",
+                LicenseType = "MIT",
+                Url = "https://github.com/naudio/NAudio",
+                Copyright = "Copyright (c) 2020 Mark Heath",
+                LicenseText = NAudioLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "NAudio.Vorbis",
+                Version = "1.5.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/naudio/Vorbis",
+                Copyright = "Copyright (c) 2021 Andrew Ward",
+                LicenseText = NAudioVorbisLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "NLayer",
+                Version = "1.16.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/naudio/NLayer",
+                Copyright = "Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors",
+                LicenseText = NLayerLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "NLayer.NAudioSupport",
+                Version = "1.4.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/naudio/NLayer",
+                Copyright = "Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors",
+                LicenseText = NLayerLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "OggVorbisEncoder",
+                Version = "1.2.2",
+                LicenseType = "MIT",
+                Url = "https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder",
+                Copyright = "Copyright (c) 2016 Steve Lillis",
+                LicenseText = OggVorbisEncoderLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "nakuru_audio",
+                Version = "0.1.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/rice5941/NakuruTool_Avalonia_AOT",
+                Copyright = "Copyright (c) 2025 NakuruTool Contributors",
+                LicenseText = NakuruAudioLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "SoundTouch",
+                Version = "2.4.1",
+                LicenseType = "LGPL-2.1",
+                Url = "https://codeberg.org/soundtouch/soundtouch",
+                Copyright = "Copyright (c) Olli Parviainen",
+                LicenseText = SoundTouchLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "LAME MP3 Encoder",
+                Version = "3.100",
+                LicenseType = "LGPL-2.1-or-later",
+                Url = "https://lame.sourceforge.io/",
+                Copyright = "Copyright (C) 1999-2017 The LAME Project",
+                LicenseText = LameLicenseText
+            },
+            new LicenseItem
+            {
                 PackageName = "minimp3_fixed",
                 Version = "0.5.4",
                 LicenseType = "CC0-1.0 OR MIT",
@@ -1240,7 +1489,7 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
                 Version = "0.21.1",
                 LicenseType = "MIT OR Apache-2.0",
                 Url = "https://github.com/RustAudio/rodio",
-                Copyright = "Copyright (c) The Rodio Project Contributors",
+                Copyright = "Copyright (c) The Rodio contributors",
                 LicenseText = RodioMitLicenseText
                     + "\n\n---\n\n(This package is also available under the Apache-2.0 license.)\n\n"
                     + RodioApacheLicenseText

@@ -8,7 +8,8 @@
     "ImportExport": "นำเข้า/ส่งออก",
     "Systems": "ระบบ",
     "Settings": "การตั้งค่า",
-    "Licenses": "ใบอนุญาต"
+    "Licenses": "ใบอนุญาต",
+    "BeatmapGeneration": "สร้าง beatmap"
   },
   "Settings": {
     "Language": "ภาษา",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "คัดลอก URL ดาวน์โหลด",
-    "OpenInExplorer": "เปิดโฟลเดอร์ใน Explorer"
+    "OpenInExplorer": "เปิดโฟลเดอร์ใน Explorer",
+    "GenerateBeatmap": "สร้าง beatmap..."
   },
   "MapFilter": {
     "Title": "เงื่อนไขการกรอง",
@@ -220,5 +222,40 @@
     "Repeat": "เล่นซ้ำ",
     "Toggle": "สลับแผงเสียง",
     "Volume": "ระดับเสียง"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "เลือกคอลเลกชัน",
+    "SelectedCount": "เลือกแล้ว:",
+    "RateGeneration": "สร้าง Rate",
+    "FLNGeneration": "สร้าง Full LN",
+    "ComingSoon": "เร็วๆ นี้",
+    "Rate": "Rate",
+    "RateMode": "ตัวคูณ",
+    "FixedBpmMode": "BPM คงที่",
+    "CalculatedRate": "Rate ที่คำนวณ:",
+    "CalculatedBpm": "BPM ที่คำนวณ:",
+    "BeatmapConfig": "การตั้งค่าความยาก",
+    "OverrideHp": "เปลี่ยน HP",
+    "OverrideOd": "เปลี่ยน OD",
+    "BatchGenerate": "สร้างทั้งหมด",
+    "Generate": "สร้าง",
+    "Close": "ปิด",
+    "Cancel": "ยกเลิก",
+    "Cancelled": "ยกเลิกแล้ว",
+    "DialogTitle": "สร้าง beatmap",
+    "Completed": "เสร็จสิ้น",
+    "GenerationComplete": "สร้างเสร็จสิ้น (x{0})",
+    "ProcessingOsuInfo": "กรุณาเปิด osu! ก่อนทำการสร้าง",
+    "RefreshHint": "กด F5 ใน osu! เพื่อรีเฟรชรายการ beatmap",
+    "BatchComplete": "สร้าง beatmap สำเร็จ {1} จาก {0}",
+    "UnknownError": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
+    "ChangePitch": "เปลี่ยน pitch (โหมด NC)",
+    "OptionsGroup": "ตัวเลือก",
+    "Mp3Quality": "คุณภาพ MP3",
+    "Mp3Standard": "มาตรฐาน",
+    "Mp3HighQuality": "คุณภาพสูง",
+    "ValidationRequired": "กรุณากรอกค่า",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

@@ -1,4 +1,5 @@
 ﻿using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MainWindow;
@@ -22,6 +23,12 @@ partial class Composition
         .Bind<AudioPlayerPanelViewModel>().As(Singleton).To<AudioPlayerPanelViewModel>()
         .Bind<ILicensesViewModel>().As(Singleton).To<LicensesViewModel>()
         .Bind<ImportExportPageViewModel>().As(Singleton).To<ImportExportPageViewModel>()
+
+        // BeatmapGenerator Feature
+        .Bind<IAudioRateChanger>().As(Singleton).To<AudioRateChanger>()
+        .Bind<IOsuFileRateConverter>().As(Singleton).To<OsuFileRateConverter>()
+        .Bind<IBeatmapRateGenerator>().As(Singleton).To<BeatmapRateGenerator>()
+        .Bind<BeatmapGenerationPageViewModel>().As(Singleton).To<BeatmapGenerationPageViewModel>()
 
         // サービスの登録
         .Bind<ISettingsService>().As(Singleton).To<SettingsService>()

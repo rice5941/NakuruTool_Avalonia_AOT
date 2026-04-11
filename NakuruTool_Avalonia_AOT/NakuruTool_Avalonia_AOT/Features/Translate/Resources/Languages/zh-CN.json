@@ -8,7 +8,8 @@
     "ImportExport": "导入/导出",
     "Systems": "系统",
     "Settings": "设置",
-    "Licenses": "许可"
+    "Licenses": "许可",
+    "BeatmapGeneration": "生成谱面"
   },
   "Settings": {
     "Language": "语言",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "复制下载链接",
-    "OpenInExplorer": "在资源管理器中打开文件夹"
+    "OpenInExplorer": "在资源管理器中打开文件夹",
+    "GenerateBeatmap": "生成谱面..."
   },
   "MapFilter": {
     "Title": "筛选条件",
@@ -220,5 +222,40 @@
     "Repeat": "重复播放",
     "Toggle": "切换音频面板",
     "Volume": "音量"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "选择收藏夹",
+    "SelectedCount": "已选:",
+    "RateGeneration": "倍率生成",
+    "FLNGeneration": "Full LN生成",
+    "ComingSoon": "即将推出",
+    "Rate": "倍率",
+    "RateMode": "倍率模式",
+    "FixedBpmMode": "固定BPM",
+    "CalculatedRate": "计算倍率:",
+    "CalculatedBpm": "计算BPM:",
+    "BeatmapConfig": "难度设置",
+    "OverrideHp": "修改HP",
+    "OverrideOd": "修改OD",
+    "BatchGenerate": "批量生成",
+    "Generate": "生成",
+    "Close": "关闭",
+    "Cancel": "取消",
+    "Cancelled": "已取消",
+    "DialogTitle": "生成谱面",
+    "Completed": "完成",
+    "GenerationComplete": "生成完成 (x{0})",
+    "ProcessingOsuInfo": "请先启动osu!再进行生成",
+    "RefreshHint": "请在osu!中按F5刷新谱面列表",
+    "BatchComplete": "{0}首中有{1}首生成成功",
+    "UnknownError": "未知错误",
+    "ChangePitch": "音调变更（NC方式）",
+    "OptionsGroup": "选项",
+    "Mp3Quality": "MP3质量",
+    "Mp3Standard": "标准",
+    "Mp3HighQuality": "高质量",
+    "ValidationRequired": "请输入值",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

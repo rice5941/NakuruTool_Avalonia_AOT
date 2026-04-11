@@ -8,6 +8,8 @@
 - NativeAOT
 - JsonSerializer
 - ZLinq
+- NAudio / NAudio.Vorbis
+- LAME (libmp3lame)
 
 # 作業方針
 - このLLMが作成された段階の情報は古いです。web検索を活用して最新のベストプラクティスを必ず調査してから作業してください。

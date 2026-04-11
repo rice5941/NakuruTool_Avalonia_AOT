@@ -1,0 +1,398 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="600"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.BeatmapGenerationPageView"
+             x:DataType="local:BeatmapGenerationPageViewModel">
+
+    <UserControl.Resources>
+        <converters:GradeToBrushConverter x:Key="GradeToBrushConverter"/>
+        <converters:EmptyStringConverter x:Key="EmptyStringConverter"/>
+        <converters:ScoreConverter x:Key="ScoreConverter"/>
+        <converters:AccuracyConverter x:Key="AccuracyConverter"/>
+        <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- DataGrid全体のスタイル -->
+        <Style Selector="DataGrid">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey1}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="RowHeight" Value="80"/>
+        </Style>
+        
+        <!-- ヘッダーセルのスタイル -->
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey2}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+        
+        <!-- データセルのスタイル -->
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey2}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+        
+        <!-- 行の交互背景色 -->
+        <Style Selector="DataGridRow:nth-child(even)">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey0}"/>
+        </Style>
+        
+        <Style Selector="DataGridRow:nth-child(odd)">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <!-- 行ホバー時のスタイル -->
+        <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+            <Setter Property="Fill" Value="{DynamicResource SemiBlue0}"/>
+        </Style>
+        
+        <!-- グループ内ラベルのスタイル -->
+        <Style Selector="TextBlock.group-label">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey6}"/>
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
+        </Style>
+        
+        <!-- グループ内値のスタイル -->
+        <Style Selector="TextBlock.group-value">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Margin" Value="0,0,0,-3"/>
+        </Style>
+        
+        <!-- プライマリ値（タイトルなど）のスタイル -->
+        <Style Selector="TextBlock.primary-value">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
+        </Style>
+        
+        <!-- セカンダリ値（サブ情報）のスタイル -->
+        <Style Selector="TextBlock.secondary-value">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey7}"/>
+        </Style>
+        
+        <!-- グレード表示のスタイル -->
+        <Style Selector="TextBlock.grade-value">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        
+        <!-- 数値右寄せのスタイル -->
+        <Style Selector="TextBlock.numeric-value">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="auto,8,500,8,*" Margin="0,0,0,8">
+
+        <!-- Col 0: コレクション選択 -->
+        <Border Grid.Column="0"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Background="{DynamicResource SemiGrey0}">
+            <Grid RowDefinitions="Auto,*">
+                <Border Grid.Row="0"
+                        Background="{DynamicResource SemiGrey1}"
+                        BorderBrush="{DynamicResource SemiGrey3}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,8">
+                    <TextBlock Text="{translate:Translate 'BeatmapGen.SelectCollection'}"
+                               FontSize="14"
+                               FontWeight="Bold"/>
+                </Border>
+
+                <local:CollectionSelectorView Grid.Row="1"
+                                              MinWidth="280"
+                                              DataContext="{Binding CollectionSelector}"/>
+            </Grid>
+        </Border>
+
+        
+        <!-- Col 2: 生成設定 + 実行 -->
+        <DockPanel Grid.Column="2"
+               x:DataType="local:BeatmapGenerationPageViewModel">
+
+            <!-- Bottom: 進捗 + ボタン -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Spacing="8"
+                        x:DataType="local:BeatmapGenerationPageViewModel">
+                <TextBlock Text="{Binding GenerationStatusMessage}" TextWrapping="Wrap"/>
+                <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100"/>
+                <Border Grid.Row="1"
+                    Background="{DynamicResource SemiYellow0}"
+                    BorderBrush="{DynamicResource SemiYellow3}"
+                    Padding="12,6">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
+                                            Foreground="{DynamicResource SemiYellow7}"
+                                            VerticalAlignment="Center"/>
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.ProcessingOsuInfo'}"
+                                    Foreground="{DynamicResource SemiYellow9}"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Content="{translate:Translate 'BeatmapGen.BatchGenerate'}"
+                        Command="{Binding BatchGenerateCommand}"/>
+                    <Button Content="{translate:Translate 'BeatmapGen.Cancel'}"
+                        Command="{Binding CancelGenerationCommand}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Center: TabControl -->
+            <TabControl SelectedIndex="{Binding SelectedGenerationTabIndex, Mode=TwoWay}"
+                        x:DataType="local:BeatmapGenerationPageViewModel">
+                <TabItem Header="{translate:Translate 'BeatmapGen.RateGeneration'}">
+                    <local:RateGenerationView DataContext="{Binding RateGeneration}"/>
+                </TabItem>
+                <TabItem Header="{translate:Translate 'BeatmapGen.FLNGeneration'}" IsVisible="False">
+                    <TextBlock Text="{translate:Translate 'BeatmapGen.ComingSoon'}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                FontSize="16" Opacity="0.5"/>
+                </TabItem>
+            </TabControl>
+
+        </DockPanel>
+        <!-- Col 4: ビートマップリスト -->
+        <Border Grid.Column="4"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Background="{DynamicResource SemiGrey0}">
+            <Grid RowDefinitions="Auto,*,Auto">
+
+                <!-- Row 0: ヘッダー (件数表示 + Mod/ScoreSystem切替) -->
+                <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
+                        BorderBrush="{DynamicResource SemiGrey3}"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="4,4,0,0"
+                        Padding="12,8">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+                            <mi:MaterialIcon Kind="MusicNote" Width="20" Height="20" Foreground="{DynamicResource SemiBluePrimary}"/>
+                            <TextBlock Text="{translate:Translate 'BeatmapGen.BeatmapList'}" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                            <Border CornerRadius="12" Padding="12,4">
+                                <TextBlock Text="{Binding ResolvedBeatmapCount}"
+                                           VerticalAlignment="Center"
+                                           FontWeight="Bold"
+                                           FontSize="13"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Mod切替・スコアシステム切替（ヘッダー右端） -->
+                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!-- スコアシステム選択グループ -->
+                            <Border BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="ScoreboardOutline" Width="18" Height="18"
+                                                     Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                    <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.Default'}"
+                                                 GroupName="BeatmapGenScoreSystem"
+                                                 IsChecked="{Binding SelectedScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.Default}}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                    <RadioButton Content="{translate:Translate 'MapList.ScoreSystem.ScoreV2'}"
+                                                 GroupName="BeatmapGenScoreSystem"
+                                                 IsChecked="{Binding SelectedScoreSystemCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ScoreSystemCategory.ScoreV2}}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <!-- 区切り -->
+                            <Border Width="1" Background="{DynamicResource SemiGrey4}" Margin="4,2"/>
+                            <!-- スピードMod選択グループ -->
+                            <Border BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="Speedometer" Width="18" Height="18"
+                                                     Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.NoMod'}"
+                                                 GroupName="BeatmapGenMod"
+                                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.NoMod}}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.HalfTime'}"
+                                                 GroupName="BeatmapGenMod"
+                                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.HalfTime}}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                    <RadioButton Content="{translate:Translate 'MapList.ModCategory.DoubleTime'}"
+                                                 GroupName="BeatmapGenMod"
+                                                 IsChecked="{Binding SelectedModCategory, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static osu:ModCategory.DoubleTime}}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Row 1: DataGrid (ビートマップ一覧) -->
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding ShowBeatmaps}"
+                          IsReadOnly="True"
+                          CanUserReorderColumns="True"
+                          CanUserResizeColumns="True"
+                          CanUserSortColumns="False"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          SelectionMode="Single">
+                    <DataGrid.Columns>
+
+                        <!-- 難易度値 -->
+                        <DataGridTemplateColumn Width="95">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{translate:Translate 'MapList.Difficulty'}" />
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
+                                            <TextBlock Text="{translate:Translate 'MapList.Star'}" Classes="numeric-value"/>
+                                            <TextBlock Text="{Binding Difficulty, StringFormat={}{0:F2}}" Classes="numeric-value"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- 曲情報グループ -->
+                        <DataGridTemplateColumn Width="*" MinWidth="250">
+                            <DataGridTemplateColumn.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{translate:Translate 'MapList.Title'}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:Beatmap">
+                                    <StackPanel Spacing="2" Margin="4,0">
+                                        <!-- タイトル（プライマリ） -->
+                                        <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Title}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <!-- バージョン（難易度名） -->
+                                            <TextBlock Text="{Binding Version}" Classes="primary-value" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <!-- アーティスト/マッパー -->
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Artist}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Creator}" Classes="secondary-value" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- BPM -->
+                        <DataGridTemplateColumn Width="80">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{translate:Translate 'MapList.BPM'}" />
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:Beatmap">
+                                    <TextBlock Text="{Binding BPM, StringFormat={}{0:F0}}" 
+                                               Classes="numeric-value"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- LN率 -->
+                        <DataGridTemplateColumn Width="95">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{translate:Translate 'MapList.LongNoteRate'}" 
+                                           HorizontalAlignment="Center"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:Beatmap">
+                                    <TextBlock Text="{Binding LongNoteRate, StringFormat={}{0:P2}}" 
+                                               Classes="numeric-value"
+                                               HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- スコア情報グループ -->
+                        <DataGridTemplateColumn Width="140">
+                            <DataGridTemplateColumn.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:Beatmap">
+                                    <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0">
+                                        <!-- グレード -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                                                   Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}" 
+                                                   Classes="grade-value"
+                                                   Foreground="{Binding Grade, Converter={StaticResource GradeToBrushConverter}}"
+                                                   VerticalAlignment="Center"/>
+                                               
+                                        <!-- スコア -->
+                                        <TextBlock Grid.Row="0" Grid.Column="2" 
+                                                   Text="{Binding BestScore, Converter={StaticResource ScoreConverter}}" 
+                                                   Classes="primary-value" 
+                                                   HorizontalAlignment="Left"/>
+                                        <!-- 精度 -->
+                                        <TextBlock Grid.Row="1" Grid.Column="2" 
+                                                   Text="{Binding BestAccuracy, Converter={StaticResource AccuracyConverter}}" 
+                                                   Classes="primary-value" 
+                                                   HorizontalAlignment="Left"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Row 2: ページネーション -->
+                <Border Grid.Row="2"
+                        Background="{DynamicResource SemiGrey1}"
+                        BorderBrush="{DynamicResource SemiGrey3}"
+                        BorderThickness="0,1,0,0"
+                        CornerRadius="0,0,4,4"
+                        Padding="12">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                        <Button Command="{Binding PreviousBeatmapPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                            <mi:MaterialIcon Kind="ChevronLeft" Height="32" Width="32"/>
+                        </Button>
+                        <Border Background="{DynamicResource SemiGrey2}"
+                                CornerRadius="6"
+                                Padding="16,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding CurrentBeatmapPage}"
+                                           FontWeight="Bold"
+                                           FontSize="16"
+                                           Foreground="{DynamicResource SemiBluePrimary}"/>
+                                <TextBlock Text="/" FontSize="16" FontWeight="Bold" />
+                                <TextBlock Text="{Binding BeatmapPageCount}" FontSize="16" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                        <Button Command="{Binding NextBeatmapPageCommand}" Theme="{StaticResource SolidButton}" Width="40" Height="40">
+                            <mi:MaterialIcon Kind="ChevronRight" Height="32" Width="32"/>
+                        </Button>
+                        <ComboBox Width="80" ItemsSource="{Binding BeatmapPageSizes}" SelectedItem="{Binding BeatmapPageSize, Mode=TwoWay}" TextElement.FontSize="16" TextElement.FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>

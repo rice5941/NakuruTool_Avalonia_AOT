@@ -8,7 +8,8 @@
     "ImportExport": "Импорт/Экспорт",
     "Systems": "Система",
     "Settings": "Настройки",
-    "Licenses": "Лицензии"
+    "Licenses": "Лицензии",
+    "BeatmapGeneration": "Генерация beatmap"
   },
   "Settings": {
     "Language": "Язык",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Копировать ссылку для скачивания",
-    "OpenInExplorer": "Открыть папку в проводнике"
+    "OpenInExplorer": "Открыть папку в проводнике",
+    "GenerateBeatmap": "Создать beatmap..."
   },
   "MapFilter": {
     "Title": "Условия фильтра",
@@ -220,5 +222,40 @@
     "Repeat": "Повтор",
     "Toggle": "Переключить аудиопанель",
     "Volume": "Громкость"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Выбрать коллекцию",
+    "SelectedCount": "Выбрано:",
+    "RateGeneration": "Генерация Rate",
+    "FLNGeneration": "Генерация Full LN",
+    "ComingSoon": "Скоро",
+    "Rate": "Rate",
+    "RateMode": "Множитель",
+    "FixedBpmMode": "Фиксированный BPM",
+    "CalculatedRate": "Вычисленный Rate:",
+    "CalculatedBpm": "Вычисленный BPM:",
+    "BeatmapConfig": "Настройки сложности",
+    "OverrideHp": "Изменить HP",
+    "OverrideOd": "Изменить OD",
+    "BatchGenerate": "Пакетная генерация",
+    "Generate": "Создать",
+    "Close": "Закрыть",
+    "Cancel": "Отмена",
+    "Cancelled": "Отменено",
+    "DialogTitle": "Создание beatmap",
+    "Completed": "Завершено",
+    "GenerationComplete": "Генерация завершена (x{0})",
+    "ProcessingOsuInfo": "Пожалуйста, запустите osu! перед генерацией",
+    "RefreshHint": "Нажмите F5 в osu!, чтобы обновить список beatmap",
+    "BatchComplete": "{1} из {0} beatmap успешно создано",
+    "UnknownError": "Неизвестная ошибка",
+    "ChangePitch": "Изменить тональность (режим NC)",
+    "OptionsGroup": "Параметры",
+    "Mp3Quality": "Качество MP3",
+    "Mp3Standard": "Стандартное",
+    "Mp3HighQuality": "Высокое",
+    "ValidationRequired": "Введите значение",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

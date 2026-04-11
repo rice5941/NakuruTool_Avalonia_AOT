@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MapList;
@@ -20,6 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public IMapListViewModel MapListViewModel { get; }
     public MapListPageViewModel MapListPageViewModel { get; }
     public ImportExportPageViewModel ImportExportPageViewModel { get; }
+    public BeatmapGenerationPageViewModel BeatmapGenerationPageViewModel { get; }
     public ILicensesViewModel LicensesViewModel { get; }
 
     private readonly ISettingsService _settingsService;
@@ -35,7 +37,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // タブインデックス定数
     private const int TabIndexMapList = 1;
-    private const int TabIndexSettings = 4;
+    private const int TabIndexSettings = 5;
 
     public MainWindowViewModel(
         ISettingsViewModel settingsViewModel, 
@@ -43,6 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IMapListViewModel mapListViewModel,
         MapListPageViewModel mapListPageViewModel,
         ImportExportPageViewModel importExportPageViewModel,
+        BeatmapGenerationPageViewModel beatmapGenerationPageViewModel,
         ILicensesViewModel licensesViewModel,
         ISettingsService settingsService)
     {
@@ -51,6 +54,7 @@ public partial class MainWindowViewModel : ViewModelBase
         MapListViewModel = mapListViewModel;
         MapListPageViewModel = mapListPageViewModel;
         ImportExportPageViewModel = importExportPageViewModel;
+        BeatmapGenerationPageViewModel = beatmapGenerationPageViewModel;
         LicensesViewModel = licensesViewModel;
         _settingsService = settingsService;
 
@@ -78,6 +82,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // データベース読み込み完了後にMapListPageViewModelを初期化
         MapListPageViewModel.Initialize();
         ImportExportPageViewModel.Initialize();
+        BeatmapGenerationPageViewModel.Initialize();
 
         // 設定が有効かつDB読み込み成功時、プリセットから自動一括生成
         if (!DatabaseLoadingViewModel.HasError
@@ -118,6 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await DatabaseLoadingViewModel.InitialLoadAsync();
             MapListPageViewModel.Initialize();
             ImportExportPageViewModel.Initialize();
+            BeatmapGenerationPageViewModel.Initialize();
         }
         catch
         {

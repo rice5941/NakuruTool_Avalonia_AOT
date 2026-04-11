@@ -8,7 +8,8 @@
     "ImportExport": "가져오기/내보내기",
     "Systems": "시스템",
     "Settings": "설정",
-    "Licenses": "라이선스"
+    "Licenses": "라이선스",
+    "BeatmapGeneration": "비트맵 생성"
   },
   "Settings": {
     "Language": "언어",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "다운로드 URL 복사",
-    "OpenInExplorer": "폴더를 탐색기에서 열기"
+    "OpenInExplorer": "폴더를 탐색기에서 열기",
+    "GenerateBeatmap": "비트맵 생성..."
   },
   "MapFilter": {
     "Title": "필터 조건",
@@ -220,5 +222,40 @@
     "Repeat": "반복",
     "Toggle": "오디오 패널 전환",
     "Volume": "볼륨"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "컬렉션 선택",
+    "SelectedCount": "선택됨:",
+    "RateGeneration": "레이트 생성",
+    "FLNGeneration": "Full LN 생성",
+    "ComingSoon": "출시 예정",
+    "Rate": "레이트",
+    "RateMode": "배율",
+    "FixedBpmMode": "고정 BPM",
+    "CalculatedRate": "계산된 배율:",
+    "CalculatedBpm": "계산된 BPM:",
+    "BeatmapConfig": "난이도 설정",
+    "OverrideHp": "HP 변경",
+    "OverrideOd": "OD 변경",
+    "BatchGenerate": "일괄 생성",
+    "Generate": "생성",
+    "Close": "닫기",
+    "Cancel": "취소",
+    "Cancelled": "취소됨",
+    "DialogTitle": "비트맵 생성",
+    "Completed": "완료",
+    "GenerationComplete": "생성 완료 (x{0})",
+    "ProcessingOsuInfo": "생성 전에 osu!를 실행해 주세요",
+    "RefreshHint": "osu!에서 F5를 눌러 비트맵 목록을 새로고침하세요",
+    "BatchComplete": "{0}개 중 {1}개의 비트맵이 성공적으로 생성되었습니다",
+    "UnknownError": "알 수 없는 오류",
+    "ChangePitch": "피치 변경 (NC 방식)",
+    "OptionsGroup": "옵션",
+    "Mp3Quality": "MP3 품질",
+    "Mp3Standard": "표준",
+    "Mp3HighQuality": "고품질",
+    "ValidationRequired": "값을 입력해 주세요",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

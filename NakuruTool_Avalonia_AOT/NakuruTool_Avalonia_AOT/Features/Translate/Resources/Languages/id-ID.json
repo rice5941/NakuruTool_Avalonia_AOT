@@ -8,7 +8,8 @@
     "ImportExport": "Impor/Ekspor",
     "Systems": "Sistem",
     "Settings": "Pengaturan",
-    "Licenses": "Lisensi"
+    "Licenses": "Lisensi",
+    "BeatmapGeneration": "Pembuatan beatmap"
   },
   "Settings": {
     "Language": "Bahasa",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Salin URL Unduhan",
-    "OpenInExplorer": "Buka Folder di Explorer"
+    "OpenInExplorer": "Buka Folder di Explorer",
+    "GenerateBeatmap": "Buat beatmap..."
   },
   "MapFilter": {
     "Title": "Kondisi filter",
@@ -220,5 +222,40 @@
     "Repeat": "Ulangi",
     "Toggle": "Ganti panel audio",
     "Volume": "Volume"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "Pilih koleksi",
+    "SelectedCount": "Dipilih:",
+    "RateGeneration": "Pembuatan rate",
+    "FLNGeneration": "Pembuatan Full LN",
+    "ComingSoon": "Segera hadir",
+    "Rate": "Rate",
+    "RateMode": "Multiplier",
+    "FixedBpmMode": "BPM tetap",
+    "CalculatedRate": "Rate dihitung:",
+    "CalculatedBpm": "BPM dihitung:",
+    "BeatmapConfig": "Pengaturan kesulitan",
+    "OverrideHp": "Ubah HP",
+    "OverrideOd": "Ubah OD",
+    "BatchGenerate": "Buat sekaligus",
+    "Generate": "Buat",
+    "Close": "Tutup",
+    "Cancel": "Batal",
+    "Cancelled": "Dibatalkan",
+    "DialogTitle": "Buat beatmap",
+    "Completed": "Selesai",
+    "GenerationComplete": "Pembuatan selesai (x{0})",
+    "ProcessingOsuInfo": "Harap jalankan osu! sebelum membuat",
+    "RefreshHint": "Tekan F5 di osu! untuk memperbarui daftar beatmap",
+    "BatchComplete": "{1} dari {0} beatmap berhasil dibuat",
+    "UnknownError": "Kesalahan tidak diketahui",
+    "ChangePitch": "Ubah pitch (mode NC)",
+    "OptionsGroup": "Opsi",
+    "Mp3Quality": "Kualitas MP3",
+    "Mp3Standard": "Standar",
+    "Mp3HighQuality": "Kualitas tinggi",
+    "ValidationRequired": "Harap masukkan nilai",
+    "BeatmapList": "Beatmap List",
+    "BeatmapCount": "{0} Beatmaps"
   }
 }

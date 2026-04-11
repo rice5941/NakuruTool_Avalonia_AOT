@@ -23,7 +23,7 @@ at your option.
 ## minimp3_fixed
 
 - **License**: CC0-1.0 OR MIT
-- **Repository**: https://github.com/nicedoc/minimp3-rs
+- **Repository**: https://github.com/BOB450/minimp3-rs
 - **Copyright**: minimp3 contributors
 - Used by rodio for MP3 decoding
 

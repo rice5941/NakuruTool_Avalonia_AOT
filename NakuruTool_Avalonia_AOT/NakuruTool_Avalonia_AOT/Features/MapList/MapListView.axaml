@@ -209,6 +209,9 @@
                         <Separator/>
                         <MenuItem Header="{translate:Translate 'MapList.OpenInExplorer'}"
                                   Command="{Binding OpenInExplorerCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="{translate:Translate 'MapList.GenerateBeatmap'}"
+                                  Command="{Binding GenerateBeatmapCommand}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>

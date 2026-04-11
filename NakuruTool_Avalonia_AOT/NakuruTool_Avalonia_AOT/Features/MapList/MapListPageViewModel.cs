@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
@@ -56,13 +57,22 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     public partial string LargeCollectionConfirmMessage { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    public partial SingleBeatmapGenerationViewModel? SingleGenerationViewModel { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSingleGenerationOverlayVisible { get; set; } = false;
+
     partial void OnIsLargeCollectionConfirmVisibleChanged(bool value)
     {
         AddToCollectionCommand.NotifyCanExecuteChanged();
     }
 
     private readonly IGenerateCollectionService _generateCollectionService;
+    private readonly IBeatmapRateGenerator _beatmapRateGenerator;
     private bool _disposed;
+
+    public IBeatmapRateGenerator BeatmapRateGenerator => _beatmapRateGenerator;
 
     public MapListPageViewModel(
         IDatabaseService databaseService,
@@ -70,9 +80,11 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         IFilterPresetService presetService,
         AudioPlayerViewModel audioPlayerViewModel,
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IBeatmapRateGenerator beatmapRateGenerator)
     {
         _generateCollectionService = generateCollectionService;
+        _beatmapRateGenerator = beatmapRateGenerator;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
         ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService);
@@ -112,6 +124,21 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         // DB読み込み完了後にコレクション名リストを更新
         FilterViewModel.RefreshCollectionNames();
         ListViewModel.Initialize();
+    }
+
+    public void ShowSingleGeneration(Beatmap beatmap)
+    {
+        SingleGenerationViewModel?.Dispose();
+        SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator);
+        IsSingleGenerationOverlayVisible = true;
+    }
+
+    [RelayCommand]
+    private void CloseSingleGeneration()
+    {
+        IsSingleGenerationOverlayVisible = false;
+        SingleGenerationViewModel?.Dispose();
+        SingleGenerationViewModel = null;
     }
 
     [RelayCommand]
@@ -259,6 +286,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         if (_disposed) return;
         _disposed = true;
 
+        SingleGenerationViewModel?.Dispose();
         FilterViewModel.Dispose();
         ListViewModel.Dispose();
         PresetEditorViewModel.Dispose();

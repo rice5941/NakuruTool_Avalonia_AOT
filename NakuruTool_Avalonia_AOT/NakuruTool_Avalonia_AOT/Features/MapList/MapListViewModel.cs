@@ -44,6 +44,9 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
     private bool _isNavigating;
     private Func<string, Task>? _clipboardWriter;
     private Beatmap? _contextMenuBeatmap;
+    private readonly Subject<Beatmap> _generateBeatmapRequested = new();
+
+    public Observable<Beatmap> GenerateBeatmapRequested => _generateBeatmapRequested;
 
     [ObservableProperty]
     public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; } = new AvaloniaList<Beatmap>();
@@ -186,6 +189,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         _contextMenuBeatmap = !string.IsNullOrEmpty(beatmap.FolderName) ? beatmap : null;
         CopyDownloadUrlCommand.NotifyCanExecuteChanged();
         OpenInExplorerCommand.NotifyCanExecuteChanged();
+        GenerateBeatmapCommand.NotifyCanExecuteChanged();
         return _contextMenuBeatmap is not null;
     }
 
@@ -194,6 +198,7 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         _contextMenuBeatmap = null;
         CopyDownloadUrlCommand.NotifyCanExecuteChanged();
         OpenInExplorerCommand.NotifyCanExecuteChanged();
+        GenerateBeatmapCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanOpenInExplorer() =>
@@ -215,6 +220,17 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
         if (Directory.Exists(folderPath))
         {
             Process.Start("explorer.exe", folderPath);
+        }
+    }
+
+    private bool CanGenerateBeatmap() => _contextMenuBeatmap is not null;
+
+    [RelayCommand(CanExecute = nameof(CanGenerateBeatmap))]
+    private void GenerateBeatmap()
+    {
+        if (_contextMenuBeatmap is not null)
+        {
+            _generateBeatmapRequested.OnNext(_contextMenuBeatmap);
         }
     }
 
@@ -353,6 +369,8 @@ public partial class MapListViewModel : ViewModelBase, IMapListViewModel
 
     public override void Dispose()
     {
+        _generateBeatmapRequested.OnCompleted();
+        _generateBeatmapRequested.Dispose();
         _audioPlayer.Dispose();
         AudioPlayerPanel.Dispose();
         base.Dispose();

@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.BeatmapGenerationPageView"
+             x:DataType="local:BeatmapGenerationPageViewModel">
+
+    <Grid ColumnDefinitions="320,8,*">
+
+        <!-- Col 0: コレクション選択 -->
+        <Border Grid.Column="0"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Background="{DynamicResource SemiGrey0}">
+            <Grid RowDefinitions="Auto,*">
+                <Border Grid.Row="0"
+                        Background="{DynamicResource SemiGrey1}"
+                        BorderBrush="{DynamicResource SemiGrey3}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,8">
+                    <TextBlock Text="{translate:Translate 'BeatmapGen.SelectCollection'}"
+                               FontSize="14"
+                               FontWeight="Bold"/>
+                </Border>
+
+                <local:CollectionSelectorView Grid.Row="1"
+                                             DataContext="{Binding CollectionSelector}"/>
+            </Grid>
+        </Border>
+
+        <!-- Col 2: 生成設定 + 実行 -->
+        <DockPanel Grid.Column="2"
+               x:DataType="local:BeatmapGenerationPageViewModel">
+
+            <!-- Bottom: 進捗 + ボタン -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Spacing="8"
+                        Margin="8"
+                        x:DataType="local:BeatmapGenerationPageViewModel">
+                <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100"/>
+                <TextBlock Text="{Binding GenerationStatusMessage}" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Content="{translate:Translate 'BeatmapGen.BatchGenerate'}"
+                        Command="{Binding BatchGenerateCommand}"/>
+                    <Button Content="{translate:Translate 'BeatmapGen.Cancel'}"
+                        Command="{Binding CancelGenerationCommand}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Center: TabControl -->
+            <TabControl SelectedIndex="{Binding SelectedGenerationTabIndex, Mode=TwoWay}"
+                        x:DataType="local:BeatmapGenerationPageViewModel">
+                <TabItem Header="{translate:Translate 'BeatmapGen.RateGeneration'}">
+                    <local:RateGenerationView DataContext="{Binding RateGeneration}"/>
+                </TabItem>
+                <TabItem Header="{translate:Translate 'BeatmapGen.FLNGeneration'}">
+                    <TextBlock Text="{translate:Translate 'BeatmapGen.ComingSoon'}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontSize="16" Opacity="0.5"/>
+                </TabItem>
+            </TabControl>
+
+        </DockPanel>
+
+    </Grid>
+</UserControl>

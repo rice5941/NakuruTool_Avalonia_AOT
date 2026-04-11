@@ -8,7 +8,8 @@
     "ImportExport": "インポート/エクスポート",
     "Systems": "システム",
     "Settings": "設定",
-    "Licenses": "ライセンス"
+    "Licenses": "ライセンス",
+    "BeatmapGeneration": "beatmap生成"
   },
   "Settings": {
     "Language": "Language/言語",
@@ -63,7 +64,8 @@
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "ダウンロードURLをコピー",
-    "OpenInExplorer": "フォルダをエクスプローラーで開く"
+    "OpenInExplorer": "フォルダをエクスプローラーで開く",
+    "GenerateBeatmap": "beatmap生成..."
   },
   "MapFilter": {
     "Title": "フィルタ条件",
@@ -220,5 +222,34 @@
     "Repeat": "リピート",
     "Toggle": "オーディオパネル切替",
     "Volume": "音量"
+  },
+  "BeatmapGen": {
+    "SelectCollection": "コレクション選択",
+    "SelectedCount": "選択中:",
+    "RateGeneration": "レート生成",
+    "FLNGeneration": "Full LN生成",
+    "ComingSoon": "今後実装予定",
+    "Rate": "レート倍率",
+    "RateMode": "レート倍率",
+    "FixedBpmMode": "固定BPMに合わせる",
+    "CalculatedRate": "計算レート:",
+    "CalculatedBpm": "計算BPM:",
+    "FixedBpm": "固定BPMに合わせる",
+    "FixedBpmDesc": "各beatmapのBPMからレートを自動計算します",
+    "OverrideHp": "HPを変更する",
+    "OverrideOd": "ODを変更する",
+    "BatchGenerate": "一括生成",
+    "Generate": "生成",
+    "Close": "閉じる",
+    "Cancel": "キャンセル",
+    "Cancelled": "キャンセルされました",
+    "DialogTitle": "beatmap生成",
+    "Completed": "完了",
+    "GenerationComplete": "生成が完了しました (x{0})",
+    "RefreshHint": "osu!でF5を押して譜面一覧を更新してください",
+    "BatchComplete": "{0}曲中{1}曲の生成が完了しました",
+    "UnknownError": "不明なエラー",
+    "ChangePitch": "ピッチを変更する（NC方式）",
+    "ChangePitchDesc": "チェックするとNightCore方式（ピッチと速度が連動）で変換します。デフォルトはDoubleTime方式（ピッチ維持）です。"
   }
 }

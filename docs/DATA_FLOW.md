@@ -736,3 +736,54 @@ flowchart TD
 |---------|------|--------------|
 | `{AppDirectory}/exports/` | エクスポートJSON出力先 | `ExportAsync()` 呼び出し時に自動作成 |
 | `{AppDirectory}/imports/` | インポートJSON配置先 | `GetImportFiles()` 呼び出し時に自動作成 |
+
+---
+
+## 9. レート生成フロー
+
+BeatmapGeneratorモジュールによるレート変更版譜面の生成フロー。指定レート範囲で.osuファイルのタイミング変換とオーディオのレート変換を行い、Songsフォルダに出力する。DTモード（デフォルト）ではSignalsmithStretchによるピッチ保持タイムストレッチ、NCモードではサンプルレート変更によるピッチ変更を伴うレート変換を行う。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant VM as RateGenerationViewModel
+    participant BRG as BeatmapRateGenerator
+    participant OFC as OsuFileRateConverter
+    participant ARC as AudioRateChanger
+    participant NS as nakuru_stretch (Rust)
+    participant Songs as Songs/{folder}
+
+    User->>VM: 生成実行
+    VM->>BRG: GenerateAsync(options, progress, ct)
+
+    loop 各レート（min → max, step刻み）
+        BRG->>OFC: ConvertAsync(osuFilePath, rate, options)
+        Note over OFC: タイミングポイント・ノート・<br/>BPM・メタデータのレート変換
+        OFC-->>BRG: 変換済み.osuファイル出力
+
+        alt DT モード（changePitch = false）
+            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=false, ct)
+            ARC->>NS: nakuru_stretch_process(samples, rate)
+            Note over NS: SignalsmithStretch<br/>seek()+process()+flush()<br/>ピッチ保持タイムストレッチ
+            NS-->>ARC: ストレッチ済みサンプル
+            ARC->>Songs: WAV/OGG出力（_dt サフィックス）
+        else NC モード（changePitch = true）
+            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=true, ct)
+            Note over ARC: NAudioでデコード →<br/>SampleRateOverrideで速度変換<br/>（ピッチも変化）
+            ARC->>Songs: WAV/OGG出力（_nc サフィックス）
+        end
+    end
+
+    BRG->>BRG: BatchGenerationResult集計
+    BRG-->>VM: 完了（成功/スキップ/失敗件数）
+    VM-->>User: 結果表示
+```
+
+### 処理の流れ
+
+1. **ユーザー操作** — コレクション選択または単一譜面指定 → レート範囲・ステップ・モード（DT/NC）を設定 → 生成開始
+2. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換し、新しい.osuファイルを出力（DTモードではDTタグ、NCモードではNCタグを付与）
+3. **オーディオ変換**
+   - **DTモード（デフォルト）**: `AudioRateChanger` が元オーディオをNAudioでデコード → nakuru_stretch（SignalsmithStretch）でピッチ保持タイムストレッチ → WAV/OGG出力
+   - **NCモード**: `AudioRateChanger` がNAudioでデコード → サンプルレート変更によるレート変換（ピッチも変化） → WAV/OGG出力
+4. **出力先** — osu!のSongsフォルダ内の元譜面フォルダに、レート付きファイル名で出力（例: `audio_1.25x_dt.ogg`, `audio_1.25x_nc.ogg`）

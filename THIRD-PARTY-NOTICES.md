@@ -144,6 +144,27 @@ Avaloniaのホットリロード機能。
 
 ---
 
+### nakuru_stretch
+- **Version**: 0.1.0
+- **License**: MIT License
+- **Repository**: 本リポジトリ (`native/nakuru_stretch/`)
+- **Copyright**: Copyright (c) 2025 NakuruTool Contributors
+
+このプロジェクトで開発されたタイムストレッチライブラリ。SignalsmithStretchのRust FFIラッパー。
+
+詳細は [native/nakuru_stretch/THIRD-PARTY-NOTICES.md](native/nakuru_stretch/THIRD-PARTY-NOTICES.md) を参照してください。
+
+---
+
+### SignalsmithStretch (C++ Library)
+- **License**: MIT License
+- **Repository**: https://github.com/SignalsmithAudio/signalsmith-stretch
+- **Copyright**: Copyright (c) Signalsmith Audio Ltd.
+
+高品質なタイムストレッチ／ピッチシフト C++ ライブラリ。nakuru_stretch が内部的に使用。
+
+---
+
 ### rodio
 - **Version**: 0.21.1
 - **License**: MIT License OR Apache License 2.0

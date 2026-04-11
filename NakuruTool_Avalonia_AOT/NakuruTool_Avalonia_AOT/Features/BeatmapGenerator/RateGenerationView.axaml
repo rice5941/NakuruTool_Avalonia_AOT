@@ -1,0 +1,134 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.RateGenerationView"
+             x:DataType="local:RateGenerationViewModel">
+
+    <UserControl.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </UserControl.Resources>
+
+    <StackPanel Spacing="12" Margin="8">
+
+        <!-- レート倍率モード -->
+        <StackPanel Spacing="4">
+            <RadioButton GroupName="RateMode"
+                         Content="{translate:Translate 'BeatmapGen.RateMode'}"
+                         IsChecked="{Binding IsFixedBpmMode, Converter={StaticResource InverseBooleanConverter}}"/>
+            <StackPanel Spacing="2" Margin="24,0,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <NumericUpDown Value="{Binding Rate}"
+                                  Increment="0.05"
+                                  FormatString="0.00"
+                                  IsEnabled="{Binding !IsFixedBpmMode}"
+                                  Width="140" HorizontalAlignment="Left"/>
+                </StackPanel>
+                <TextBlock Text="値を入力してください"
+                           FontSize="11"
+                           Foreground="{DynamicResource SemiDanger}"
+                           IsVisible="{Binding RateHasError}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="24,0,0,0"
+                        IsVisible="{Binding CalculatedBpm, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{translate:Translate 'BeatmapGen.CalculatedBpm'}"
+                           FontSize="12" Opacity="0.8"/>
+                <TextBlock Text="{Binding CalculatedBpm, StringFormat={}{0:0}}"
+                           FontSize="12" FontWeight="SemiBold"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- 固定BPMモード -->
+        <StackPanel Spacing="4">
+            <RadioButton GroupName="RateMode"
+                         Content="{translate:Translate 'BeatmapGen.FixedBpmMode'}"
+                         IsChecked="{Binding IsFixedBpmMode}"/>
+            <StackPanel Spacing="4" Margin="24,0,0,0">
+                <StackPanel Spacing="2">
+                    <NumericUpDown Value="{Binding FixedBpm}"
+                                  Increment="1"
+                                  FormatString="0"
+                                  IsEnabled="{Binding IsFixedBpmMode}"
+                                  Width="140" HorizontalAlignment="Left"/>
+                    <TextBlock Text="値を入力してください"
+                               FontSize="11"
+                               Foreground="{DynamicResource SemiDanger}"
+                               IsVisible="{Binding FixedBpmHasError}"/>
+                </StackPanel>
+                <TextBlock Text="{translate:Translate 'BeatmapGen.FixedBpmDesc'}"
+                           FontSize="11" Opacity="0.7"
+                           TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Spacing="4"
+                            IsVisible="{Binding CalculatedRate, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{translate:Translate 'BeatmapGen.CalculatedRate'}"
+                               FontSize="12" Opacity="0.8"/>
+                    <TextBlock Text="{Binding CalculatedRate, StringFormat={}{0:0.0000}}"
+                               FontSize="12" FontWeight="SemiBold"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ピッチを変更する (NC方式) -->
+        <StackPanel Spacing="4">
+            <CheckBox Content="{translate:Translate 'BeatmapGen.ChangePitch'}"
+                      IsChecked="{Binding ChangePitch}"/>
+            <TextBlock Text="{translate:Translate 'BeatmapGen.ChangePitchDesc'}"
+                       FontSize="11" Opacity="0.7"
+                       TextWrapping="Wrap"
+                       Margin="24,0,0,0"/>
+        </StackPanel>
+
+        <!-- HPを変更する -->
+        <StackPanel Spacing="4">
+            <CheckBox Content="{translate:Translate 'BeatmapGen.OverrideHp'}"
+                      IsChecked="{Binding IsHpOverrideEnabled}"/>
+            <StackPanel Spacing="2" Margin="24,0,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <NumericUpDown Value="{Binding HpValue}"
+                                  Minimum="{Binding HpMin}" Maximum="{Binding HpMax}"
+                                  Increment="0.1"
+                                  FormatString="0.0"
+                                  IsEnabled="{Binding IsHpOverrideEnabled}"
+                                  Width="140" HorizontalAlignment="Left"/>
+                    <TextBlock Text="{Binding HpRangeHint}"
+                               FontSize="12" Opacity="0.6"
+                               VerticalAlignment="Center"
+                               IsEnabled="{Binding IsHpOverrideEnabled}"/>
+                </StackPanel>
+                <TextBlock Text="値を入力してください"
+                           FontSize="11"
+                           Foreground="{DynamicResource SemiDanger}"
+                           IsVisible="{Binding HpHasError}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ODを変更する -->
+        <StackPanel Spacing="4">
+            <CheckBox Content="{translate:Translate 'BeatmapGen.OverrideOd'}"
+                      IsChecked="{Binding IsOdOverrideEnabled}"/>
+            <StackPanel Spacing="2" Margin="24,0,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <NumericUpDown Value="{Binding OdValue}"
+                                  Minimum="{Binding OdMin}" Maximum="{Binding OdMax}"
+                                  Increment="0.1"
+                                  FormatString="0.0"
+                                  IsEnabled="{Binding IsOdOverrideEnabled}"
+                                  Width="140" HorizontalAlignment="Left"/>
+                    <TextBlock Text="{Binding OdRangeHint}"
+                               FontSize="12" Opacity="0.6"
+                               VerticalAlignment="Center"
+                               IsEnabled="{Binding IsOdOverrideEnabled}"/>
+                </StackPanel>
+                <TextBlock Text="値を入力してください"
+                           FontSize="11"
+                           Foreground="{DynamicResource SemiDanger}"
+                           IsVisible="{Binding OdHasError}"/>
+            </StackPanel>
+        </StackPanel>
+
+    </StackPanel>
+</UserControl>

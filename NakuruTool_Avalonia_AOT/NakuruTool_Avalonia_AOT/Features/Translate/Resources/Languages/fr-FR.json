@@ -220,5 +220,9 @@
     "Repeat": "Répéter",
     "Toggle": "Afficher/Masquer le panneau audio",
     "Volume": "Volume"
+  },
+  "BeatmapGen": {
+    "ChangePitch": "Change Pitch (NC mode)",
+    "ChangePitchDesc": "When checked, converts using NightCore mode (pitch changes with speed). Default is DoubleTime mode (pitch preserved)."
   }
 }

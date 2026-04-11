@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
+             xmlns:BeatmapGen="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
@@ -115,6 +116,34 @@
                     <Button Command="{Binding CancelLargeCollectionCommand}"
                             Content="{translate:Translate 'Collection.ConfirmCancel'}"
                             MinWidth="100"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- 単体beatmap生成オーバーレイ -->
+    <Border IsVisible="{Binding IsSingleGenerationOverlayVisible}"
+            Background="#80000000"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Theme="{DynamicResource CardBorder}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MinWidth="420" MaxWidth="500" Padding="16">
+            <StackPanel Spacing="12"
+                        x:DataType="MapList:MapListPageViewModel">
+                <!-- 対象beatmap情報 -->
+                <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
+                           Text="{Binding SingleGenerationViewModel.TargetBeatmapDisplay}"/>
+                <!-- レート設定 -->
+                <BeatmapGen:RateGenerationView DataContext="{Binding SingleGenerationViewModel.RateGeneration}"/>
+                <!-- 進捗 -->
+                <ProgressBar Value="{Binding SingleGenerationViewModel.GenerationProgressValue}" Maximum="100"/>
+                <TextBlock Text="{Binding SingleGenerationViewModel.GenerationStatusMessage}" TextWrapping="Wrap"/>
+                <!-- ボタン -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button Content="{translate:Translate 'BeatmapGen.Generate'}"
+                            Command="{Binding SingleGenerationViewModel.GenerateCommand}"/>
+                    <Button Content="{translate:Translate 'BeatmapGen.Close'}"
+                            Command="{Binding CloseSingleGenerationCommand}"/>
                 </StackPanel>
             </StackPanel>
         </Border>

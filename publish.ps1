@@ -43,6 +43,13 @@ if ($LASTEXITCODE -eq 0) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
+
+    $stretchDllFile = Join-Path $publishDir "nakuru_stretch.dll"
+
+    if (Test-Path $stretchDllFile) {
+        $stretchDllSize = (Get-Item $stretchDllFile).Length / 1MB
+        Write-Host "  nakuru_stretch.dll: $([math]::Round($stretchDllSize, 1)) MB" -ForegroundColor White
+    }
     # 配布用のユーザーガイドを同梱
     if (Test-Path $userGuideSource) {
         Copy-Item -Path $userGuideSource -Destination $userGuideDestination -Force

@@ -68,6 +68,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+    <PackageReference Include="NLayer" Version="1.16.0" />
+    <PackageReference Include="NLayer.NAudioSupport" Version="1.4.0" />
+    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
     <PackageReference Include="R3" Version="1.3.0" />
     <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
@@ -87,14 +92,17 @@
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathStretch>$(ProjectDir)..\..\native\nakuru_stretch\target\$(RustProfile)\nakuru_stretch.dll</NativeLibPathStretch>
     </PropertyGroup>
 
-    <!-- Build Rust library -->
+    <!-- Build nakuru_audio -->
     <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
+    <Copy SourceFiles="$(NativeLibPathAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAudio)')" />
 
-    <!-- Copy native library to output directory (Windows) -->
-    <Copy SourceFiles="$(NativeLibPath)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPath)')" />
+    <!-- Build nakuru_stretch -->
+    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_stretch\Cargo.toml&quot;" />
+    <Copy SourceFiles="$(NativeLibPathStretch)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathStretch)')" />
   </Target>
 
   <!-- Copy native library to publish directory for NativeAOT -->
@@ -102,12 +110,17 @@
     <PropertyGroup>
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
-      <NativeLibPath>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPath>
+      <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathStretch>$(ProjectDir)..\..\native\nakuru_stretch\target\$(RustProfile)\nakuru_stretch.dll</NativeLibPathStretch>
     </PropertyGroup>
 
     <ItemGroup>
-      <ResolvedFileToPublish Include="$(NativeLibPath)" Condition="Exists('$(NativeLibPath)')">
+      <ResolvedFileToPublish Include="$(NativeLibPathAudio)" Condition="Exists('$(NativeLibPathAudio)')">
         <RelativePath>nakuru_audio.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(NativeLibPathStretch)" Condition="Exists('$(NativeLibPathStretch)')">
+        <RelativePath>nakuru_stretch.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

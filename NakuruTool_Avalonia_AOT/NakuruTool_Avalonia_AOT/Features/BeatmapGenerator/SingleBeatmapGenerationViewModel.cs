@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
@@ -33,14 +34,30 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsCompleted { get; set; } = false;
 
+    [ObservableProperty]
+    public partial string DisplayTitle { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string DisplayArtist { get; set; } = "";
+
     public SingleBeatmapGenerationViewModel(
         Beatmap targetBeatmap,
-        IBeatmapRateGenerator beatmapRateGenerator)
+        IBeatmapRateGenerator beatmapRateGenerator,
+        ISettingsService settingsService)
     {
         TargetBeatmap = targetBeatmap;
         _beatmapRateGenerator = beatmapRateGenerator;
         RateGeneration = new RateGenerationViewModel();
         RateGeneration.SourceBpm = targetBeatmap.BPM;
+
+        // Unicode優先設定に基づいて表示名を決定
+        var preferUnicode = settingsService.SettingsData.PreferUnicode;
+        DisplayTitle = (preferUnicode && !string.IsNullOrEmpty(targetBeatmap.TitleUnicode))
+            ? targetBeatmap.TitleUnicode
+            : targetBeatmap.Title;
+        DisplayArtist = (preferUnicode && !string.IsNullOrEmpty(targetBeatmap.ArtistUnicode))
+            ? targetBeatmap.ArtistUnicode
+            : targetBeatmap.Artist;
 
         RateGeneration.ObserveProperty(nameof(RateGenerationViewModel.HasValidationErrors))
             .Subscribe(_ => GenerateCommand.NotifyCanExecuteChanged())

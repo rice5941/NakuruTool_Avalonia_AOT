@@ -70,6 +70,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
     private readonly IGenerateCollectionService _generateCollectionService;
     private readonly IBeatmapRateGenerator _beatmapRateGenerator;
+    private readonly ISettingsService _settingsService;
     private bool _disposed;
 
     public IBeatmapRateGenerator BeatmapRateGenerator => _beatmapRateGenerator;
@@ -85,6 +86,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     {
         _generateCollectionService = generateCollectionService;
         _beatmapRateGenerator = beatmapRateGenerator;
+        _settingsService = settingsService;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
         ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService);
@@ -129,7 +131,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     public void ShowSingleGeneration(Beatmap beatmap)
     {
         SingleGenerationViewModel?.Dispose();
-        SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator);
+        SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator, _settingsService);
         IsSingleGenerationOverlayVisible = true;
     }
 

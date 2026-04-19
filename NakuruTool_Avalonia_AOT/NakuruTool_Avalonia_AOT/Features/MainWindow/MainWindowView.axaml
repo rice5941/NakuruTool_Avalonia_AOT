@@ -103,21 +103,21 @@
                     <TabItem>
                         <TabItem.Header>
                             <StackPanel Theme="{StaticResource PageStackPanel}">
-                                <mi:MaterialIcon Kind="Creation" Width="20" Height="20"/>
-                                <TextBlock Text="{translate:Translate 'Menu.BeatmapGeneration'}" Theme="{StaticResource PageTextBlock}"/>
-                            </StackPanel>
-                        </TabItem.Header>
-                        <beatmapGen:BeatmapGenerationPageView DataContext="{Binding BeatmapGenerationPageViewModel}"/>
-                    </TabItem>
-                
-                    <TabItem>
-                        <TabItem.Header>
-                            <StackPanel Theme="{StaticResource PageStackPanel}">
                                 <mi:MaterialIcon Kind="ImportExport" Width="20" Height="20"/>
                                 <TextBlock Text="{translate:Translate 'Menu.ImportExport'}" Theme="{StaticResource PageTextBlock}"/>
                             </StackPanel>
                         </TabItem.Header>
                         <importExport:ImportExportPageView DataContext="{Binding ImportExportPageViewModel}"/>
+                    </TabItem>
+                    
+                    <TabItem>
+                        <TabItem.Header>
+                            <StackPanel Theme="{StaticResource PageStackPanel}">
+                                <mi:MaterialIcon Kind="Creation" Width="20" Height="20"/>
+                                <TextBlock Text="{translate:Translate 'Menu.BeatmapGeneration'}" Theme="{StaticResource PageTextBlock}"/>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <beatmapGen:BeatmapGenerationPageView DataContext="{Binding BeatmapGenerationPageViewModel}"/>
                     </TabItem>
 
                     <!-- システム -->

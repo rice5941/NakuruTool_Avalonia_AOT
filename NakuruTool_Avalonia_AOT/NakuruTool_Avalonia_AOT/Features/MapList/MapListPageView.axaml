@@ -133,7 +133,7 @@
                     <!-- 上部: 曲情報 -->
                     <StackPanel Grid.Row="0">
                         <!-- タイトル -->
-                        <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Title}"
+                        <TextBlock Text="{Binding SingleGenerationViewModel.DisplayTitle}"
                                    FontSize="20"
                                    FontWeight="SemiBold"
                                    TextTrimming="CharacterEllipsis"
@@ -146,7 +146,7 @@
                                    Foreground="{DynamicResource SemiGrey9}"/>
                         <!-- アーティスト + クリエイター -->
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Artist}"
+                            <TextBlock Text="{Binding SingleGenerationViewModel.DisplayArtist}"
                                        FontSize="14"
                                        Foreground="{DynamicResource SemiGrey7}"
                                        TextTrimming="CharacterEllipsis"

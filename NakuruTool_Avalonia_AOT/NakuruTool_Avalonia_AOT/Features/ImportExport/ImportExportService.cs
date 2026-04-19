@@ -6,6 +6,7 @@ using R3;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ZLinq;
@@ -39,6 +40,14 @@ public class ImportExportService : IImportExportService
 
     private static readonly string ImportsFolder =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "imports");
+
+    /// <summary>Unicode をエスケープしないエクスポート用コンテキスト</summary>
+    private static readonly ImportExportJsonContext _exportContext = new(new JsonSerializerOptions
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    });
 
     public ImportExportService(IDatabaseService databaseService, ISettingsService settingsService)
     {
@@ -77,7 +86,7 @@ public class ImportExportService : IImportExportService
                 var fileName = SanitizeFileName(name) + ".json";
                 var filePath = Path.Combine(ExportsFolder, fileName);
                 await using var stream = File.Create(filePath);
-                await JsonSerializer.SerializeAsync(stream, data, ImportExportJsonContext.Default.CollectionExchangeData);
+                await JsonSerializer.SerializeAsync(stream, data, _exportContext.CollectionExchangeData);
                 succeeded++;
             }
             catch (Exception ex)

@@ -2,7 +2,7 @@
 name: ExecuteManager
 description: 承認された計画を現実のコードへと落とし込む、実行フェーズの司令塔
 target: vscode
-tools: ['vscode/askQuestions', 'execute/getTerminalOutput', 'execute/awaitTerminal', 'execute/killTerminal', 'execute/runInTerminal', 'agent', 'todo']
+tools: [vscode/askQuestions, execute/getTerminalOutput, execute/killTerminal, execute/runInTerminal, agent, avalonia-docs/get_avalonia_expert_rules, avalonia-docs/lookup_avalonia_api, avalonia-docs/migrate_diagnostics, avalonia-docs/search_avalonia_docs, todo]
 agents: ['_sub_Implement', '_sub_DiffVerify_opus', '_sub_DiffVerify_codex']
 ---
 

@@ -17,6 +17,9 @@ public sealed record RateGenerationResult
     /// <summary>オーディオ生成がスキップされたか（同一レートのファイルが既存）</summary>
     public bool AudioSkipped { get; init; }
 
+    /// <summary>.osu生成がスキップされたか（同名ファイルが既存）</summary>
+    public bool OsuSkipped { get; init; }
+
     /// <summary>適用されたレート倍率</summary>
     public double AppliedRate { get; init; }
 

@@ -164,7 +164,22 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
         // 4. .osu変換
         cancellationToken.ThrowIfCancellationRequested();
-        osuOutputPath = ResolveUniqueOutputPath(osuOutputPath);
+
+        // 同名の.osuファイルが既に存在する場合はスキップ
+        if (File.Exists(osuOutputPath))
+        {
+            progress?.Report(new RateGenerationProgress(".osuファイルが既に存在するためスキップしました", 1, 1, 100));
+            return new RateGenerationResult
+            {
+                Success = true,
+                GeneratedOsuPath = null,
+                GeneratedAudioPath = audioSkipped ? null : audioOutputPath,
+                AudioSkipped = audioSkipped,
+                OsuSkipped = true,
+                AppliedRate = rate,
+                SourceBeatmap = beatmap,
+            };
+        }
 
         var convertOptions = new OsuFileConvertOptions
         {
@@ -201,6 +216,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             GeneratedOsuPath = osuOutputPath,
             GeneratedAudioPath = audioSkipped ? null : audioOutputPath,
             AudioSkipped = audioSkipped,
+            OsuSkipped = false,
             AppliedRate = rate,
             SourceBeatmap = beatmap,
         };

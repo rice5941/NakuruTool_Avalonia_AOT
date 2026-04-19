@@ -1133,6 +1133,10 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 
 コレクションをJSON形式のファイルにエクスポート・インポートするモジュール。`exports/` フォルダへのJSON出力と `imports/` フォルダからのJSON入力を担う。MapListモジュールと同様の親子View/ViewModel構成（3子ViewModel）を採用する。
 
+- **ドラッグ&ドロップ**: ImportViewにJSON/フォルダのDnDを受け付け、`imports/` フォルダにコピー後リロード
+- **未所持フィルタ**: プレビューDataGridで未所持（`Exists=false`）の譜面のみ表示するチェックボックスフィルタ
+- **再帰探索**: `imports/` フォルダ内のサブフォルダも含めてJSONファイルを探索
+
 ### 構成ファイル一覧
 
 | ファイル | 種別 | 概要 |
@@ -1147,7 +1151,7 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `ExportView.axaml.cs` | CodeBehind | `InitializeComponent()` のみ |
 | `ImportViewModel.cs` | ViewModel | 子VM: インポートリスト管理・実行 |
 | `ImportView.axaml` | View | 子View: インポートリストUI |
-| `ImportView.axaml.cs` | CodeBehind | `InitializeComponent()` のみ |
+| `ImportView.axaml.cs` | CodeBehind | DnDイベントハンドリング（パス抽出→ViewModel委譲） |
 | `ImportExportBeatmapListViewModel.cs` | ViewModel | 子VM: プレビュー表示・ページング |
 | `ImportExportBeatmapListView.axaml` | View | 子View: Beatmapプレビュー DataGrid + ページングUI |
 | `ImportExportBeatmapListView.axaml.cs` | CodeBehind | Exists列の `IsVisible` 制御 |
@@ -1172,7 +1176,7 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | メンバ | 型 | 概要 |
 |-------|---|------|
 | `ProgressObservable` | `Observable<ImportExportProgress>` | エクスポート/インポート進捗通知 |
-| `GetImportFiles()` | `List<ImportFileItem>` | `imports/` フォルダのJSONファイルを走査・パースして返す |
+| `GetImportFiles()` | `List<ImportFileItem>` | `imports/` フォルダのJSONファイルを再帰的に走査（`SearchOption.AllDirectories`）・パースして返す |
 | `ExportAsync(IReadOnlyList<string>)` | `Task<int>` | 指定コレクション名をJSONファイルに書き出す。戻り値: 成功件数 |
 | `ImportAsync(IReadOnlyList<string>)` | `Task<bool>` | 指定パスのJSONをインポートしcollection.dbに反映。戻り値: 全成功時true |
 
@@ -1336,6 +1340,11 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeD
 2. **`OnSelectedImportFileChanged()`** — 選択変更時に `BuildPreviewRows()` でDB照合し `PreviewRequested` を発行。null時は空配列を発行
 3. **`ReloadImportCommand`** — `Initialize()` + 空配列Subject発行
 4. **`ImportAsync(CanExecute = !IsAnyProcessing)`** — チェックされたファイルパスを `IImportExportService.ImportAsync()` に渡す。成功時に `ImportCompleted.OnNext(Unit.Default)` を発行
+5. **`HandleDroppedPathsAsync(string[])`** — DnDで受け取ったパス（JSONファイル/フォルダ）を `imports/` フォルダにコピーし、`Initialize()` でリストをリロード。フォルダの場合は内部の `.json` ファイルを再帰的にコピー
+
+#### DnD対応（View側）
+
+`ImportView.axaml.cs` のcode-behindで `DragOver` / `Drop` イベントをハンドリングする。ドロップされたデータからファイル/フォルダパスを抽出し、`ImportViewModel.HandleDroppedPathsAsync()` に委譲する。
 
 ---
 
@@ -1344,7 +1353,8 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeD
 #### 責務
 
 - 親VMから `SetPreviewRows(rows, isImport)` で渡されたBeatmapプレビュー行のページング表示
-- `IsImportPreview` フラグで Exists列の表示を切り替え（Import時: 表示、Export時: 非表示）
+- `IsImportPreview` フラグで「所持」列の表示を切り替え（Import時: 表示、Export時: 非表示）
+- `ShowOnlyMissing` フラグで未所持譜面のみ表示するフィルタリング
 - ページング操作（`NextPageCommand` / `PreviousPageCommand`）
 
 #### 主要プロパティ
@@ -1353,7 +1363,8 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeD
 |-----------|---|------|
 | `ShowBeatmaps` | `IAvaloniaReadOnlyList<ImportExportBeatmapItem>` | 現在ページの表示データ |
 | `TotalPreviewCount` | `int` | プレビュー総件数 |
-| `IsImportPreview` | `bool` | Import時 true（Exists列表示制御用） |
+| `IsImportPreview` | `bool` | Import時 true（「所持」列表示制御用） |
+| `ShowOnlyMissing` | `bool` | 未所持（`Exists=false`）のみ表示するフィルタフラグ |
 | `CurrentPage` | `int` | 現在ページ（1始まり） |
 | `FilteredPages` | `int` | 総ページ数 |
 | `PageSize` | `int` | 1ページ表示件数（初期値20） |
@@ -1365,6 +1376,11 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`CollectionExchangeD
 |---------|------|
 | `SetPreviewRows(ImportExportBeatmapItem[], bool isImport)` | 外部（親VM経由）からプレビュー行を設定してページング初期化 |
 | `Reset()` | プレビューを初期状態（空）にリセット |
+| `ApplyMissingFilter()` | `ShowOnlyMissing` の状態に応じて未所持譜面のみにフィルタし、ページングを再初期化 |
+
+#### 未所持フィルタ
+
+`ShowOnlyMissing` チェックボックスの変更時に `ApplyMissingFilter()` を呼び出し、`Exists=false` の行のみに絞り込む。フィルタOFF時は全行を表示する。列ヘッダーは「所持」として表示される。
 
 #### 引数なしコンストラクタ
 

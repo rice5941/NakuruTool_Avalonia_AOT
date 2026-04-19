@@ -173,6 +173,7 @@
     "ImportButton": "Lancer l'import",
     "ReloadButton": "Recharger les fichiers",
     "PreviewCount": "Beatmaps",
+    "FilteredCount": "Filtré",
     "KeyCount": "Touches",
     "Title": "Titre",
     "Artist": "Artiste",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Télécharger tous les beatmaps manquants",
     "CancelDownloads": "Annuler les téléchargements",
     "DownloadUnavailable": "Téléchargement indisponible (BeatmapSetID inconnu)",
-    "OsuRestartRequired": "Veuillez lancer osu! pour charger les beatmaps téléchargées"
+    "OsuRestartRequired": "Veuillez lancer osu! pour charger les beatmaps téléchargées",
+    "Owned": "Possédé",
+    "ShowOnlyMissing": "Manquants uniquement",
+    "DropHint": "Glissez-déposez les fichiers JSON/ZIP ici",
+    "Status.DropSuccess": "{0} fichier(s) placé(s)",
+    "Status.DropNoFiles": "Aucun fichier compatible trouvé"
   },
   "Preset": {
     "EditorTitle": "Éditeur de presets",

@@ -173,6 +173,7 @@
     "ImportButton": "Jalankan impor",
     "ReloadButton": "Muat ulang file",
     "PreviewCount": "Jumlah map",
+    "FilteredCount": "Difilter",
     "KeyCount": "Jumlah key",
     "Title": "Judul",
     "Artist": "Artis",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Unduh semua beatmap yang belum dimiliki",
     "CancelDownloads": "Batalkan unduhan",
     "DownloadUnavailable": "Unduhan tidak tersedia (BeatmapSetID tidak diketahui)",
-    "OsuRestartRequired": "Silakan jalankan osu! untuk memuat beatmap yang telah diunduh"
+    "OsuRestartRequired": "Silakan jalankan osu! untuk memuat beatmap yang telah diunduh",
+    "Owned": "Dimiliki",
+    "ShowOnlyMissing": "Hanya yang belum dimiliki",
+    "DropHint": "Seret file JSON/ZIP ke sini",
+    "Status.DropSuccess": "{0} file ditempatkan",
+    "Status.DropNoFiles": "Tidak ada file yang didukung"
   },
   "Preset": {
     "EditorTitle": "Editor preset",

@@ -173,6 +173,7 @@
     "ImportButton": "เริ่มนำเข้า",
     "ReloadButton": "โหลดไฟล์ใหม่",
     "PreviewCount": "จำนวนแมพ",
+    "FilteredCount": "กรองแล้ว",
     "KeyCount": "จำนวนคีย์",
     "Title": "ชื่อเพลง",
     "Artist": "ศิลปิน",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "ดาวน์โหลดบีตแมปที่ขาดทั้งหมด",
     "CancelDownloads": "ยกเลิกการดาวน์โหลด",
     "DownloadUnavailable": "ไม่สามารถดาวน์โหลดได้ (ไม่ทราบ BeatmapSetID)",
-    "OsuRestartRequired": "กรุณาเปิด osu! เพื่อโหลดบีทแมปที่ดาวน์โหลดแล้ว"
+    "OsuRestartRequired": "กรุณาเปิด osu! เพื่อโหลดบีทแมปที่ดาวน์โหลดแล้ว",
+    "Owned": "มีแล้ว",
+    "ShowOnlyMissing": "เฉพาะที่ยังไม่มี",
+    "DropHint": "ลากไฟล์ JSON/ZIP มาวางที่นี่",
+    "Status.DropSuccess": "วาง {0} ไฟล์แล้ว",
+    "Status.DropNoFiles": "ไม่พบไฟล์ที่รองรับ"
   },
   "Preset": {
     "EditorTitle": "แก้ไขพรีเซ็ต",

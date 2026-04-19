@@ -683,6 +683,7 @@ public class MockImportExportService : IImportExportService
     public List<ImportFileItem> GetImportFiles() => [];
     public Task<int> ExportAsync(IReadOnlyList<string> collectionNames) => Task.FromResult(0);
     public Task<bool> ImportAsync(IReadOnlyList<string> filePaths) => Task.FromResult(true);
+    public bool CopyToImportsFolder(string sourceFilePath) => false;
     public void Dispose() { }
 }
 

@@ -173,6 +173,7 @@
     "ImportButton": "导入",
     "ReloadButton": "重新加载",
     "PreviewCount": "map列表",
+    "FilteredCount": "筛选后",
     "KeyCount": "键数",
     "Title": "标题",
     "Artist": "艺术家",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "批量下载未拥有的谱面",
     "CancelDownloads": "取消下载",
     "DownloadUnavailable": "无法下载（BeatmapSetID未知）",
-    "OsuRestartRequired": "请启动osu!以加载已下载的谱面"
+    "OsuRestartRequired": "请启动osu!以加载已下载的谱面",
+    "Owned": "已拥有",
+    "ShowOnlyMissing": "仅显示未拥有",
+    "DropHint": "将JSON/ZIP文件拖到这里",
+    "Status.DropSuccess": "已放置 {0} 个文件",
+    "Status.DropNoFiles": "未找到支持的文件"
   },
   "Preset": {
     "EditorTitle": "预设编辑",

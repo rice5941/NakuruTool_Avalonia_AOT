@@ -705,7 +705,7 @@ sequenceDiagram
     IEPVM->>BLVM: SetPreviewRows(rows, isImport: true)
     BLVM->>BLVM: IsImportPreview = true
     BLVM->>BLVM: UpdateFilteredPages() / UpdateShowBeatmaps()
-    BLVM-->>UI: ShowBeatmaps 更新（Exists列 表示）
+    BLVM-->>UI: ShowBeatmaps 更新（「所持」列 表示）
 ```
 
 ### 8.3 インポート実行→再初期化フロー
@@ -762,7 +762,37 @@ flowchart TD
     EAR2 -->|SetPreviewRows([], isImport: false)| BLVM
 ```
 
-### 8.5 フォルダ構造
+### 8.5 ドラッグ&ドロップによるインポートファイル追加フロー
+
+`ImportView` にJSON/フォルダをドロップすると、`imports/` フォルダにコピーしてリストをリロードする。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant IV as ImportView (CodeBehind)
+    participant IVM as ImportViewModel
+    participant FS as FileSystem (imports/)
+    participant IES as ImportExportService
+
+    User->>IV: JSON/フォルダをドロップ
+    IV->>IV: Drop イベント → パス抽出
+    IV->>IVM: HandleDroppedPathsAsync(paths)
+    loop 各パス
+        alt JSONファイル
+            IVM->>FS: File.Copy → imports/{name}.json
+        else フォルダ
+            IVM->>FS: 内部の .json を再帰コピー → imports/
+        end
+    end
+    IVM->>IVM: Initialize()
+    IVM->>IES: GetImportFiles()（再帰探索）
+    IES-->>IVM: ImportFiles 再構築
+```
+
+- View（code-behind）はドロップイベントからファイル/フォルダパスの抽出のみを行い、ビジネスロジックはViewModel側で処理する
+- `GetImportFiles()` は `SearchOption.AllDirectories` でサブフォルダ内のJSONも探索する
+
+### 8.6 フォルダ構造
 
 | フォルダ | 用途 | 作成タイミング |
 |---------|------|--------------|

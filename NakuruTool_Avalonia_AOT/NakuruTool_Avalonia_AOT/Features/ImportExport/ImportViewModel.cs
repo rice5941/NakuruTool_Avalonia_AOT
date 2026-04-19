@@ -8,6 +8,9 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using R3;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using ZLinq;
 
@@ -23,6 +26,9 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     public partial ImportFileItem? SelectedImportFile { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsImportListEmpty { get; set; } = true;
 
     [ObservableProperty]
     public partial bool IsProcessing { get; set; } = false;
@@ -74,12 +80,7 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
     /// </summary>
     public void Initialize()
     {
-        ImportFiles.Clear();
-        foreach (var item in _importExportService.GetImportFiles())
-        {
-            ImportFiles.Add(item);
-        }
-        // プレビューSubjectは発行しない（親VMのBeatmapListViewModel.Reset()に一本化）
+        ReloadImportFiles();
     }
 
     partial void OnSelectedImportFileChanged(ImportFileItem? value)
@@ -186,8 +187,104 @@ public partial class ImportViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void ReloadImport()
     {
-        Initialize();
+        ReloadImportFiles();
         _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+    }
+
+    public async Task HandleDroppedPathsAsync(IReadOnlyList<string> localPaths)
+    {
+        if (localPaths.Count == 0) return;
+
+        var copiedCount = await Task.Run(() =>
+        {
+            var count = 0;
+            foreach (var path in localPaths)
+            {
+                if (File.Exists(path))
+                {
+                    var ext = Path.GetExtension(path);
+                    if (ext.Equals(".json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (_importExportService.CopyToImportsFolder(path))
+                            count++;
+                    }
+                    else if (ext.Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        count += ExtractJsonFromZip(path);
+                    }
+                }
+                else if (Directory.Exists(path))
+                {
+                    foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+                    {
+                        var fileExt = Path.GetExtension(file);
+                        if (fileExt.Equals(".json", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (_importExportService.CopyToImportsFolder(file))
+                                count++;
+                        }
+                        else if (fileExt.Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                        {
+                            count += ExtractJsonFromZip(file);
+                        }
+                    }
+                }
+            }
+            return count;
+        });
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            SelectedImportFile = null;
+            _previewRequestedSubject.OnNext(Array.Empty<ImportExportBeatmapItem>());
+            ReloadImportFiles();
+            if (copiedCount > 0)
+            {
+                var message = string.Format(
+                    LanguageService.Instance.GetString("ImportExport.Status.DropSuccess"),
+                    copiedCount);
+                _statusMessageSubject.OnNext(message);
+            }
+            else
+            {
+                _statusMessageSubject.OnNext(
+                    LanguageService.Instance.GetString("ImportExport.Status.DropNoFiles"));
+            }
+        });
+    }
+
+    private void ReloadImportFiles()
+    {
+        ImportFiles.Clear();
+        foreach (var item in _importExportService.GetImportFiles())
+        {
+            ImportFiles.Add(item);
+        }
+        IsImportListEmpty = ImportFiles.Count == 0;
+    }
+
+    private int ExtractJsonFromZip(string zipPath)
+    {
+        var count = 0;
+        var tempDir = Path.Combine(Path.GetTempPath(), "NakuruTool_zip_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            ZipFile.ExtractToDirectory(zipPath, tempDir);
+            foreach (var jsonFile in Directory.GetFiles(tempDir, "*.json", SearchOption.AllDirectories))
+            {
+                if (_importExportService.CopyToImportsFolder(jsonFile))
+                    count++;
+            }
+        }
+        catch
+        {
+            // zip解凍エラーはスキップ
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, recursive: true); } catch { }
+        }
+        return count;
     }
 
     private async Task UpdateIsProcessingAsync(bool value)

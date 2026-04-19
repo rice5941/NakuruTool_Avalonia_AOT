@@ -173,6 +173,7 @@
     "ImportButton": "Isagawa ang import",
     "ReloadButton": "I-reload ang file",
     "PreviewCount": "Bilang ng map",
+    "FilteredCount": "Na-filter",
     "KeyCount": "Bilang ng key",
     "Title": "Pamagat",
     "Artist": "Artist",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "I-download lahat ng nawawalang beatmap",
     "CancelDownloads": "Kanselahin ang mga download",
     "DownloadUnavailable": "Hindi available ang download (hindi alam ang BeatmapSetID)",
-    "OsuRestartRequired": "Mangyaring buksan ang osu! para ma-load ang mga na-download na beatmap"
+    "OsuRestartRequired": "Mangyaring buksan ang osu! para ma-load ang mga na-download na beatmap",
+    "Owned": "Mayroon",
+    "ShowOnlyMissing": "Mga kulang lang",
+    "DropHint": "I-drop dito ang mga JSON/ZIP file",
+    "Status.DropSuccess": "{0} na file ang nailagay",
+    "Status.DropNoFiles": "Walang nahanap na suportadong file"
   },
   "Preset": {
     "EditorTitle": "Editor ng preset",

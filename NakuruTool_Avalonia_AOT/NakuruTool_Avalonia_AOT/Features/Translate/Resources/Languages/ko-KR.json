@@ -173,6 +173,7 @@
     "ImportButton": "가져오기 실행",
     "ReloadButton": "파일 다시 불러오기",
     "PreviewCount": "비트맵 수",
+    "FilteredCount": "필터 후",
     "KeyCount": "키 수",
     "Title": "제목",
     "Artist": "아티스트",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "미보유 비트맵 일괄 다운로드",
     "CancelDownloads": "다운로드 취소",
     "DownloadUnavailable": "다운로드 불가 (BeatmapSetID 불명)",
-    "OsuRestartRequired": "다운로드한 비트맵을 불러오려면 osu!를 실행해 주세요"
+    "OsuRestartRequired": "다운로드한 비트맵을 불러오려면 osu!를 실행해 주세요",
+    "Owned": "보유",
+    "ShowOnlyMissing": "미보유만",
+    "DropHint": "JSON/ZIP 파일을 드래그 앤 드롭하여 추가",
+    "Status.DropSuccess": "{0}개의 파일을 배치했습니다",
+    "Status.DropNoFiles": "대응하는 파일이 없습니다"
   },
   "Preset": {
     "EditorTitle": "프리셋 편집",

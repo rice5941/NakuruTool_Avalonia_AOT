@@ -8,6 +8,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.Threading.Tasks;
+using ZLinq;
 
 namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 
@@ -24,10 +25,16 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     public partial int TotalPreviewCount { get; set; } = 0;
 
     [ObservableProperty]
+    public partial int FilteredCount { get; set; } = 0;
+
+    [ObservableProperty]
     public partial bool IsImportPreview { get; set; } = false;
 
     [ObservableProperty]
     public partial bool HasDownloadedItems { get; set; } = false;
+
+    [ObservableProperty]
+    public partial bool ShowOnlyMissing { get; set; } = false;
 
     [ObservableProperty]
     public partial int CurrentPage { get; set; } = 1;
@@ -41,6 +48,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
     private ImportExportBeatmapItem[] _allPreviewRows = Array.Empty<ImportExportBeatmapItem>();
+    private ImportExportBeatmapItem[] _filteredRows = Array.Empty<ImportExportBeatmapItem>();
     private readonly AvaloniaList<ImportExportBeatmapItem> _showBeatmapsList = new();
     private readonly IBeatmapDownloadService _downloadService;
     private readonly SerialDisposable _itemSubscriptions = new();
@@ -111,9 +119,11 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     public void SetPreviewRows(ImportExportBeatmapItem[] rows, bool isImport)
     {
         _allPreviewRows = rows;
+        if (!isImport) ShowOnlyMissing = false;
         SubscribeItemEvents();
         TotalPreviewCount = rows.Length;
         IsImportPreview = isImport;
+        ApplyMissingFilter();
         UpdateFilteredPages();
         UpdateShowBeatmaps();
     }
@@ -125,9 +135,12 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     {
         _itemSubscriptions.Disposable = null;
         _allPreviewRows = Array.Empty<ImportExportBeatmapItem>();
+        _filteredRows = Array.Empty<ImportExportBeatmapItem>();
         TotalPreviewCount = 0;
+        FilteredCount = 0;
         IsImportPreview = false;
         HasDownloadedItems = false;
+        ShowOnlyMissing = false;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
     }
@@ -144,6 +157,12 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
                     CancelDownloadsCommand.NotifyCanExecuteChanged();
                     if (!HasDownloadedItems)
                         HasDownloadedItems = CheckHasDownloadedItems();
+                    if (ShowOnlyMissing)
+                    {
+                        ApplyMissingFilter();
+                        UpdateFilteredPages();
+                        UpdateShowBeatmaps();
+                    }
                 })
                 .AddTo(disposables);
         }
@@ -163,26 +182,51 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     private void UpdateFilteredPages()
     {
         var size = Math.Max(1, PageSize);
-        FilteredPages = Math.Max(1, (_allPreviewRows.Length + size - 1) / size);
+        FilteredPages = Math.Max(1, (_filteredRows.Length + size - 1) / size);
     }
 
     private void UpdateShowBeatmaps()
     {
         var size = Math.Max(1, PageSize);
         var skip = (CurrentPage - 1) * size;
-        var remaining = Math.Max(0, _allPreviewRows.Length - skip);
+        var remaining = Math.Max(0, _filteredRows.Length - skip);
         var take = Math.Min(size, remaining);
 
         _showBeatmapsList.Clear();
 
         if (take > 0)
         {
-            var span = _allPreviewRows.AsSpan(skip, take);
+            var span = _filteredRows.AsSpan(skip, take);
             foreach (var item in span)
             {
                 _showBeatmapsList.Add(item);
             }
         }
+    }
+
+    private void ApplyMissingFilter()
+    {
+        if (ShowOnlyMissing)
+        {
+            _filteredRows = _allPreviewRows
+                .AsValueEnumerable()
+                .Where(item => item.DownloadState != BeatmapDownloadState.Exists
+                            && item.DownloadState != BeatmapDownloadState.Downloaded)
+                .ToArray();
+        }
+        else
+        {
+            _filteredRows = _allPreviewRows;
+        }
+        FilteredCount = _filteredRows.Length;
+    }
+
+    partial void OnShowOnlyMissingChanged(bool value)
+    {
+        CurrentPage = 1;
+        ApplyMissingFilter();
+        UpdateFilteredPages();
+        UpdateShowBeatmaps();
     }
 
     partial void OnCurrentPageChanged(int value)

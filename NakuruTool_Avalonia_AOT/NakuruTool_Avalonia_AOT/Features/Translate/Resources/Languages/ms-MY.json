@@ -253,6 +253,7 @@
     "GenerationComplete": "Penjanaan selesai (x{0})",
     "ProcessingOsuInfo": "Sila lancarkan osu! sebelum menjana",
     "RefreshHint": "Tekan F5 dalam osu! untuk menyegarkan senarai beatmap",
+    "BatchRefreshHint": "Apabila menjana banyak beatmap,\njangan lancarkan osu! Tekan F5 dalam osu! selepas selesai",
     "BatchComplete": "{1} daripada {0} beatmap berjaya dijana",
     "UnknownError": "Ralat tidak diketahui",
     "ChangePitch": "Tukar pic (mod NC)",

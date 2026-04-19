@@ -253,6 +253,7 @@
     "GenerationComplete": "生成完成 (x{0})",
     "ProcessingOsuInfo": "请先启动osu!再进行生成",
     "RefreshHint": "请在osu!中按F5刷新谱面列表",
+    "BatchRefreshHint": "批量生成时，\n请勿启动osu!，生成完成后在osu!中按F5",
     "BatchComplete": "{0}首中有{1}首生成成功",
     "UnknownError": "未知错误",
     "ChangePitch": "音调变更（NC方式）",

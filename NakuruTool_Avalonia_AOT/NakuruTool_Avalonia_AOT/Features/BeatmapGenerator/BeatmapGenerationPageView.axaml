@@ -102,7 +102,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid ColumnDefinitions="auto,8,500,8,*" Margin="0,0,0,8">
+    <Grid ColumnDefinitions="auto,8,550,8,*" Margin="0,0,0,8">
 
         <!-- Col 0: コレクション選択 -->
         <Border Grid.Column="0"
@@ -146,7 +146,7 @@
                         <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
                                             Foreground="{DynamicResource SemiYellow7}"
                                             VerticalAlignment="Center"/>
-                        <TextBlock Text="{translate:Translate 'BeatmapGen.ProcessingOsuInfo'}"
+                        <TextBlock Text="{translate:Translate 'BeatmapGen.BatchRefreshHint'}"
                                     Foreground="{DynamicResource SemiYellow9}"
                                     VerticalAlignment="Center"
                                     TextWrapping="Wrap"/>

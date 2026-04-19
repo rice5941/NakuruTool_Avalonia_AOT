@@ -173,6 +173,7 @@
     "ImportButton": "インポート実行",
     "ReloadButton": "ファイル再読込",
     "PreviewCount": "map数",
+    "FilteredCount": "絞込後",
     "KeyCount": "Key数",
     "Title": "タイトル",
     "Artist": "アーティスト",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "未所持の譜面を一括ダウンロード",
     "CancelDownloads": "ダウンロードキャンセル",
     "DownloadUnavailable": "ダウンロード不可（BeatmapSetID不明）",
-    "OsuRestartRequired": "ダウンロードした譜面を反映するにはosu!を起動してください"
+    "OsuRestartRequired": "ダウンロードした譜面を反映するにはosu!を起動してください",
+    "Owned": "所持",
+    "ShowOnlyMissing": "未所持のみ",
+    "DropHint": "JSON/ZIPファイルをドラッグ&ドロップで追加",
+    "Status.DropSuccess": "{0} 件のファイルを配置しました",
+    "Status.DropNoFiles": "対応するファイルがありませんでした"
   },
   "Preset": {
     "EditorTitle": "プリセット編集",

@@ -173,6 +173,7 @@
     "ImportButton": "Thực hiện nhập",
     "ReloadButton": "Tải lại tệp",
     "PreviewCount": "Số map",
+    "FilteredCount": "Đã lọc",
     "KeyCount": "Số phím",
     "Title": "Tiêu đề",
     "Artist": "Nghệ sĩ",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Tải tất cả beatmap còn thiếu",
     "CancelDownloads": "Hủy tải xuống",
     "DownloadUnavailable": "Không thể tải xuống (không rõ BeatmapSetID)",
-    "OsuRestartRequired": "Vui lòng khởi động osu! để tải các beatmap đã tải xuống"
+    "OsuRestartRequired": "Vui lòng khởi động osu! để tải các beatmap đã tải xuống",
+    "Owned": "Đã có",
+    "ShowOnlyMissing": "Chỉ hiện bản đồ còn thiếu",
+    "DropHint": "Kéo thả tệp JSON/ZIP vào đây",
+    "Status.DropSuccess": "Đã đặt {0} tệp",
+    "Status.DropNoFiles": "Không tìm thấy tệp được hỗ trợ"
   },
   "Preset": {
     "EditorTitle": "Chỉnh sửa preset",

@@ -173,6 +173,7 @@
     "ImportButton": "Import",
     "ReloadButton": "Reload Files",
     "PreviewCount": "Beatmaps",
+    "FilteredCount": "Filtered",
     "KeyCount": "Keys",
     "Title": "Title",
     "Artist": "Artist",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Download all missing beatmaps",
     "CancelDownloads": "Cancel downloads",
     "DownloadUnavailable": "Download unavailable (unknown BeatmapSetID)",
-    "OsuRestartRequired": "Please launch osu! to load the downloaded beatmaps"
+    "OsuRestartRequired": "Please launch osu! to load the downloaded beatmaps",
+    "Owned": "Owned",
+    "ShowOnlyMissing": "Missing only",
+    "DropHint": "Drag & drop JSON/ZIP files to add",
+    "Status.DropSuccess": "{0} file(s) placed",
+    "Status.DropNoFiles": "No supported files found"
   },
   "Preset": {
     "EditorTitle": "Preset Editor",

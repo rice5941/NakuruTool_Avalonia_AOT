@@ -173,6 +173,7 @@
     "ImportButton": "Выполнить импорт",
     "ReloadButton": "Перезагрузить файлы",
     "PreviewCount": "Beatmaps",
+    "FilteredCount": "Отфильтровано",
     "KeyCount": "Клавиши",
     "Title": "Название",
     "Artist": "Исполнитель",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Скачать все отсутствующие beatmap",
     "CancelDownloads": "Отменить загрузки",
     "DownloadUnavailable": "Загрузка недоступна (BeatmapSetID неизвестен)",
-    "OsuRestartRequired": "Пожалуйста, запустите osu! для загрузки скачанных карт"
+    "OsuRestartRequired": "Пожалуйста, запустите osu! для загрузки скачанных карт",
+    "Owned": "Имеется",
+    "ShowOnlyMissing": "Только отсутствующие",
+    "DropHint": "Перетащите JSON/ZIP файлы сюда",
+    "Status.DropSuccess": "Размещено файлов: {0}",
+    "Status.DropNoFiles": "Подходящие файлы не найдены"
   },
   "Preset": {
     "EditorTitle": "Редактор пресетов",

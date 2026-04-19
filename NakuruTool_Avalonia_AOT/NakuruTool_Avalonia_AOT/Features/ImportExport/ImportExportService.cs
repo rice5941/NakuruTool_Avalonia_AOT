@@ -20,6 +20,7 @@ public interface IImportExportService : IDisposable
     List<ImportFileItem> GetImportFiles();
     Task<int> ExportAsync(IReadOnlyList<string> collectionNames);
     Task<bool> ImportAsync(IReadOnlyList<string> filePaths);
+    bool CopyToImportsFolder(string sourceFilePath);
 }
 
 /// <summary>
@@ -119,7 +120,7 @@ public class ImportExportService : IImportExportService
         var result = new List<ImportFileItem>();
 
         // JSON ファイル
-        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.json"))
+        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.json", SearchOption.AllDirectories))
         {
             try
             {
@@ -136,7 +137,7 @@ public class ImportExportService : IImportExportService
         }
 
         // XML ファイル（OsuCollection エクスポーター形式）
-        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.xml"))
+        foreach (var filePath in Directory.GetFiles(ImportsFolder, "*.xml", SearchOption.AllDirectories))
         {
             try
             {
@@ -159,11 +160,21 @@ public class ImportExportService : IImportExportService
     private static ImportFileItem CreateImportFileItem(string filePath, CollectionExchangeData data) => new()
     {
         FilePath = filePath,
-        DisplayName = Path.GetFileNameWithoutExtension(filePath),
+        DisplayName = GetRelativeDisplayName(filePath),
         CollectionName = data.Name,
         BeatmapCount = data.Beatmaps.Count,
         ParsedData = data
     };
+
+    /// <summary>imports フォルダからの相対パス（拡張子なし）を表示名として返す</summary>
+    private static string GetRelativeDisplayName(string filePath)
+    {
+        var relativePath = Path.GetRelativePath(ImportsFolder, filePath);
+        var dir = Path.GetDirectoryName(relativePath);
+        if (string.IsNullOrEmpty(dir))
+            return Path.GetFileNameWithoutExtension(filePath);
+        return Path.Combine(dir, Path.GetFileNameWithoutExtension(filePath));
+    }
 
     /// <summary>
     /// 指定パスの JSON ファイルをインポートし、collection.db に反映する。
@@ -248,6 +259,25 @@ public class ImportExportService : IImportExportService
         }
 
         return allSuccess;
+    }
+
+    /// <summary>
+    /// 指定ファイルを imports フォルダにコピーする。
+    /// 同名ファイルが存在する場合は上書きする。
+    /// </summary>
+    public bool CopyToImportsFolder(string sourceFilePath)
+    {
+        try
+        {
+            EnsureDirectory(ImportsFolder);
+            var destPath = Path.Combine(ImportsFolder, Path.GetFileName(sourceFilePath));
+            File.Copy(sourceFilePath, destPath, overwrite: true);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private string[] ResolveMd5s(CollectionExchangeData data)

@@ -173,6 +173,7 @@
     "ImportButton": "Import ausführen",
     "ReloadButton": "Dateien neu laden",
     "PreviewCount": "Beatmaps",
+    "FilteredCount": "Gefiltert",
     "KeyCount": "Tasten",
     "Title": "Titel",
     "Artist": "Interpret",
@@ -189,7 +190,12 @@
     "DownloadAllMissing": "Alle fehlenden Beatmaps herunterladen",
     "CancelDownloads": "Downloads abbrechen",
     "DownloadUnavailable": "Download nicht verfügbar (BeatmapSetID unbekannt)",
-    "OsuRestartRequired": "Bitte starten Sie osu!, um die heruntergeladenen Beatmaps zu laden"
+    "OsuRestartRequired": "Bitte starten Sie osu!, um die heruntergeladenen Beatmaps zu laden",
+    "Owned": "Vorhanden",
+    "ShowOnlyMissing": "Nur fehlende",
+    "DropHint": "JSON/ZIP-Dateien hierher ziehen",
+    "Status.DropSuccess": "{0} Datei(en) platziert",
+    "Status.DropNoFiles": "Keine unterstützten Dateien gefunden"
   },
   "Preset": {
     "EditorTitle": "Preset-Editor",

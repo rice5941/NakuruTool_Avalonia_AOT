@@ -10,8 +10,10 @@
              x:Class="NakuruTool_Avalonia_AOT.Features.ImportExport.ImportView"
              x:DataType="importExport:ImportViewModel">
 
-    <Border BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
-            Background="{DynamicResource SemiGrey0}">
+    <Border x:Name="RootBorder"
+            BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
+            Background="{DynamicResource SemiGrey0}"
+            DragDrop.AllowDrop="True">
         <Grid RowDefinitions="Auto,*,Auto,Auto">
 
             <!-- Row 0: ヘッダー（Importアイコン + タイトル） -->
@@ -42,6 +44,24 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+            <!-- Row 1: ドロップヒント（リストが空の場合のみ表示） -->
+            <Border Grid.Row="1"
+                    IsVisible="{Binding IsImportListEmpty}"
+                    Background="Transparent"
+                    IsHitTestVisible="False">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Spacing="8" Opacity="0.5">
+                    <mi:MaterialIcon Kind="FileDocumentOutline" Width="32" Height="32"
+                                     HorizontalAlignment="Center"
+                                     Foreground="{DynamicResource SemiGrey5}"/>
+                    <TextBlock Text="{translate:Translate 'ImportExport.DropHint'}"
+                               FontSize="12"
+                               Foreground="{DynamicResource SemiGrey5}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
+                </StackPanel>
+            </Border>
 
             <!-- Row 2: ボタン群 -->
             <Border Grid.Row="2"
@@ -84,6 +104,25 @@
                                Foreground="{DynamicResource SemiGrey7}"/>
                     <ProgressBar Value="{Binding ProgressValue}" Maximum="100"
                                  Height="3" IsVisible="{Binding IsProgressVisible}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- DnD オーバーレイ（ドラッグ中のみ表示） -->
+            <Border x:Name="DragOverlay"
+                    Grid.Row="0" Grid.RowSpan="4"
+                    Background="#40000000"
+                    CornerRadius="4"
+                    IsVisible="False"
+                    IsHitTestVisible="False">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <mi:MaterialIcon Kind="FileDocumentPlusOutline" Width="48" Height="48"
+                                     Foreground="{DynamicResource SemiBluePrimary}"
+                                     HorizontalAlignment="Center"/>
+                    <TextBlock Text="{translate:Translate 'ImportExport.DropHint'}"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
                 </StackPanel>
             </Border>
 

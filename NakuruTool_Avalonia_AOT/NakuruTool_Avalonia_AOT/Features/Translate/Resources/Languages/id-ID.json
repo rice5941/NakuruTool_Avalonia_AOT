@@ -253,6 +253,7 @@
     "GenerationComplete": "Pembuatan selesai (x{0})",
     "ProcessingOsuInfo": "Harap jalankan osu! sebelum membuat",
     "RefreshHint": "Tekan F5 di osu! untuk memperbarui daftar beatmap",
+    "BatchRefreshHint": "Saat membuat banyak beatmap,\njangan jalankan osu! Tekan F5 di osu! setelah pembuatan selesai",
     "BatchComplete": "{1} dari {0} beatmap berhasil dibuat",
     "UnknownError": "Kesalahan tidak diketahui",
     "ChangePitch": "Ubah pitch (mode NC)",

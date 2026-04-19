@@ -253,6 +253,7 @@
     "GenerationComplete": "Tạo hoàn tất (x{0})",
     "ProcessingOsuInfo": "Vui lòng khởi động osu! trước khi tạo",
     "RefreshHint": "Nhấn F5 trong osu! để làm mới danh sách beatmap",
+    "BatchRefreshHint": "Khi tạo nhiều beatmap,\nkhông khởi động osu! Nhấn F5 trong osu! sau khi hoàn thành",
     "BatchComplete": "Đã tạo thành công {1} trong {0} beatmap",
     "UnknownError": "Lỗi không xác định",
     "ChangePitch": "Thay đổi pitch (chế độ NC)",

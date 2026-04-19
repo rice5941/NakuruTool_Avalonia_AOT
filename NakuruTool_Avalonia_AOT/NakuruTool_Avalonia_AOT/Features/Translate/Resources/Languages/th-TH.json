@@ -253,6 +253,7 @@
     "GenerationComplete": "สร้างเสร็จสิ้น (x{0})",
     "ProcessingOsuInfo": "กรุณาเปิด osu! ก่อนทำการสร้าง",
     "RefreshHint": "กด F5 ใน osu! เพื่อรีเฟรชรายการ beatmap",
+    "BatchRefreshHint": "เมื่อสร้าง beatmap จำนวนมาก,\nอย่าเปิด osu! กด F5 ใน osu! หลังจากสร้างเสร็จ",
     "BatchComplete": "สร้าง beatmap สำเร็จ {1} จาก {0}",
     "UnknownError": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
     "ChangePitch": "เปลี่ยน pitch (โหมด NC)",

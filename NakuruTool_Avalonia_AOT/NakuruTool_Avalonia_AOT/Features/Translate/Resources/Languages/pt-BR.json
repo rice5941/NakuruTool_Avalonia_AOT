@@ -253,6 +253,7 @@
     "GenerationComplete": "Geração concluída (x{0})",
     "ProcessingOsuInfo": "Por favor, inicie o osu! antes de gerar",
     "RefreshHint": "Pressione F5 no osu! para atualizar a lista de beatmaps",
+    "BatchRefreshHint": "Ao gerar muitos beatmaps,\nnão inicie o osu! Pressione F5 no osu! após a geração ser concluída",
     "BatchComplete": "{1} de {0} beatmaps gerados com sucesso",
     "UnknownError": "Erro desconhecido",
     "ChangePitch": "Alterar pitch (modo NC)",

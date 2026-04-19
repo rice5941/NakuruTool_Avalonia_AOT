@@ -253,6 +253,7 @@
     "GenerationComplete": "生成が完了しました (x{0})",
     "ProcessingOsuInfo": "osu!を起動してから生成を行ってください",
     "RefreshHint": "osu!でF5を押して譜面一覧を更新してください",
+    "BatchRefreshHint": "大量に生成する場合、\nosu!は起動せず、生成完了後にosu!でF5を押してください",
     "BatchComplete": "{0}曲中{1}曲の生成が完了しました",
     "UnknownError": "不明なエラー",
     "ChangePitch": "ピッチ変更（NC方式）",

@@ -3,7 +3,7 @@ name: Plan_Custom_Lite
 description: Researches and outlines multi-step plans
 argument-hint: Outline the goal or problem to research
 target: vscode
-tools: [vscode/askQuestions, execute/testFailure, execute/getTerminalOutput, read, agent, search, web]
+tools: [vscode/askQuestions, execute/testFailure, execute/getTerminalOutput, read, agent, search, web, avalonia-docs/get_avalonia_expert_rules, avalonia-docs/lookup_avalonia_api, avalonia-docs/migrate_diagnostics, avalonia-docs/search_avalonia_docs]
 agents: ['_sub_Architect_opus', '_sub_Architect_codex']
 handoffs:
   - label: Start Implementation

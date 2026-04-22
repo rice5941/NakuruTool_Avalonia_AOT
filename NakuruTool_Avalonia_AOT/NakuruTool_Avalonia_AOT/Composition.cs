@@ -27,6 +27,7 @@ partial class Composition
         // BeatmapGenerator Feature
         .Bind<IAudioRateChanger>().As(Singleton).To<AudioRateChanger>()
         .Bind<IOsuFileRateConverter>().As(Singleton).To<OsuFileRateConverter>()
+        .Bind<IOsuFileAssetParser>().As(Singleton).To<OsuFileAssetParser>()
         .Bind<IBeatmapRateGenerator>().As(Singleton).To<BeatmapRateGenerator>()
         .Bind<BeatmapGenerationPageViewModel>().As(Singleton).To<BeatmapGenerationPageViewModel>()
 

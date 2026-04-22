@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 
 /// <summary>.osu ファイルレート変換のパラメータ</summary>
@@ -17,4 +19,12 @@ public sealed record OsuFileConvertOptions
 
     /// <summary>OD の上書き値。null の場合は元の値を維持</summary>
     public double? OdOverride { get; init; }
+
+    /// <summary>
+    /// サンプル音声ファイル名のマッピング。
+    /// key: 元ファイル名, value: リネーム後ファイル名。
+    /// いずれも `/` 区切りの canonical relative path を格納する。
+    /// null または空の場合、ファイル名の置換は行わない。
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? SampleFilenameMap { get; init; }
 }

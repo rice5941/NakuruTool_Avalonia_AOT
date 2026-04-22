@@ -121,14 +121,17 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
         try
         {
             var lang = LanguageService.Instance;
+            var generationDone = false;
             var progress = new Progress<RateGenerationProgress>(p =>
             {
+                if (generationDone) return;
                 GenerationProgressValue = p.ProgressPercent;
                 GenerationStatusMessage = p.Message;
             });
 
             var result = await _beatmapRateGenerator.GenerateBatchAsync(
                 beatmaps.AsMemory(), RateGeneration.ToOptions(), progress, _cts.Token);
+            generationDone = true;
 
             if (result.WasCancelled)
             {
@@ -136,10 +139,22 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
             }
             else
             {
-                GenerationStatusMessage = string.Format(
+                var message = string.Format(
                     lang.GetString("BeatmapGen.BatchComplete"),
                     beatmaps.Length,
                     result.SuccessCount);
+                var totalSkipped = 0;
+                foreach (var r in result.Results)
+                {
+                    if (r.Success) totalSkipped += r.SkippedFileCount;
+                }
+                if (totalSkipped > 0)
+                {
+                    message += "\n" + string.Format(
+                        lang.GetString("BeatmapGen.SkippedFiles"),
+                        totalSkipped);
+                }
+                GenerationStatusMessage = message;
             }
         }
         catch (OperationCanceledException)

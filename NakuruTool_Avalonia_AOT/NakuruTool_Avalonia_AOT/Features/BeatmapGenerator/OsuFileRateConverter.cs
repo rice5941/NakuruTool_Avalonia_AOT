@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -102,9 +103,9 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
                         OsuSection.General => TransformGeneralLine(line, options),
                         OsuSection.Metadata => TransformMetadataLine(line, options),
                         OsuSection.Difficulty => TransformDifficultyLine(line, options),
-                        OsuSection.Events => TransformEventLine(line, options.Rate),
+                        OsuSection.Events => TransformEventLine(line, options),
                         OsuSection.TimingPoints => TransformTimingPointLine(line, options.Rate),
-                        OsuSection.HitObjects => TransformHitObjectLine(line, options.Rate),
+                        OsuSection.HitObjects => TransformHitObjectLine(line, options),
                         _ => line
                     };
 
@@ -198,7 +199,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         return line;
     }
 
-    private static string TransformEventLine(string line, decimal rate)
+    private static string TransformEventLine(string line, OsuFileConvertOptions options)
     {
         if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//", StringComparison.Ordinal))
             return line;
@@ -213,8 +214,8 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
             if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var startTime)
                 && int.TryParse(parts[2], CultureInfo.InvariantCulture, out var endTime))
             {
-                parts[1] = ScaleTime(startTime, rate).ToString(CultureInfo.InvariantCulture);
-                parts[2] = ScaleTime(endTime, rate).ToString(CultureInfo.InvariantCulture);
+                parts[1] = ScaleTime(startTime, options.Rate).ToString(CultureInfo.InvariantCulture);
+                parts[2] = ScaleTime(endTime, options.Rate).ToString(CultureInfo.InvariantCulture);
                 return string.Join(',', parts);
             }
         }
@@ -224,9 +225,33 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         {
             if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var startTime))
             {
-                parts[1] = ScaleTime(startTime, rate).ToString(CultureInfo.InvariantCulture);
+                parts[1] = ScaleTime(startTime, options.Rate).ToString(CultureInfo.InvariantCulture);
                 return string.Join(',', parts);
             }
+        }
+
+        // Sample: Sample,time,layer,"filename",volume
+        if (parts[0].Equals("Sample", StringComparison.OrdinalIgnoreCase) && parts.Length >= 4)
+        {
+            if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var sampleTime))
+            {
+                parts[1] = ScaleTime(sampleTime, options.Rate).ToString(CultureInfo.InvariantCulture);
+            }
+
+            // filename 置換
+            if (options.SampleFilenameMap is { Count: > 0 } map && parts.Length >= 4)
+            {
+                var rawName = parts[3].Trim();
+                var hadQuotes = rawName.Length >= 2 && rawName[0] == '"' && rawName[^1] == '"';
+                var unquoted = hadQuotes ? rawName[1..^1] : rawName;
+                var normalized = unquoted.Replace('\\', '/').Trim();
+                if (map.TryGetValue(normalized, out var renamed))
+                {
+                    parts[3] = hadQuotes ? $"\"{renamed}\"" : renamed;
+                }
+            }
+
+            return string.Join(',', parts);
         }
 
         return line;
@@ -255,7 +280,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         return string.Join(',', parts);
     }
 
-    private static string TransformHitObjectLine(string line, decimal rate)
+    private static string TransformHitObjectLine(string line, OsuFileConvertOptions options)
     {
         if (string.IsNullOrWhiteSpace(line))
             return line;
@@ -268,7 +293,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         if (!int.TryParse(parts[2], CultureInfo.InvariantCulture, out var time))
             return line;
 
-        parts[2] = ScaleTime(time, rate).ToString(CultureInfo.InvariantCulture);
+        parts[2] = ScaleTime(time, options.Rate).ToString(CultureInfo.InvariantCulture);
 
         // type (index 3)
         if (!int.TryParse(parts[3], CultureInfo.InvariantCulture, out var type))
@@ -285,19 +310,29 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
                 var endTimeStr = extras[..colonIndex];
                 if (int.TryParse(endTimeStr, CultureInfo.InvariantCulture, out var endTime))
                 {
-                    var newEndTime = ScaleTime(endTime, rate);
-                    var scaledTime = ScaleTime(time, rate);
+                    var newEndTime = ScaleTime(endTime, options.Rate);
+                    var scaledTime = ScaleTime(time, options.Rate);
                     newEndTime = Math.Max(scaledTime, newEndTime);
-                    parts[5] = newEndTime.ToString(CultureInfo.InvariantCulture) + extras[colonIndex..];
+                    var hitSample = extras[(colonIndex + 1)..];
+                    if (options.SampleFilenameMap is { Count: > 0 } map)
+                    {
+                        hitSample = ReplaceSampleFilename(hitSample, map);
+                    }
+                    parts[5] = newEndTime.ToString(CultureInfo.InvariantCulture) + ":" + hitSample;
                 }
             }
             else if (int.TryParse(extras, CultureInfo.InvariantCulture, out var endTime))
             {
-                var newEndTime = ScaleTime(endTime, rate);
-                var scaledTime = ScaleTime(time, rate);
+                var newEndTime = ScaleTime(endTime, options.Rate);
+                var scaledTime = ScaleTime(time, options.Rate);
                 newEndTime = Math.Max(scaledTime, newEndTime);
                 parts[5] = newEndTime.ToString(CultureInfo.InvariantCulture);
             }
+        }
+        // 通常ノートの hitSample 処理
+        else if (parts.Length >= 6 && options.SampleFilenameMap is { Count: > 0 } normalMap)
+        {
+            parts[5] = ReplaceSampleFilename(parts[5], normalMap);
         }
 
         // スピナー判定: type & 8
@@ -305,14 +340,31 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         {
             if (int.TryParse(parts[5], CultureInfo.InvariantCulture, out var endTime))
             {
-                var newEndTime = ScaleTime(endTime, rate);
-                var scaledTime = ScaleTime(time, rate);
+                var newEndTime = ScaleTime(endTime, options.Rate);
+                var scaledTime = ScaleTime(time, options.Rate);
                 newEndTime = Math.Max(scaledTime, newEndTime);
                 parts[5] = newEndTime.ToString(CultureInfo.InvariantCulture);
             }
         }
 
         return string.Join(',', parts);
+    }
+
+    private static string ReplaceSampleFilename(
+        string hitSample, IReadOnlyDictionary<string, string> map)
+    {
+        // hitSample = "normalSet:additionSet:index:volume:filename"
+        var colonParts = hitSample.Split(':');
+        if (colonParts.Length >= 5 && colonParts[4].Length > 0)
+        {
+            var normalized = colonParts[4].Replace('\\', '/').Trim();
+            if (map.TryGetValue(normalized, out var renamed))
+            {
+                colonParts[4] = renamed;
+                return string.Join(':', colonParts);
+            }
+        }
+        return hitSample;
     }
 
     /// <summary>

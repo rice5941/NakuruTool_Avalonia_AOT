@@ -88,21 +88,33 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
         try
         {
             var lang = LanguageService.Instance;
+            var generationDone = false;
             var progress = new Progress<RateGenerationProgress>(p =>
             {
+                if (generationDone) return;
                 GenerationProgressValue = p.ProgressPercent;
                 GenerationStatusMessage = p.Message;
             });
 
             var result = await _beatmapRateGenerator.GenerateAsync(
                 TargetBeatmap, RateGeneration.ToOptions(), progress, _cts.Token);
+            generationDone = true;
 
             if (result.Success)
             {
                 IsCompleted = true;
-                GenerationStatusMessage = string.Format(
+                var message = string.Format(
                     lang.GetString("BeatmapGen.GenerationComplete"),
-                    result.AppliedRate) + "\n" + lang.GetString("BeatmapGen.RefreshHint");
+                    result.AppliedRate,
+                    result.GeneratedOszPath ?? "");
+                if (result.SkippedFileCount > 0)
+                {
+                    message += "\n" + string.Format(
+                        lang.GetString("BeatmapGen.SkippedFiles"),
+                        result.SkippedFileCount);
+                }
+                message += "\n" + lang.GetString("BeatmapGen.RefreshHint");
+                GenerationStatusMessage = message;
             }
             else
             {

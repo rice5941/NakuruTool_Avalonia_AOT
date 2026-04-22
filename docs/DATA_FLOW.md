@@ -801,59 +801,59 @@ sequenceDiagram
 
 ---
 
-## 9. レート生成フロー
+## 9. レート生成フロー（.osz生成パイプライン）
 
-BeatmapGeneratorモジュールによるレート変更版譜面の生成フロー。指定レート範囲で.osuファイルのタイミング変換とオーディオのレート変換を行い、Songsフォルダに出力する。DTモード（デフォルト）ではSoundTouchによるピッチ保持テンポ変更、NCモードではサンプルレート変更によるピッチ変更を伴うレート変換を行う。
+BeatmapGeneratorモジュールによるレート変更版譜面の生成フロー。指定レート範囲で.osuファイルのタイミング変換とオーディオのレート変換を行い、`.osz`（ZIP形式）ファイルとしてSongsフォルダに出力する。.osuファイルおよび関連.osbファイルが参照するすべてのアセット（音声・画像・動画）を解析・収集し、音声ファイルにはレート変換を適用、非音声ファイルはそのままコピーして一つの.oszにパッケージする。
 
 ```mermaid
 sequenceDiagram
     participant User
     participant VM as RateGenerationViewModel
     participant BRG as BeatmapRateGenerator
-    participant OFC as OsuFileRateConverter
+    participant OFAP as OsuFileAssetParser
     participant ARC as AudioRateChanger
-    participant ST as SoundTouch (C/C++)
-    participant Songs as Songs/{folder}
+    participant OFC as OsuFileRateConverter
+    participant FS as FileSystem (tempDir)
+    participant ZIP as ZipFile
+    participant Songs as Songs/{folder}.osz
 
     User->>VM: 生成実行
     VM->>BRG: GenerateAsync(options, progress, ct)
 
     loop 各レート（min → max, step刻み）
-        BRG->>OFC: ConvertAsync(osuFilePath, rate, options)
-        Note over OFC: タイミングポイント・ノート・<br/>BPM・メタデータのレート変換
-        OFC-->>BRG: 変換済み.osuファイル出力
+        Note over BRG: 1. .osuファイルパース
+        BRG->>OFAP: Parse(osuFilePath)
+        OFAP-->>BRG: OsuReferencedAssets
 
-        alt DT モード（changePitch = false）
-            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=false, ct)
-            ARC->>ST: SoundTouch.Tempo = rate
-            Note over ST: SoundTouch<br/>FeedAndDrain（ストリーミング）<br/>ピッチ保持テンポ変更
-            ST-->>ARC: テンポ変更済みサンプル（逐次出力）
-            alt 入力が .mp3 かつ 1-2ch
-                ARC->>ARC: LameMp3Encoder でMP3エンコード
-                ARC->>Songs: MP3出力（_dt サフィックス）
-            else 入力が .mp3 かつ 3ch以上
-                Note over ARC: OGGにフォールバック
-                ARC->>Songs: OGG出力（_dt サフィックス）
-            else 入力が .ogg
-                ARC->>Songs: OGG出力（_dt サフィックス）
-            else 入力が .wav
-                ARC->>Songs: WAV出力（_dt サフィックス）
-            end
-        else NC モード（changePitch = true）
-            BRG->>ARC: ChangeRateAsync(audioPath, rate, outputPath, changePitch=true, ct)
-            Note over ARC: NAudioでデコード →<br/>SampleRateOverrideで速度変換<br/>（ピッチも変化、ストリーミング出力）
-            alt 入力が .mp3 かつ 1-2ch
-                ARC->>ARC: LameMp3Encoder でMP3エンコード
-                ARC->>Songs: MP3出力（_nc サフィックス）
-            else 入力が .mp3 かつ 3ch以上
-                Note over ARC: OGGにフォールバック
-                ARC->>Songs: OGG出力（_nc サフィックス）
-            else 入力が .ogg
-                ARC->>Songs: OGG出力（_nc サフィックス）
-            else 入力が .wav
-                ARC->>Songs: WAV出力（_nc サフィックス）
-            end
+        Note over BRG: 2. 参照アセット収集
+        BRG->>BRG: audioNameMap / sampleNameMap 構築
+        Note over BRG: MainAudio → 変換後ファイル名<br/>SampleAudioFiles → リネーム後ファイル名
+
+        Note over BRG: 3. メインオーディオのレート変換
+        BRG->>ARC: ChangeRateAsync(mainAudio, rate, tempDir)
+        ARC-->>BRG: 変換済みオーディオ → tempDir
+
+        Note over BRG: 4. ヒットサウンドのレート変換+リネーム
+        loop 各サンプル音声ファイル
+            BRG->>ARC: ChangeRateAsync(sample, rate, tempDir/renamed)
+            ARC-->>BRG: 変換済みサンプル（リネーム後）
+            BRG->>FS: 原音もtempDirにコピー（元ファイル名で保持）
         end
+
+        Note over BRG: 5. 非オーディオファイルのコピー
+        BRG->>FS: 背景画像・動画・スプライト等をtempDirにコピー
+
+        Note over BRG: 6. .osuファイル変換（SampleFilenameMap適用）
+        BRG->>OFC: ConvertAsync(osuFilePath, rate, options)
+        Note over OFC: タイミング・ノート・BPM変換<br/>+ SampleFilenameMapでヒットサウンド参照を更新
+        OFC-->>BRG: 変換済み.osu → tempDir
+
+        Note over BRG: 7. tempDir → .osz
+        BRG->>ZIP: ZipFile.CreateFromDirectory(tempDir, oszTmpPath)
+        ZIP-->>BRG: .osz.tmp 作成
+
+        Note over BRG: 8. atomic File.Move で最終配置
+        BRG->>Songs: File.Move(oszTmpPath, oszPath, overwrite: true)
     end
 
     BRG->>BRG: BatchGenerationResult集計
@@ -864,15 +864,31 @@ sequenceDiagram
 ### 処理の流れ
 
 1. **ユーザー操作** — コレクション選択または単一譜面指定 → レート範囲・ステップ・モード（DT/NC）を設定 → 生成開始
-2. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換し、新しい.osuファイルを出力（DTモードではDTタグ、NCモードではNCタグを付与）
-3. **オーディオ変換**
-   - **DTモード（デフォルト）**: `AudioRateChanger` が元オーディオをNAudioでデコード → SoundTouch でピッチ保持テンポ変更 → ストリーミングで出力ファイルに書き込み（WAV/MP3/OGG）
-   - **NCモード**: `AudioRateChanger` がNAudioでデコード → サンプルレート変更によるレート変換（ピッチも変化） → ストリーミングで出力ファイルに書き込み（WAV/MP3/OGG）
-4. **出力先** — osu!のSongsフォルダ内の元譜面フォルダに、レート付きファイル名で出力（例: `audio_1.25x_dt.mp3`, `audio_1.25x_dt.ogg`, `audio_1.25x_nc.ogg`）
+2. **.osuファイルパース** — `OsuFileAssetParser.Parse()` が.osuファイルおよび関連.osbファイルを解析し、`OsuReferencedAssets`（メインオーディオ / サンプル音声 / 非音声ファイル）を返す
+3. **参照アセット収集** — `MainAudioFilename` → 変換後ファイル名の `audioNameMap` と、`SampleAudioFiles` → リネーム後ファイル名の `sampleNameMap` を構築（命名規則: `BuildAudioFileName()` を流用、例: `F5S_s.wav` → `F5S_s_1.25x_dt.wav`）
+4. **メインオーディオのレート変換** — `AudioRateChanger` でレート変換し、一時ディレクトリに出力
+   - **DTモード（デフォルト）**: SoundTouchによるピッチ保持テンポ変更
+   - **NCモード**: サンプルレート変更によるピッチ変更を伴うレート変換
+5. **ヒットサウンドのレート変換+リネーム** — `SampleAudioFiles` の各ファイルをメインオーディオと同じレート・モードで変換し、リネーム後のファイル名で一時ディレクトリに出力。変換元の原音も元ファイル名でコピーして保持する。変換失敗時は原音をリネーム後のファイル名でコピー（フォールバック）
+6. **非音声ファイルのコピー** — `NonAudioFiles`（背景画像・動画・スプライト・.osbファイル等）を元フォルダから一時ディレクトリにコピー。サブディレクトリ構造を維持
+7. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換。`SampleFilenameMap` によりSampleイベント行およびHitObjectのヒットサウンド参照をリネーム後のファイル名に更新
+8. **.osz作成** — `ZipFile.CreateFromDirectory()` で一時ディレクトリからoszTmpPathに.oszを生成後、`File.Move()` で最終パスにatomicに配置。一時ディレクトリとoszTmpPathはfinallyブロックで確実に削除
+
+### .osz内の構成例
+
+```
+example_beatmap.osz
+├── audio_1.25x_dt.mp3        ← メインオーディオ（レート変換済み）
+├── F5S_s.wav                  ← ヒットサウンド原音（そのままコピー）
+├── F5S_s_1.25x_dt.wav         ← ヒットサウンド（レート変換+リネーム済み）
+├── bg.jpg                     ← 背景画像（そのままコピー）
+├── storyboard.osb             ← ストーリーボード（そのままコピー）
+└── example [1.25x DT].osu     ← 変換済み.osu（ヒットサウンド参照はリネーム後を指す）
+```
 
 ### 出力形式の自動選択
 
-入力ファイルの拡張子に応じて出力形式が自動選択される。MP3エンコードにはLAME 3.100（`LameMp3Encoder`）を使用する。
+入力ファイルの拡張子に応じて出力形式が自動選択される。MP3エンコードにはLAME 3.100（`LameMp3Encoder`）を使用する。メインオーディオ・サンプル音声ともに同じルールが適用される。
 
 | 入力形式 | チャンネル数 | 出力形式 | エンコーダ |
 |---------|------------|---------|----------|

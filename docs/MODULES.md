@@ -1463,7 +1463,11 @@ ImportExportPageViewModel  ──IsAnyProcessing──▶  ImportViewModel（逆
 
 ### 概要
 
-osu!mania beatmapのレート変更版（倍速・減速）を自動生成するモジュール。指定レート範囲で.osuファイルのタイミング変換とオーディオファイルのレート変換を行い、Songsフォルダに出力する。DT（Double Time）モードではピッチを保持したタイムストレッチ、NC（NightCore）モードではピッチ変更を伴うレート変換を選択可能。出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。MP3出力にはLAME 3.100（libmp3lame.dll）を使用し、3ch以上の場合はOGGにフォールバックする。
+osu!mania beatmapのレート変更版（倍速・減速）を自動生成するモジュール。指定レート範囲で.osuファイルのタイミング変換とオーディオファイルのレート変換を行い、`.osz`（ZIP形式）ファイルとしてSongsフォルダに出力する。DT（Double Time）モードではピッチを保持したタイムストレッチ、NC（NightCore）モードではピッチ変更を伴うレート変換を選択可能。
+
+.osuファイルおよび関連.osbファイルから参照されるすべてのアセット（背景画像、動画、スキン、ストーリーボード、ヒットサウンド等）を`OsuFileAssetParser`で解析・収集し、音声ファイルにはレート変換を適用、非音声ファイルはそのままコピーして、一つの.oszにパッケージする。ヒットサウンド等のサンプル音声はメインオーディオと同じレート・モードで変換し、リネーム後のファイル名で.oszに格納する（例: `F5S_s.wav` → `F5S_s_1.25x_dt.wav`）。変換元の原音も.oszに保持する。
+
+オーディオ出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。MP3出力にはLAME 3.100（libmp3lame.dll）を使用し、3ch以上の場合はOGGにフォールバックする。
 
 ### 構成ファイル一覧
 
@@ -1479,8 +1483,10 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `IBeatmapRateGenerator.cs` | インターフェース | レート生成オーケストレータの契約定義 |
 | `AudioRateChanger.cs` | サービス | NAudioによるオーディオレート変換（ストリーミング処理、MP3/OGG/WAV出力、入力形式自動判定） |
 | `SampleRateOverrideSampleProvider.cs` | ヘルパー | サンプルレート変更用のISampleProvider実装 |
-| `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み） |
-| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（.osu変換 + オーディオ変換を統合） |
+| `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み、SampleFilenameMap適用） |
+| `OsuFileAssetParser.cs` | サービス | .osuファイルおよび関連.osbファイルから参照アセットを解析・抽出 |
+| `OsuReferencedAssets.cs` | モデル | .osuファイルが参照する外部アセットの分類済みデータ（MainAudio / SampleAudioFiles / NonAudioFiles） |
+| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成） |
 | `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替） |
 | `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト |
 | `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |

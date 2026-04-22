@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +15,7 @@ namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 
 /// <summary>
 /// beatmap レート変更生成のオーケストレーションサービス。
-/// オーディオ変換と .osu 変換を統合し、生成フロー全体を管理する。
+/// オーディオ変換と .osu 変換を統合し、.osz ファイルとして出力する。
 /// </summary>
 public interface IBeatmapRateGenerator
 {
@@ -36,6 +39,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 {
     private readonly IAudioRateChanger _audioRateChanger;
     private readonly IOsuFileRateConverter _osuFileRateConverter;
+    private readonly IOsuFileAssetParser _osuFileAssetParser;
     private readonly ISettingsService _settingsService;
 
     private static readonly char[] InvalidFileNameChars = ['"', '*', '\\', '/', '?', '<', '>', '|', ':'];
@@ -43,10 +47,12 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     public BeatmapRateGenerator(
         IAudioRateChanger audioRateChanger,
         IOsuFileRateConverter osuFileRateConverter,
+        IOsuFileAssetParser osuFileAssetParser,
         ISettingsService settingsService)
     {
         _audioRateChanger = audioRateChanger;
         _osuFileRateConverter = osuFileRateConverter;
+        _osuFileAssetParser = osuFileAssetParser;
         _settingsService = settingsService;
     }
 
@@ -56,170 +62,9 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         IProgress<RateGenerationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        // 1. レート確定・検証
-        double rate;
-        try
-        {
-            rate = ResolveAppliedRate(beatmap, options);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return new RateGenerationResult
-            {
-                Success = false,
-                AppliedRate = 0,
-                ErrorMessage = ex.Message,
-                SourceBeatmap = beatmap,
-            };
-        }
-
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        progress?.Report(new RateGenerationProgress("パス解決中...", 1, 1, 0));
-
-        // 2. パス解決
-        var beatmapFolder = ResolveBeatmapFolder(beatmap);
-        var inputOsuPath = Path.Combine(beatmapFolder, beatmap.OsuFileName);
-        var inputAudioPath = Path.Combine(beatmapFolder, beatmap.AudioFilename);
-        if (!File.Exists(inputOsuPath))
-        {
-            return new RateGenerationResult
-            {
-                Success = false,
-                AppliedRate = rate,
-                ErrorMessage = $"元の.osuファイルが見つかりません: {beatmap.OsuFileName}",
-                SourceBeatmap = beatmap,
-            };
-        }
-
-        if (!File.Exists(inputAudioPath))
-        {
-            return new RateGenerationResult
-            {
-                Success = false,
-                AppliedRate = rate,
-                ErrorMessage = $"元のオーディオファイルが見つかりません: {beatmap.AudioFilename}",
-                SourceBeatmap = beatmap,
-            };
-        }
-
-        var newAudioName = BuildAudioFileName(beatmap.AudioFilename, rate, options.ChangePitch);
-        var newDiffName = BuildDifficultyName(beatmap, rate, options);
-        var newOsuName = BuildOsuFileName(beatmap, newDiffName);
-        var audioOutputPath = Path.Combine(beatmapFolder, newAudioName);
-        var osuOutputPath = Path.Combine(beatmapFolder, newOsuName);
-
-        // 3. オーディオ変換（スキップ判定）
-        bool audioSkipped;
-        if (File.Exists(audioOutputPath))
-        {
-            audioSkipped = true;
-            progress?.Report(new RateGenerationProgress("オーディオ変換をスキップしました", 1, 1, 50));
-        }
-        else
-        {
-            progress?.Report(new RateGenerationProgress("オーディオ変換中...", 1, 1, 50));
-
-            bool audioSuccess;
-            try
-            {
-                var audioResult = await _audioRateChanger.ChangeRateAsync(
-                    inputAudioPath, audioOutputPath, rate, options.ChangePitch,
-                    options.Mp3VbrQuality, cancellationToken);
-                audioSuccess = audioResult.Success;
-
-                // 3chフォールバックで実際の出力パスが変わった場合、.osuのAudioFilenameを合わせる
-                if (audioResult.ActualOutputPath is not null)
-                    audioOutputPath = audioResult.ActualOutputPath;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                return new RateGenerationResult
-                {
-                    Success = false,
-                    AppliedRate = rate,
-                    ErrorMessage = $"オーディオ変換に失敗しました: {ex.Message}",
-                    SourceBeatmap = beatmap,
-                };
-            }
-
-            if (!audioSuccess)
-            {
-                return new RateGenerationResult
-                {
-                    Success = false,
-                    AppliedRate = rate,
-                    ErrorMessage = "オーディオ変換に失敗しました",
-                    SourceBeatmap = beatmap,
-                };
-            }
-
-            audioSkipped = false;
-        }
-
-        // 4. .osu変換
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // 同名の.osuファイルが既に存在する場合はスキップ
-        if (File.Exists(osuOutputPath))
-        {
-            progress?.Report(new RateGenerationProgress(".osuファイルが既に存在するためスキップしました", 1, 1, 100));
-            return new RateGenerationResult
-            {
-                Success = true,
-                GeneratedOsuPath = null,
-                GeneratedAudioPath = audioSkipped ? null : audioOutputPath,
-                AudioSkipped = audioSkipped,
-                OsuSkipped = true,
-                AppliedRate = rate,
-                SourceBeatmap = beatmap,
-            };
-        }
-
-        var convertOptions = new OsuFileConvertOptions
-        {
-            Rate = (decimal)rate,
-            NewAudioFilename = Path.GetFileName(audioOutputPath),
-            NewDifficultyName = newDiffName,
-            HpOverride = options.HpOverride,
-            OdOverride = options.OdOverride,
-        };
-
-        try
-        {
-            _osuFileRateConverter.Convert(inputOsuPath, osuOutputPath, convertOptions);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            return new RateGenerationResult
-            {
-                Success = false,
-                GeneratedAudioPath = audioSkipped ? null : audioOutputPath,
-                AudioSkipped = audioSkipped,
-                AppliedRate = rate,
-                ErrorMessage = $".osu 変換に失敗しました: {ex.Message}",
-                SourceBeatmap = beatmap,
-            };
-        }
-
-        progress?.Report(new RateGenerationProgress("完了", 1, 1, 100));
-
-        // 5. Result返却
-        return new RateGenerationResult
-        {
-            Success = true,
-            GeneratedOsuPath = osuOutputPath,
-            GeneratedAudioPath = audioSkipped ? null : audioOutputPath,
-            AudioSkipped = audioSkipped,
-            OsuSkipped = false,
-            AppliedRate = rate,
-            SourceBeatmap = beatmap,
-        };
+        var results = await GenerateOszForGroupAsync(
+            [beatmap], beatmap.FolderName, options, progress, cancellationToken);
+        return results[0];
     }
 
     public async Task<BatchGenerationResult> GenerateBatchAsync(
@@ -228,11 +73,13 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         IProgress<RateGenerationProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var total = beatmaps.Length;
-        var results = new List<RateGenerationResult>(total);
+        var groups = GroupByFolderName(beatmaps);
+        var allResults = new List<RateGenerationResult>();
+        var processedCount = 0;
+        var totalBeatmapCount = beatmaps.Length;
         var wasCancelled = false;
 
-        for (var i = 0; i < total; i++)
+        foreach (var (folderName, groupBeatmaps) in groups)
         {
             try
             {
@@ -244,19 +91,14 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 break;
             }
 
-            var beatmap = beatmaps.Span[i];
-            progress?.Report(new RateGenerationProgress(
-                $"[{i + 1}/{total}] {beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] の生成を開始します",
-                i + 1,
-                total,
-                total > 0 ? i * 100 / total : 100));
+            var groupProgress = CreateGroupProgress(
+                progress, processedCount, totalBeatmapCount, folderName);
 
-            var itemProgress = CreateBatchItemProgress(progress, beatmap, i, total);
-
-            RateGenerationResult result;
+            RateGenerationResult[] groupResults;
             try
             {
-                result = await GenerateAsync(beatmap, options, itemProgress, cancellationToken);
+                groupResults = await GenerateOszForGroupAsync(
+                    groupBeatmaps, folderName, options, groupProgress, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -265,27 +107,33 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             }
             catch (Exception ex)
             {
-                result = new RateGenerationResult
+                foreach (var bm in groupBeatmaps)
                 {
-                    Success = false,
-                    AppliedRate = 0,
-                    ErrorMessage = ex.Message,
-                    SourceBeatmap = beatmap,
-                };
+                    allResults.Add(new RateGenerationResult
+                    {
+                        Success = false,
+                        AppliedRate = 0,
+                        ErrorMessage = ex.Message,
+                        SourceBeatmap = bm,
+                    });
+                }
+                processedCount += groupBeatmaps.Length;
+                continue;
             }
 
-            results.Add(result);
+            allResults.AddRange(groupResults);
+            processedCount += groupBeatmaps.Length;
         }
 
         progress?.Report(new RateGenerationProgress(
             wasCancelled ? "Cancelled" : "Completed",
-            results.Count,
-            total,
+            allResults.Count,
+            totalBeatmapCount,
             100));
 
         var successCount = 0;
         var failureCount = 0;
-        foreach (var r in results)
+        foreach (var r in allResults)
         {
             if (r.Success) successCount++;
             else failureCount++;
@@ -293,11 +141,467 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
         return new BatchGenerationResult
         {
-            Results = [.. results],
+            Results = [.. allResults],
             SuccessCount = successCount,
             FailureCount = failureCount,
             WasCancelled = wasCancelled,
         };
+    }
+
+    private async Task<RateGenerationResult[]> GenerateOszForGroupAsync(
+        Beatmap[] beatmapsInGroup,
+        string folderName,
+        RateGenerationOptions options,
+        IProgress<RateGenerationProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var total = beatmapsInGroup.Length;
+        var results = new RateGenerationResult[total];
+
+        // レート確定（各beatmapで個別に算出）
+        var rates = new double[total];
+        for (var i = 0; i < total; i++)
+        {
+            try
+            {
+                rates[i] = ResolveAppliedRate(beatmapsInGroup[i], options);
+            }
+            catch (InvalidOperationException ex)
+            {
+                results[i] = new RateGenerationResult
+                {
+                    Success = false,
+                    AppliedRate = 0,
+                    ErrorMessage = ex.Message,
+                    SourceBeatmap = beatmapsInGroup[i],
+                };
+            }
+        }
+
+        // 全てエラーの場合は早期リターン
+        var hasValidBeatmap = false;
+        for (var i = 0; i < total; i++)
+        {
+            if (results[i] is null) { hasValidBeatmap = true; break; }
+        }
+        if (!hasValidBeatmap)
+            return results;
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        progress?.Report(new RateGenerationProgress("解析中...", 0, total, 0));
+
+        var beatmapFolder = ResolveBeatmapFolder(folderName);
+
+        // === 1. 全.osuの参照アセットを収集 ===
+        var allSampleAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var allNonAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var audioNameMap = new Dictionary<string, (string NewName, double Rate)>(StringComparer.OrdinalIgnoreCase);
+
+        for (var i = 0; i < total; i++)
+        {
+            if (results[i] is not null) continue;
+
+            var beatmap = beatmapsInGroup[i];
+            var inputOsuPath = Path.Combine(beatmapFolder, beatmap.OsuFileName);
+
+            if (!File.Exists(inputOsuPath))
+            {
+                results[i] = new RateGenerationResult
+                {
+                    Success = false,
+                    AppliedRate = rates[i],
+                    ErrorMessage = $"元の.osuファイルが見つかりません: {beatmap.OsuFileName}",
+                    SourceBeatmap = beatmap,
+                };
+                continue;
+            }
+
+            var isVirtualAudio = string.Equals(beatmap.AudioFilename, "virtual", StringComparison.OrdinalIgnoreCase);
+
+            if (!isVirtualAudio)
+            {
+                var inputAudioPath = Path.Combine(beatmapFolder, beatmap.AudioFilename);
+                if (!File.Exists(inputAudioPath))
+                {
+                    results[i] = new RateGenerationResult
+                    {
+                        Success = false,
+                        AppliedRate = rates[i],
+                        ErrorMessage = $"元のオーディオファイルが見つかりません: {beatmap.AudioFilename}",
+                        SourceBeatmap = beatmap,
+                    };
+                    continue;
+                }
+            }
+
+            try
+            {
+                var assets = _osuFileAssetParser.Parse(inputOsuPath);
+
+                foreach (var sample in assets.SampleAudioFiles)
+                    allSampleAudioFiles.Add(NormalizeAssetRelativePath(sample));
+                foreach (var nonAudio in assets.NonAudioFiles)
+                    allNonAudioFiles.Add(NormalizeAssetRelativePath(nonAudio));
+
+                if (!isVirtualAudio)
+                {
+                    var normalizedAudio = NormalizeAssetRelativePath(beatmap.AudioFilename);
+                    if (!audioNameMap.ContainsKey(normalizedAudio))
+                    {
+                        var newAudioName = BuildAudioFileName(beatmap.AudioFilename, rates[i], options.ChangePitch);
+                        audioNameMap[normalizedAudio] = (newAudioName, rates[i]);
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                results[i] = new RateGenerationResult
+                {
+                    Success = false,
+                    AppliedRate = rates[i],
+                    ErrorMessage = $"アセット解析に失敗しました: {ex.Message}",
+                    SourceBeatmap = beatmap,
+                };
+            }
+        }
+
+        // 有効なbeatmapが残っているか再チェック
+        hasValidBeatmap = false;
+        for (var i = 0; i < total; i++)
+        {
+            if (results[i] is null) { hasValidBeatmap = true; break; }
+        }
+        if (!hasValidBeatmap)
+            return results;
+
+        // sampleNameMap構築（代表レートを取得）
+        var representativeRate = 0.0;
+        for (var i = 0; i < total; i++)
+        {
+            if (results[i] is null) { representativeRate = rates[i]; break; }
+        }
+
+        var sampleNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var sampleFile in allSampleAudioFiles)
+        {
+            var dir = Path.GetDirectoryName(sampleFile);
+            var nameOnly = Path.GetFileName(sampleFile);
+            var renamed = BuildAudioFileName(nameOnly, representativeRate, options.ChangePitch);
+            var renamedPath = string.IsNullOrEmpty(dir)
+                ? renamed
+                : NormalizeAssetRelativePath(Path.Combine(dir, renamed));
+            sampleNameMap[NormalizeAssetRelativePath(sampleFile)] = renamedPath;
+        }
+
+        progress?.Report(new RateGenerationProgress("パス解決完了", 0, total, 5));
+
+        // === 2. 一時ディレクトリ作成 ===
+        var tempDir = Path.Combine(Path.GetTempPath(), $"NakuruTool_osz_{Guid.NewGuid():N}");
+        var oszPath = ResolveOszOutputPath(folderName);
+        var oszTmpPath = oszPath + ".tmp";
+
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // === 3. メインオーディオのレート変換 ===
+            var processedAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var audioEntryIndex = 0;
+            var audioEntryCount = audioNameMap.Count;
+
+            foreach (var (originalAudio, (newAudioName, audioRate)) in audioNameMap)
+            {
+                if (processedAudioFiles.Contains(originalAudio))
+                    continue;
+
+                processedAudioFiles.Add(originalAudio);
+
+                var inputAudioPath = Path.Combine(beatmapFolder, ToFileSystemRelativePath(originalAudio));
+                var outputAudioPath = Path.Combine(tempDir, newAudioName);
+
+                var audioPercent = audioEntryCount > 0
+                    ? 5 + (audioEntryIndex * 25 / audioEntryCount)
+                    : 5;
+                progress?.Report(new RateGenerationProgress(
+                    $"オーディオ変換中: {originalAudio}", 0, total, audioPercent));
+
+                var audioResult = await _audioRateChanger.ChangeRateAsync(
+                    inputAudioPath, outputAudioPath, audioRate, options.ChangePitch,
+                    options.Mp3VbrQuality, cancellationToken);
+
+                if (!audioResult.Success)
+                {
+                    for (var i = 0; i < total; i++)
+                    {
+                        results[i] ??= new RateGenerationResult
+                        {
+                            Success = false,
+                            AppliedRate = rates[i],
+                            ErrorMessage = $"オーディオ変換に失敗しました: {originalAudio}",
+                            SourceBeatmap = beatmapsInGroup[i],
+                        };
+                    }
+                    return results;
+                }
+
+                // 3chフォールバック時: audioNameMapを実際の出力ファイル名で更新
+                if (audioResult.ActualOutputPath is not null)
+                {
+                    var actualFileName = NormalizeAssetRelativePath(
+                        Path.GetFileName(audioResult.ActualOutputPath));
+                    var dir = Path.GetDirectoryName(originalAudio);
+                    var updatedName = string.IsNullOrEmpty(dir)
+                        ? actualFileName
+                        : NormalizeAssetRelativePath(Path.Combine(dir, actualFileName));
+                    audioNameMap[originalAudio] = (updatedName, audioRate);
+                }
+
+                audioEntryIndex++;
+            }
+
+            progress?.Report(new RateGenerationProgress("オーディオ変換完了", 0, total, 30));
+
+            // === 4. サンプル音声のレート変換 ===
+            var convertedSampleCount = 0;
+            var skippedFileCount = 0;
+            var sampleIndex = 0;
+            var sampleTotal = allSampleAudioFiles.Count;
+
+            foreach (var sampleFile in allSampleAudioFiles)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var normalizedSample = NormalizeAssetRelativePath(sampleFile);
+                var inputSamplePath = Path.Combine(beatmapFolder, ToFileSystemRelativePath(normalizedSample));
+
+                if (!File.Exists(inputSamplePath))
+                {
+                    Debug.WriteLine($"[BeatmapRateGenerator] 警告: サンプル音声が見つかりません: {sampleFile}");
+                    skippedFileCount++;
+                    sampleIndex++;
+                    continue;
+                }
+
+                var renamedFile = sampleNameMap[normalizedSample];
+                var renamedOutputPath = Path.Combine(tempDir, ToFileSystemRelativePath(renamedFile));
+                var originalOutputPath = Path.Combine(tempDir, ToFileSystemRelativePath(normalizedSample));
+
+                // 出力先ディレクトリを作成
+                var renamedDir = Path.GetDirectoryName(renamedOutputPath);
+                if (!string.IsNullOrEmpty(renamedDir))
+                    Directory.CreateDirectory(renamedDir);
+                var originalDir = Path.GetDirectoryName(originalOutputPath);
+                if (!string.IsNullOrEmpty(originalDir))
+                    Directory.CreateDirectory(originalDir);
+
+                var samplePercent = sampleTotal > 0
+                    ? 30 + (sampleIndex * 35 / sampleTotal)
+                    : 30;
+                progress?.Report(new RateGenerationProgress(
+                    $"サンプル音声変換中: {sampleFile}", 0, total, samplePercent));
+
+                try
+                {
+                    var sampleResult = await _audioRateChanger.ChangeRateAsync(
+                        inputSamplePath, renamedOutputPath, representativeRate, options.ChangePitch,
+                        options.Mp3VbrQuality, cancellationToken);
+
+                    if (sampleResult.Success)
+                    {
+                        // 3chフォールバック時: sampleNameMapを実際の出力ファイル名で更新
+                        if (sampleResult.ActualOutputPath is not null)
+                        {
+                            var actualFileName = Path.GetFileName(sampleResult.ActualOutputPath);
+                            var dir = Path.GetDirectoryName(normalizedSample);
+                            var updatedPath = string.IsNullOrEmpty(dir)
+                                ? actualFileName
+                                : NormalizeAssetRelativePath(Path.Combine(dir, actualFileName));
+                            sampleNameMap[normalizedSample] = updatedPath;
+                        }
+
+                        convertedSampleCount++;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"[BeatmapRateGenerator] 警告: サンプル音声変換に失敗、原音でフォールバック: {sampleFile}");
+                        File.Copy(inputSamplePath, renamedOutputPath, overwrite: true);
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Debug.WriteLine($"[BeatmapRateGenerator] 警告: サンプル音声変換例外、原音でフォールバック: {sampleFile} - {ex.Message}");
+                    File.Copy(inputSamplePath, renamedOutputPath, overwrite: true);
+                }
+
+                // 原音を元ファイル名で保持
+                File.Copy(inputSamplePath, originalOutputPath, overwrite: true);
+
+                sampleIndex++;
+            }
+
+            progress?.Report(new RateGenerationProgress("サンプル音声変換完了", 0, total, 65));
+
+            // === 5. 非音声ファイルのコピー ===
+            foreach (var nonAudioFile in allNonAudioFiles)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var normalized = NormalizeAssetRelativePath(nonAudioFile);
+                var srcPath = Path.Combine(beatmapFolder, ToFileSystemRelativePath(normalized));
+                var destPath = Path.Combine(tempDir, ToFileSystemRelativePath(normalized));
+
+                if (!File.Exists(srcPath))
+                {
+                    Debug.WriteLine($"[BeatmapRateGenerator] 警告: 非音声ファイルが見つかりません: {nonAudioFile}");
+                    skippedFileCount++;
+                    continue;
+                }
+
+                var destDir = Path.GetDirectoryName(destPath);
+                if (!string.IsNullOrEmpty(destDir))
+                    Directory.CreateDirectory(destDir);
+
+                File.Copy(srcPath, destPath, overwrite: true);
+            }
+
+            progress?.Report(new RateGenerationProgress("ファイルコピー完了", 0, total, 75));
+
+            // === 6. 各.osu変換 → tempDir に出力 ===
+            for (var i = 0; i < total; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (results[i] is not null) continue;
+
+                var beatmap = beatmapsInGroup[i];
+                var rate = rates[i];
+                var inputOsuPath = Path.Combine(beatmapFolder, beatmap.OsuFileName);
+                var newDiffName = BuildDifficultyName(beatmap, rate, options);
+                var newOsuName = BuildOsuFileName(beatmap, newDiffName);
+                var osuOutputPath = Path.Combine(tempDir, newOsuName);
+
+                var normalizedAudioKey = NormalizeAssetRelativePath(beatmap.AudioFilename);
+                var newAudioFilename = audioNameMap.TryGetValue(normalizedAudioKey, out var audioEntry)
+                    ? audioEntry.NewName
+                    : beatmap.AudioFilename;
+
+                var convertOptions = new OsuFileConvertOptions
+                {
+                    Rate = (decimal)rate,
+                    NewAudioFilename = newAudioFilename,
+                    NewDifficultyName = newDiffName,
+                    HpOverride = options.HpOverride,
+                    OdOverride = options.OdOverride,
+                    SampleFilenameMap = sampleNameMap,
+                };
+
+                try
+                {
+                    _osuFileRateConverter.Convert(inputOsuPath, osuOutputPath, convertOptions);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    results[i] = new RateGenerationResult
+                    {
+                        Success = false,
+                        AppliedRate = rate,
+                        ErrorMessage = $".osu 変換に失敗しました: {ex.Message}",
+                        SourceBeatmap = beatmap,
+                    };
+                }
+
+                var osuPercent = total > 0 ? 75 + ((i + 1) * 10 / total) : 85;
+                progress?.Report(new RateGenerationProgress(
+                    $".osu変換中: [{i + 1}/{total}]", i + 1, total, osuPercent));
+            }
+
+            progress?.Report(new RateGenerationProgress("ZIP化中...", total, total, 85));
+
+            // === 7. .osz作成（原子的置換） ===
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var oszDir = Path.GetDirectoryName(oszPath);
+            if (!string.IsNullOrEmpty(oszDir) && !Directory.Exists(oszDir))
+                Directory.CreateDirectory(oszDir);
+
+            ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
+            File.Move(oszTmpPath, oszPath, overwrite: true);
+
+            progress?.Report(new RateGenerationProgress("完了", total, total, 100));
+
+            // 成功結果を設定
+            for (var i = 0; i < total; i++)
+            {
+                results[i] ??= new RateGenerationResult
+                {
+                    Success = true,
+                    GeneratedOszPath = oszPath,
+                    AppliedRate = rates[i],
+                    ConvertedSampleCount = convertedSampleCount,
+                    SkippedFileCount = skippedFileCount,
+                    SourceBeatmap = beatmapsInGroup[i],
+                };
+            }
+
+            return results;
+        }
+        finally
+        {
+            // === 8. cleanup ===
+            try
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BeatmapRateGenerator] 一時ディレクトリの削除に失敗: {ex.Message}");
+            }
+
+            TryDeleteFile(oszTmpPath);
+        }
+    }
+
+    private static List<(string FolderName, Beatmap[] Beatmaps)> GroupByFolderName(
+        ReadOnlyMemory<Beatmap> beatmaps)
+    {
+        var dict = new Dictionary<string, List<Beatmap>>(StringComparer.Ordinal);
+        var span = beatmaps.Span;
+        for (var i = 0; i < span.Length; i++)
+        {
+            var bm = span[i];
+            if (!dict.TryGetValue(bm.FolderName, out var list))
+            {
+                list = [];
+                dict[bm.FolderName] = list;
+            }
+            list.Add(bm);
+        }
+        var result = new List<(string, Beatmap[])>(dict.Count);
+        foreach (var (key, list) in dict)
+            result.Add((key, [.. list]));
+        return result;
+    }
+
+    private string ResolveOszOutputPath(string folderName)
+    {
+        var songsFolder = Path.Combine(_settingsService.SettingsData.OsuFolderPath, "Songs");
+        var candidate = Path.Combine(songsFolder, $"{folderName}.osz");
+        if (candidate.Length <= 240)
+            return candidate;
+
+        var hash = ComputeStableHashSuffix(folderName);
+        var shortened = folderName.Length > 180 ? folderName[..180] : folderName;
+        return Path.Combine(songsFolder, $"{shortened}_{hash}.osz");
+    }
+
+    private static string ComputeStableHashSuffix(string input)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(hashBytes, 0, 4).ToLowerInvariant();
     }
 
     private static double ResolveAppliedRate(Beatmap beatmap, RateGenerationOptions options)
@@ -320,20 +624,23 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         throw new InvalidOperationException("Rate または TargetBpm のいずれか一方を指定してください");
     }
 
-    private string ResolveBeatmapFolder(Beatmap beatmap)
+    private string ResolveBeatmapFolder(string folderName)
     {
         var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
-        return Path.Combine(osuFolderPath, "Songs", beatmap.FolderName);
+        return Path.Combine(osuFolderPath, "Songs", folderName);
     }
 
-    private static string BuildAudioFileName(string originalName, double rate, bool changePitch)
+    private string ResolveBeatmapFolder(Beatmap beatmap)
+        => ResolveBeatmapFolder(beatmap.FolderName);
+
+    internal static string BuildAudioFileName(string originalName, double rate, bool changePitch)
     {
         var nameWithoutExt = Path.GetFileNameWithoutExtension(originalName);
         var inputExt = Path.GetExtension(originalName).ToLowerInvariant();
-        // 入力フォーマットと同じフォーマットで出力
         var outputExt = inputExt switch
         {
-            ".mp3" => ".mp3",
+            // MP3はVBR再生位置追跡の問題を避けるためOGGに変換する
+            ".mp3" => ".ogg",
             ".wav" => ".wav",
             _ => ".ogg",
         };
@@ -370,25 +677,6 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         return SanitizeFileName(raw);
     }
 
-    internal static string ResolveUniqueOutputPath(string path)
-    {
-        if (!File.Exists(path))
-            return path;
-
-        var dir = Path.GetDirectoryName(path) ?? string.Empty;
-        var nameWithoutExt = Path.GetFileNameWithoutExtension(path);
-        var ext = Path.GetExtension(path);
-
-        for (var i = 1; i < 1000; i++)
-        {
-            var candidate = Path.Combine(dir, $"{nameWithoutExt} ({i}){ext}");
-            if (!File.Exists(candidate))
-                return candidate;
-        }
-
-        return path;
-    }
-
     internal static string SanitizeFileName(string name)
     {
         foreach (var c in InvalidFileNameChars)
@@ -398,36 +686,54 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         return name;
     }
 
+    private static string NormalizeAssetRelativePath(string path)
+        => path.Replace('\\', '/').Trim();
+
+    private static string ToFileSystemRelativePath(string canonicalPath)
+        => canonicalPath.Replace('/', Path.DirectorySeparatorChar);
+
     private static string FormatRate(double rate)
     {
         if (Math.Abs(rate % 1.0) < 0.001)
             return ((int)rate).ToString(CultureInfo.InvariantCulture);
 
-        // 小数点以下の不要な0を除去
         var formatted = rate.ToString("0.##", CultureInfo.InvariantCulture);
         return formatted;
     }
 
-    private static IProgress<RateGenerationProgress>? CreateBatchItemProgress(
+    private static IProgress<RateGenerationProgress>? CreateGroupProgress(
         IProgress<RateGenerationProgress>? batchProgress,
-        Beatmap beatmap,
-        int index,
-        int total)
+        int processedCount,
+        int totalBeatmapCount,
+        string folderName)
     {
         if (batchProgress is null)
             return null;
 
         return new Progress<RateGenerationProgress>(item =>
         {
-            var mappedPercent = total <= 0
+            var mappedPercent = totalBeatmapCount <= 0
                 ? item.ProgressPercent
-                : ((index * 100) + item.ProgressPercent) / total;
+                : (processedCount * 100 + item.ProgressPercent) / totalBeatmapCount;
 
             batchProgress.Report(new RateGenerationProgress(
-                $"[{index + 1}/{total}] {beatmap.Artist} - {beatmap.Title} [{beatmap.Version}] - {item.Message}",
-                index + 1,
-                total,
+                $"[{folderName}] {item.Message}",
+                processedCount + item.CurrentIndex,
+                totalBeatmapCount,
                 mappedPercent));
         });
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[BeatmapRateGenerator] ファイルの削除に失敗: {path} - {ex.Message}");
+        }
     }
 }

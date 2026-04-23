@@ -1,0 +1,81 @@
+FFmpeg Binaries - Third-Party Notice
+=====================================
+
+This directory contains a prebuilt FFmpeg binary (ffmpeg.exe) that
+are redistributed with NakuruTool. These binaries are NOT part of NakuruTool's
+own source code; they are downstream builds of the upstream FFmpeg project and
+are licensed separately under the terms described below.
+
+NakuruTool invokes these binaries as external processes via System.Diagnostics.
+Process (i.e. as separate executables). NakuruTool does NOT statically or
+dynamically link against the FFmpeg libraries in-process.
+
+
+Version
+-------
+ffmpeg version : n8.1-10-g7f5c90f77e-20260422
+Build flavor   : LGPL (no GPL components)
+Build by       : BtbN/FFmpeg-Builds (GitHub Actions)
+Architecture   : Windows x64
+
+
+Download source (redistributor)
+-------------------------------
+https://github.com/BtbN/FFmpeg-Builds/releases/tag/latest
+Asset file    : ffmpeg-n8.1-latest-win64-lgpl-8.1.zip
+
+
+Upstream FFmpeg project (authoritative source)
+----------------------------------------------
+Project home  : https://ffmpeg.org/
+Downloads     : https://ffmpeg.org/download.html
+Source (git)  : https://git.ffmpeg.org/ffmpeg.git
+              : https://github.com/FFmpeg/FFmpeg
+
+
+SHA-256 checksums of bundled files
+----------------------------------
+ffmpeg.exe   : 4C2891E5DCC1F9A206D43C42CE730163AB947CBC97A447700402136D69095458
+LICENSE.txt  : DA7EABB7BAFDF7D3AE5E9F223AA5BDC1EECE45AC569DC21B3B037520B4464768
+
+
+Bundled codecs / libraries (relevant to NakuruTool's usage)
+-----------------------------------------------------------
+These binaries are LGPL builds and include (among others) the following
+LGPL-compatible components used by NakuruTool for audio rate conversion and
+re-encoding:
+
+  - libmp3lame  (MP3 encoder, LGPL-2.0-or-later)
+  - libvorbis   (Vorbis encoder/decoder, BSD-style)
+  - libogg      (Ogg container, BSD-style)
+
+Refer to LICENSE.txt in this directory (copied from the upstream zip) for the
+complete list of included components and their individual license terms.
+
+
+License
+-------
+The FFmpeg libraries used to produce these binaries are distributed under the
+GNU Lesser General Public License version 2.1 or later (LGPL-2.1-or-later).
+The bundled LICENSE.txt contains the full text of LGPL version 3, which is
+permitted by the "or later" clause of FFmpeg's LGPL-2.1-or-later license.
+No GPL-only components are linked into this build.
+
+Full license text:  see ./LICENSE.txt (also distributed with this application
+                    as FFmpeg_LICENSE.txt).
+
+In accordance with LGPL-2.1-or-later:
+
+  * You may obtain the complete corresponding source code of FFmpeg from
+    the upstream project URLs listed above (https://ffmpeg.org/download.html
+    and https://git.ffmpeg.org/ffmpeg.git).
+  * The specific tagged revision corresponding to this build is "n8.1"; see
+    the build metadata in the "Version" section above for the exact commit.
+  * Because NakuruTool invokes FFmpeg only as a separate process (not by
+    linking), users retain the ability to replace these binaries with their
+    own LGPL-compatible builds of FFmpeg.
+
+
+Trademarks
+----------
+FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.

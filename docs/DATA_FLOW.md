@@ -811,7 +811,7 @@ sequenceDiagram
     participant VM as RateGenerationViewModel
     participant BRG as BeatmapRateGenerator
     participant OFAP as OsuFileAssetParser
-    participant ARC as AudioRateChanger
+    participant ARC as FfmpegAudioRateChanger
     participant OFC as OsuFileRateConverter
     participant FS as FileSystem (tempDir)
     participant ZIP as ZipFile
@@ -866,9 +866,9 @@ sequenceDiagram
 1. **ユーザー操作** — コレクション選択または単一譜面指定 → レート範囲・ステップ・モード（DT/NC）を設定 → 生成開始
 2. **.osuファイルパース** — `OsuFileAssetParser.Parse()` が.osuファイルおよび関連.osbファイルを解析し、`OsuReferencedAssets`（メインオーディオ / サンプル音声 / 非音声ファイル）を返す
 3. **参照アセット収集** — `MainAudioFilename` → 変換後ファイル名の `audioNameMap` と、`SampleAudioFiles` → リネーム後ファイル名の `sampleNameMap` を構築（命名規則: `BuildAudioFileName()` を流用、例: `F5S_s.wav` → `F5S_s_1.25x_dt.wav`）
-4. **メインオーディオのレート変換** — `AudioRateChanger` でレート変換し、一時ディレクトリに出力
-   - **DTモード（デフォルト）**: SoundTouchによるピッチ保持テンポ変更
-   - **NCモード**: サンプルレート変更によるピッチ変更を伴うレート変換
+4. **メインオーディオのレート変換** — `FfmpegAudioRateChanger` が FFmpeg subprocess を起動してレート変換を行い、一時ディレクトリに出力
+   - **DTモード（デフォルト）**: FFmpeg `atempo` フィルターチェーンによるピッチ保持テンポ変更（`atempo` の有効範囲 0.5–2.0 を超える倍率は複数段のチェーンに分解）
+   - **NCモード**: FFmpeg `asetrate` + `aresample` によるサンプルレート変更（ピッチ変更を伴う）
 5. **ヒットサウンドのレート変換+リネーム** — `SampleAudioFiles` の各ファイルをメインオーディオと同じレート・モードで変換し、リネーム後のファイル名で一時ディレクトリに出力。変換元の原音も元ファイル名でコピーして保持する。変換失敗時は原音をリネーム後のファイル名でコピー（フォールバック）
 6. **非音声ファイルのコピー** — `NonAudioFiles`（背景画像・動画・スプライト・.osbファイル等）を元フォルダから一時ディレクトリにコピー。サブディレクトリ構造を維持
 7. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換。`SampleFilenameMap` によりSampleイベント行およびHitObjectのヒットサウンド参照をリネーム後のファイル名に更新
@@ -888,11 +888,11 @@ example_beatmap.osz
 
 ### 出力形式の自動選択
 
-入力ファイルの拡張子に応じて出力形式が自動選択される。MP3エンコードにはLAME 3.100（`LameMp3Encoder`）を使用する。メインオーディオ・サンプル音声ともに同じルールが適用される。
+入力ファイルの拡張子に応じて出力形式が自動選択される。MP3 / OGG / WAV のエンコードは FFmpeg を subprocess として呼び出し、それぞれ `libmp3lame` / `libvorbis` / `pcm_s16le` コーデックで出力する。MP3 出力時は純 C# パーサー（`AudioInputMetadataReader`）で事前にチャンネル数を取得し、3ch 以上の場合は OGG にフォールバックする。メインオーディオ・サンプル音声ともに同じルールが適用される。
 
 | 入力形式 | チャンネル数 | 出力形式 | エンコーダ |
 |---------|------------|---------|----------|
-| `.mp3` | 1-2ch | `.mp3` | LameMp3Encoder（VBR品質: 標準=4 / 高品質=0 の2択） |
-| `.mp3` | 3ch以上 | `.ogg` | OGGフォールバック（LAME非対応） |
-| `.ogg` | 任意 | `.ogg` | OGGエンコーダ |
-| `.wav` | 任意 | `.wav` | WAV出力 |
+| `.mp3` | 1-2ch | `.mp3` | FFmpeg `libmp3lame`（VBR品質: 標準=`-q:a 4` / 高品質=`-q:a 0`） |
+| `.mp3` | 3ch以上 | `.ogg` | FFmpeg `libvorbis`（`AudioInputMetadataReader` による事前チャンネル数プローブ結果によるフォールバック） |
+| `.ogg` | 任意 | `.ogg` | FFmpeg `libvorbis` |
+| `.wav` | 任意 | `.wav` | FFmpeg `pcm_s16le` |

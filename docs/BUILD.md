@@ -128,6 +128,8 @@ git clone https://github.com/your-username/NakuruTool_Avalonia_AOT.git
 cd NakuruTool_Avalonia_AOT
 ```
 
+> **注意**: `native/ffmpeg/win-x64/ffmpeg.exe` はファイルサイズが大きいため Git 管理外です。**初回ビルド時（`dotnet build` または `.\publish.ps1`）に自動的にダウンロードされます**。インターネット接続が必要です。手動でダウンロードしたい場合は後述の「[ffmpeg.exe の手動配置](#ffmpegexe-の手動配置)」を参照してください。
+
 ### 2. Debugビルド
 
 開発用の通常ビルド:
@@ -289,13 +291,23 @@ $env:PATH -split ';' | Select-String "\.cargo"
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 ```
 
-### 問題4: Avalonia resourcesファイルのロック
+### 問題4: ffmpeg.exe のダウンロード失敗
 
-**エラーメッセージ:**
+**原因:**
+- インターネット接続がない
+- プロキシ環境でダウンロードがブロックされている
+- SHA-256 不一致（BtbN が新ビルドを公開した場合）
+
+**解決策:**
+
+1. 手動配置: BtbN Releases から ZIP をダウンロードし `native/ffmpeg/win-x64/ffmpeg.exe` に展開
+2. SHA-256 不一致の場合は csproj の `FfmpegExpectedSha256` を更新:
+```powershell
+(Get-FileHash "native\ffmpeg\win-x64\ffmpeg.exe" -Algorithm SHA256).Hash
 ```
-System.IO.IOException: The process cannot access the file
-'obj\Debug\net10.0\Avalonia\resources' because it is being used by another process.
-```
+3. `scripts/Download-Ffmpeg.ps1` のログを確認してエラー詳細を確認
+
+### 問題5: Avalonia resourcesファイルのロック
 
 **原因:**
 - 前回のビルドプロセスが残っている
@@ -390,7 +402,27 @@ dotnet build -c Release -r osx-x64
 
 `.csproj`ファイルには、以下のカスタムターゲットが定義されています:
 
-#### 1. BuildRustLibrary (BeforeBuild)
+#### 1. DownloadFfmpeg (BeforeTargets: BeforeBuild)
+
+`native/ffmpeg/win-x64/ffmpeg.exe` が存在しない場合に BtbN LGPL ビルドを自動ダウンロードします。
+ダウンロード後に SHA-256 を検証し、不一致の場合は警告を表示します。
+
+**ffmpeg.exe の手動配置** (オフライン環境など):
+
+1. BtbN Releases ページからダウンロード: https://github.com/BtbN/FFmpeg-Builds/releases/tag/latest  
+   アセット: `ffmpeg-n8.1-latest-win64-lgpl-8.1.zip`
+2. ZIP 内の `ffmpeg.exe` を `native/ffmpeg/win-x64/ffmpeg.exe` に配置
+3. ビルド時のダウンロードがスキップされます
+
+**バージョンを固定・更新する場合**:
+
+`NakuruTool_Avalonia_AOT.csproj` の `FfmpegDownloadUrl` と `FfmpegExpectedSha256` を更新してください:
+```xml
+<FfmpegDownloadUrl>https://...</FfmpegDownloadUrl>
+<FfmpegExpectedSha256>（ffmpeg.exe の SHA-256 大文字）</FfmpegExpectedSha256>
+```
+
+#### 2. BuildRustLibrary (BeforeTargets: BeforeBuild)
 
 ```xml
 <Target Name="BuildRustLibrary" BeforeTargets="BeforeBuild">

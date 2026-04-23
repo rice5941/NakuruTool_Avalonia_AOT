@@ -1104,156 +1104,51 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
         3. This notice may not be removed or altered from any source distribution.
         """;
 
-    private static string LameLicenseText =>
+    private static string FfmpegLicenseText =>
         """
-        LAME MP3 Encoder
-        Copyright (C) 1999-2017 The LAME Project
+        FFmpeg (LGPL build)
+        Copyright (c) 2000-2026 the FFmpeg developers
 
-        This library is free software; you can redistribute it and/or
-        modify it under the terms of the GNU Lesser General Public
-        License as published by the Free Software Foundation; either
-        version 2.1 of the License, or (at your option) any later version.
+        This application bundles a prebuilt FFmpeg binary (ffmpeg.exe)
+        produced by the BtbN/FFmpeg-Builds project. The FFmpeg libraries linked
+        into these binaries are distributed under the GNU Lesser General Public
+        License version 2.1 or later (LGPL-2.1-or-later). The bundled LICENSE.txt
+        contains the full text of LGPL v3 (permitted by the 'or later' clause).
+        No GPL-only components are linked into this build.
 
-        This library is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-        Lesser General Public License for more details.
+        NakuruTool invokes ffmpeg.exe as an external process only;
+        it does NOT statically or dynamically link against FFmpeg libraries.
 
-        You should have received a copy of the GNU Lesser General Public
-        License along with this library; if not, write to the Free Software
-        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+        Adopted build
+          - Version     : n8.1 (BtbN LGPL build, win64)
+          - Build asset : ffmpeg-n8.1-latest-win64-lgpl-8.1.zip
+          - Builder     : https://github.com/BtbN/FFmpeg-Builds
 
-        ---
+        Bundled codecs / libraries relevant to this application:
+          - libmp3lame (MP3 encoder, LGPL-2.0-or-later)
+          - libvorbis  (Vorbis encoder/decoder, BSD-style, Xiph.Org)
+          - libogg     (Ogg container, BSD-style, Xiph.Org)
 
-        The full text of the GNU Lesser General Public License version 2.1
-        is included in the distribution as licenses/LAME_COPYING.TXT and is also
-        available at: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
-        """;
+        Obtaining corresponding source
+          In accordance with LGPL-2.1-or-later, the complete corresponding source
+          code of FFmpeg is available from the upstream project:
+            - https://ffmpeg.org/download.html
+            - https://git.ffmpeg.org/ffmpeg.git
+            - https://github.com/FFmpeg/FFmpeg
+          Because NakuruTool invokes FFmpeg only as a separate process (not by
+          linking), users retain the ability to replace these binaries with their
+          own LGPL-compatible builds of FFmpeg.
 
-    private static string SoundTouchLicenseText =>
-        """
-        SoundTouch audio processing library
-        Copyright (c) Olli Parviainen
+        Trademarks
+          FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg
+          project.
 
-        This library is free software; you can redistribute it and/or
-        modify it under the terms of the GNU Lesser General Public
-        License as published by the Free Software Foundation; either
-        version 2.1 of the License, or (at your option) any later version.
-
-        This library is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-        Lesser General Public License for more details.
-
-        You should have received a copy of the GNU Lesser General Public
-        License along with this library; if not, write to the Free Software
-        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-
-        ---
-
-        The full text of the GNU Lesser General Public License version 2.1
-        is included in the distribution as licenses/SoundTouch_COPYING.TXT and is also
-        available at: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
-        """;
-
-    private static string NAudioLicenseText =>
-        """
-        MIT License
-
-        Copyright (c) 2020 Mark Heath
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        """;
-
-    private static string NLayerLicenseText =>
-        """
-        MIT License
-
-        Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        """;
-
-    private static string NAudioVorbisLicenseText =>
-        """
-        MIT License
-
-        Copyright (c) Andrew Ward
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        """;
-
-    private static string OggVorbisEncoderLicenseText =>
-        """
-        MIT License
-
-        Copyright (c) 2016 Steve Lillis
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
+        Full license text
+          The complete text of the GNU Lesser General Public License as shipped
+          alongside these binaries is distributed with this application as
+          FFmpeg_LICENSE.txt. See also native/ffmpeg/win-x64/LICENSE.txt in the
+          source repository for the full license text and NOTICE.txt for the
+          SHA-256 checksums of the bundled binaries.
         """;
 
     private static string NakuruAudioLicenseText =>
@@ -1386,51 +1281,6 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             },
             new LicenseItem
             {
-                PackageName = "NAudio",
-                Version = "2.2.1",
-                LicenseType = "MIT",
-                Url = "https://github.com/naudio/NAudio",
-                Copyright = "Copyright (c) 2020 Mark Heath",
-                LicenseText = NAudioLicenseText
-            },
-            new LicenseItem
-            {
-                PackageName = "NAudio.Vorbis",
-                Version = "1.5.0",
-                LicenseType = "MIT",
-                Url = "https://github.com/naudio/Vorbis",
-                Copyright = "Copyright (c) 2021 Andrew Ward",
-                LicenseText = NAudioVorbisLicenseText
-            },
-            new LicenseItem
-            {
-                PackageName = "NLayer",
-                Version = "1.16.0",
-                LicenseType = "MIT",
-                Url = "https://github.com/naudio/NLayer",
-                Copyright = "Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors",
-                LicenseText = NLayerLicenseText
-            },
-            new LicenseItem
-            {
-                PackageName = "NLayer.NAudioSupport",
-                Version = "1.4.0",
-                LicenseType = "MIT",
-                Url = "https://github.com/naudio/NLayer",
-                Copyright = "Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors",
-                LicenseText = NLayerLicenseText
-            },
-            new LicenseItem
-            {
-                PackageName = "OggVorbisEncoder",
-                Version = "1.2.2",
-                LicenseType = "MIT",
-                Url = "https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder",
-                Copyright = "Copyright (c) 2016 Steve Lillis",
-                LicenseText = OggVorbisEncoderLicenseText
-            },
-            new LicenseItem
-            {
                 PackageName = "nakuru_audio",
                 Version = "0.1.0",
                 LicenseType = "MIT",
@@ -1440,21 +1290,12 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
             },
             new LicenseItem
             {
-                PackageName = "SoundTouch",
-                Version = "2.4.1",
-                LicenseType = "LGPL-2.1",
-                Url = "https://codeberg.org/soundtouch/soundtouch",
-                Copyright = "Copyright (c) Olli Parviainen",
-                LicenseText = SoundTouchLicenseText
-            },
-            new LicenseItem
-            {
-                PackageName = "LAME MP3 Encoder",
-                Version = "3.100",
+                PackageName = "FFmpeg (LGPL build)",
+                Version = "n8.1 (BtbN LGPL build)",
                 LicenseType = "LGPL-2.1-or-later",
-                Url = "https://lame.sourceforge.io/",
-                Copyright = "Copyright (C) 1999-2017 The LAME Project",
-                LicenseText = LameLicenseText
+                Url = "https://ffmpeg.org/",
+                Copyright = "Copyright (c) 2000-2026 the FFmpeg developers",
+                LicenseText = FfmpegLicenseText
             },
             new LicenseItem
             {

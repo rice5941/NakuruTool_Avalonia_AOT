@@ -68,11 +68,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="NLayer" Version="1.16.0" />
-    <PackageReference Include="NLayer.NAudioSupport" Version="1.4.0" />
-    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
+
     <PackageReference Include="R3" Version="1.3.0" />
     <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
     <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
@@ -86,9 +82,39 @@
     </Compile>
   </ItemGroup>
 
+  <!-- ffmpeg.exe 自動ダウンロード設定（ファイルサイズが大きいため Git 管理外） -->
+  <PropertyGroup>
+    <FfmpegExePath>$(MSBuildProjectDirectory)\..\..\native\ffmpeg\win-x64\ffmpeg.exe</FfmpegExePath>
+    <FfmpegDownloadUrl>https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-8.1.zip</FfmpegDownloadUrl>
+    <!-- SHA-256 は ffmpeg.exe 単体のハッシュ。BtbN が新ビルドを公開したら更新してください。 -->
+    <FfmpegExpectedSha256>4C2891E5DCC1F9A206D43C42CE730163AB947CBC97A447700402136D69095458</FfmpegExpectedSha256>
+    <FfmpegDownloadScript>$(MSBuildProjectDirectory)\..\..\scripts\Download-Ffmpeg.ps1</FfmpegDownloadScript>
+  </PropertyGroup>
+
+  <!-- ffmpeg.exe が存在しない場合に自動ダウンロードする -->
+  <Target Name="DownloadFfmpeg" BeforeTargets="BeforeBuild">
+    <Exec
+      Condition="!Exists('$(FfmpegExePath)')"
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(FfmpegDownloadScript)&quot; -DestPath &quot;$(FfmpegExePath)&quot; -Url &quot;$(FfmpegDownloadUrl)&quot; -ExpectedSha256 &quot;$(FfmpegExpectedSha256)&quot;"
+      WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
   <ItemGroup>
-    <Compile Include="..\..\SoundTouch\SoundTouch.cs" Link="Features\BeatmapGenerator\SoundTouch.cs" />
-    <Compile Include="..\..\Lame\LameMp3Encoder.cs" Link="Features\BeatmapGenerator\LameMp3Encoder.cs" />
+    <Content Include="..\..\native\ffmpeg\win-x64\ffmpeg.exe">
+      <Link>ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\native\ffmpeg\win-x64\LICENSE.txt">
+      <Link>FFmpeg_LICENSE.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\native\ffmpeg\win-x64\NOTICE.txt">
+      <Link>FFmpeg_NOTICE.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- Rust build integration -->
@@ -103,16 +129,6 @@
     <!-- Build nakuru_audio -->
     <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
     <Copy SourceFiles="$(NativeLibPathAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAudio)')" />
-
-    <!-- Copy SoundTouch.dll -->
-    <Copy SourceFiles="$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll"
-          DestinationFiles="$(OutDir)SoundTouch.dll"
-          Condition="Exists('$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll')" />
-
-    <!-- Copy libmp3lame.dll -->
-    <Copy SourceFiles="$(ProjectDir)..\..\Lame\libmp3lame.dll"
-          DestinationFolder="$(OutDir)"
-          Condition="Exists('$(ProjectDir)..\..\Lame\libmp3lame.dll')" />
   </Target>
 
   <!-- Copy native library to publish directory for NativeAOT -->
@@ -126,16 +142,6 @@
     <ItemGroup>
       <ResolvedFileToPublish Include="$(NativeLibPathAudio)" Condition="Exists('$(NativeLibPathAudio)')">
         <RelativePath>nakuru_audio.dll</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-      <ResolvedFileToPublish Include="$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll"
-                              Condition="Exists('$(ProjectDir)..\..\SoundTouch\SoundTouchDLL_x64.dll')">
-        <RelativePath>SoundTouch.dll</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-      <ResolvedFileToPublish Include="$(ProjectDir)..\..\Lame\libmp3lame.dll"
-                              Condition="Exists('$(ProjectDir)..\..\Lame\libmp3lame.dll')">
-        <RelativePath>libmp3lame.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

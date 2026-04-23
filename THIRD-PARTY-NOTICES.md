@@ -118,56 +118,6 @@ AvaloniaのためのMaterial Design Iconsライブラリ。
 
 ---
 
-### NAudio
-- **Version**: 2.2.1
-- **License**: MIT License
-- **Repository**: https://github.com/naudio/NAudio
-- **Copyright**: Copyright (c) 2020 Mark Heath
-
-.NET 向けオーディオライブラリ。オーディオファイルの読み書き・再生に使用。
-
----
-
-### NAudio.Vorbis
-- **Version**: 1.5.0
-- **License**: MIT License
-- **Repository**: https://github.com/naudio/Vorbis
-- **Copyright**: Copyright (c) Andrew Ward
-
-NAudio 向け Ogg Vorbis デコードプラグイン。
-
----
-
-### NLayer
-- **Version**: 1.16.0
-- **License**: MIT License
-- **Repository**: https://github.com/naudio/NLayer
-- **Copyright**: Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
-
-Pure C# による MPEG Audio デコードライブラリ。
-
----
-
-### NLayer.NAudioSupport
-- **Version**: 1.4.0
-- **License**: MIT License
-- **Repository**: https://github.com/naudio/NLayer
-- **Copyright**: Copyright (c) 2018 Mark Heath, Andrew Ward & Contributors
-
-NLayer の NAudio 統合プラグイン。
-
----
-
-### OggVorbisEncoder
-- **Version**: 1.2.2
-- **License**: MIT License
-- **Repository**: https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder
-- **Copyright**: Copyright (c) 2016 Steve Lillis
-
-.NET 向け Ogg Vorbis エンコードライブラリ。
-
----
-
 ## Rust / ネイティブライブラリ（コード依存）
 
 ### nakuru_audio
@@ -180,27 +130,46 @@ NLayer の NAudio 統合プラグイン。
 
 ---
 
-### SoundTouch
-- **Version**: 2.4.1
-- **License**: **GNU Lesser General Public License v2.1 (LGPL-2.1)**
-- **Repository**: https://codeberg.org/soundtouch/soundtouch
-- **Copyright**: Copyright (c) Olli Parviainen
-- **ライセンスファイル**: licenses/SoundTouch_COPYING.TXT
-- **備考**: DLLとして動的リンクで使用。LGPL-2.1に従いソースコードは上記リポジトリから入手可能です。
+### FFmpeg (LGPL build)
+- **Version**: n8.1 (BtbN LGPL build, win64)
+- **License**: **GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)**（`native/ffmpeg/win-x64/LICENSE.txt` に同梱されるライセンス全文は LGPL version 3 の本文で、FFmpeg の LGPL-2.1-or-later における "or later" 節に基づき v3 を選択した形になっています）
+- **Website**: https://ffmpeg.org/
+- **Source (upstream)**: https://ffmpeg.org/download.html / https://git.ffmpeg.org/ffmpeg.git / https://github.com/FFmpeg/FFmpeg
+- **Downloaded build**: https://github.com/BtbN/FFmpeg-Builds/releases （asset: `ffmpeg-n8.1-latest-win64-lgpl-8.1.zip`）
+- **Copyright**: Copyright (c) 2000-2026 the FFmpeg developers
+- **ライセンスファイル**: `native/ffmpeg/win-x64/LICENSE.txt`（LGPL 全文）/ `native/ffmpeg/win-x64/NOTICE.txt`（メタデータ）/ 配布アーカイブの `FFmpeg_LICENSE.txt`
+- **SHA-256**:
+  - `ffmpeg.exe`  : `4C2891E5DCC1F9A206D43C42CE730163AB947CBC97A447700402136D69095458`
+  - `LICENSE.txt` : `DA7EABB7BAFDF7D3AE5E9F223AA5BDC1EECE45AC569DC21B3B037520B4464768`
+- **備考**: `ffmpeg.exe` を配布物に同梱し、アプリケーションからは subprocess（別プロセス）としてのみ呼び出します。C# / Rust 側のコードに対して静的・動的リンクは一切行いません。この LGPL ビルドには GPL-only コンポーネントは含まれません。`libmp3lame`（MP3 エンコード）および `libvorbis` / `libogg`（Ogg Vorbis エンコード／コンテナ）が含まれます。LGPL-2.1-or-later の要件に従い、ユーザーは同梱バイナリを LGPL 互換の自前ビルドに差し替えて利用できます。
 
-テンポ／ピッチ変更のためのオーディオ処理ライブラリ。譜面レート変換（DT モード）で使用。
+FFmpeg プロジェクトのライブラリ／ツール群。オーディオのデコード・レート変換・エンコード（MP3 / OGG / WAV）に使用。
+
+> **Trademarks**: FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.
 
 ---
 
-### LAME MP3 Encoder
-- **Version**: 3.100
-- **License**: **GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)**
-- **Website**: https://lame.sourceforge.io/
+### libmp3lame (bundled inside FFmpeg LGPL build)
+- **License**: **GNU Lesser General Public License v2.0 or later (LGPL-2.0-or-later)**
+- **Website / Source**: https://lame.sourceforge.io/
 - **Copyright**: Copyright (C) 1999-2017 The LAME Project
-- **ライセンスファイル**: licenses/LAME_COPYING.TXT
-- **備考**: DLLとして動的リンクで使用。LGPL-2.1に従いソースコードは上記サイトから入手可能です。
+- **備考**: 上記 FFmpeg LGPL ビルドに MP3 エンコーダとしてリンク済みで同梱されます。独立した DLL としては配布していません。
 
-MP3エンコード機能で使用。ユーザーは同じインターフェースを持つ互換DLLに差し替えることが可能。
+---
+
+### libvorbis (bundled inside FFmpeg LGPL build)
+- **License**: **BSD 3-Clause License**（Xiph.Org Foundation）
+- **Website / Source**: https://xiph.org/vorbis/ / https://gitlab.xiph.org/xiph/vorbis
+- **Copyright**: Copyright (c) 2002-2020 Xiph.Org Foundation
+- **備考**: 上記 FFmpeg LGPL ビルドに Vorbis エンコーダ／デコーダとしてリンク済みで同梱されます。関連する `libogg` も同じく Xiph.Org の BSD ライセンスで同梱されています。
+
+---
+
+### BtbN/FFmpeg-Builds (build scripts)
+- **License**: **MIT License**
+- **Repository**: https://github.com/BtbN/FFmpeg-Builds
+- **Copyright**: Copyright (c) BtbN and contributors
+- **備考**: 同梱 FFmpeg バイナリを生成するために使用されたビルドスクリプトのライセンス。FFmpeg 本体・同梱コーデックのライセンス（LGPL-2.1-or-later 等）とは別物です。
 
 ---
 

@@ -186,8 +186,6 @@ $RECYCLE.BIN/
 # Application specific
 # =============================================================================
 
-# Publish output versioned folders
-NakuruTool_*/
 
 # Temporary agent work files
 agent_tmp/

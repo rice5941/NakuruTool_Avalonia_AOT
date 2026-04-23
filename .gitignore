@@ -193,6 +193,9 @@ agent_tmp/
 # Rust build artifacts
 native/nakuru_audio/target/
 
+# ffmpeg.exe はファイルサイズが大きく Git 管理外（ビルド時に自動ダウンロード）
+native/ffmpeg/win-x64/ffmpeg.exe
+
 # Crash dumps
 *.dmp
 crash.log

@@ -81,3 +81,18 @@ NakuruTool_Avalonia_AOT/
 - 第三者コンポーネントの一覧と各ライセンス: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
 - nakuru_audio (Rust) の依存関係: [native/nakuru_audio/THIRD-PARTY-NOTICES.md](native/nakuru_audio/THIRD-PARTY-NOTICES.md)
 - アプリケーション内ライセンスページ: 設定 → ライセンス
+
+### FFmpeg について
+
+This software uses libraries from the FFmpeg project under the LGPLv2.1-or-later. (The bundled `LICENSE.txt` contains the full text of LGPL v3, permitted by the "or later" clause of FFmpeg's LGPL-2.1-or-later license.)
+
+本アプリケーションは FFmpeg プロジェクトのライブラリをそのまま含んだプリビルドバイナリ（`ffmpeg.exe`、[BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) による n8.1 LGPL static build）を配布アーカイブおよびソースツリーの `native/ffmpeg/win-x64/` に **同梱** しています。これは subprocess（別プロセス）としてのみ呼び出され、C# / Rust 側のコードと静的/動的リンクは行いません。同梱ビルドには MP3 エンコーダの `libmp3lame`（LGPL-2.0-or-later）と Vorbis の `libvorbis`（BSD-style, Xiph.Org）が含まれます。
+
+- FFmpeg 本体 · 公式サイト: <https://ffmpeg.org/>
+- FFmpeg 本体 · ソースコード: <https://ffmpeg.org/download.html> および <https://git.ffmpeg.org/ffmpeg.git>
+- 採用ビルド: <https://github.com/BtbN/FFmpeg-Builds/releases>（asset: `ffmpeg-n8.1-latest-win64-lgpl-8.1.zip`）
+- ライセンス全文と SHA-256 checksum: [`native/ffmpeg/win-x64/LICENSE.txt`](native/ffmpeg/win-x64/LICENSE.txt) / [`native/ffmpeg/win-x64/NOTICE.txt`](native/ffmpeg/win-x64/NOTICE.txt)
+
+LGPL-2.1-or-later の要件に従い、ユーザは同梱バイナリを LGPL 互換の自前ビルドに差し替えて利用できます。
+
+> **Trademarks**: FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.

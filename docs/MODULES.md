@@ -1467,7 +1467,7 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 .osuファイルおよび関連.osbファイルから参照されるすべてのアセット（背景画像、動画、スキン、ストーリーボード、ヒットサウンド等）を`OsuFileAssetParser`で解析・収集し、音声ファイルにはレート変換を適用、非音声ファイルはそのままコピーして、一つの.oszにパッケージする。ヒットサウンド等のサンプル音声はメインオーディオと同じレート・モードで変換し、リネーム後のファイル名で.oszに格納する（例: `F5S_s.wav` → `F5S_s_1.25x_dt.wav`）。変換元の原音も.oszに保持する。
 
-オーディオ出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。MP3出力にはLAME 3.100（libmp3lame.dll）を使用し、3ch以上の場合はOGGにフォールバックする。
+オーディオ出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。オーディオレート変換・エンコードは FFmpeg（n8.1 LGPL static build）を subprocess として起動して行い、MP3 は `libmp3lame`、OGG は `libvorbis`、WAV は `pcm_s16le` で出力する。MP3 出力時、純 C# パーサー（`AudioInputMetadataReader`）で事前にチャンネル数を取得し、3ch 以上の場合は OGG にフォールバックする。
 
 ### 構成ファイル一覧
 
@@ -1481,8 +1481,14 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `IAudioRateChanger.cs` | インターフェース | オーディオレート変換の契約定義 |
 | `IOsuFileRateConverter.cs` | インターフェース | .osuファイルレート変換の契約定義 |
 | `IBeatmapRateGenerator.cs` | インターフェース | レート生成オーケストレータの契約定義 |
-| `AudioRateChanger.cs` | サービス | NAudioによるオーディオレート変換（ストリーミング処理、MP3/OGG/WAV出力、入力形式自動判定） |
-| `SampleRateOverrideSampleProvider.cs` | ヘルパー | サンプルレート変更用のISampleProvider実装 |
+| `AudioRateChanger.cs` | サービス | （公開契約のみ保持）旧 NAudio 実装は FFmpeg 移行に伴い削除済み |
+| `FfmpegAudioRateChanger.cs` | サービス | `IAudioRateChanger` 実装。FFmpeg subprocess 経由でレート変換を実行（DT/NC モード、MP3/OGG/WAV 出力、MP3 出力時は `AudioInputMetadataReader` でチャンネル数を取得して3ch以上は OGG にフォールバック） |
+| `FfmpegArgumentsBuilder.cs` | internal static (純関数) | ffmpeg コマンドラインの組立（DTの `atempo` チェーン分解、NCの `asetrate+aresample`、出力コーデック選択、VBR 品質） |
+| `FfmpegBinaryLocator.cs` | internal static | ffmpeg.exe の実行パス解決（アプリ同梱 `native/ffmpeg/win-x64/` を基準に探索） |
+| `FfmpegProcessRunner.cs` | internal static | `Process.Start` / `ProcessStartInfo.ArgumentList` でプロセスを起動し、stderr を回収し、`CancellationToken` でキャンセル・終了を処理 |
+| `FfmpegExecutionException.cs` | internal sealed | FFmpeg 実行失敗時にスローされる例外（exit code / stderr 末尾を保持） |
+| `AudioInputMetadata.cs` | internal readonly record struct | 入力オーディオのチャンネル数 / サンプルレートを保持する値オブジェクト |
+| `AudioInputMetadataReader.cs` | internal static | 純 C# 実装の WAV / MP3 / OGG（Vorbis / Opus）メタデータパーサー。`BinaryPrimitives` ベースでリフレクション・動的コード生成を用いず NativeAOT 安全 |
 | `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み、SampleFilenameMap適用） |
 | `OsuFileAssetParser.cs` | サービス | .osuファイルおよび関連.osbファイルから参照アセットを解析・抽出 |
 | `OsuReferencedAssets.cs` | モデル | .osuファイルが参照する外部アセットの分類済みデータ（MainAudio / SampleAudioFiles / NonAudioFiles） |
@@ -1499,8 +1505,6 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `SingleBeatmapGenerationViewModel.cs` | ViewModel | 単一譜面指定のレート生成 |
 | `SingleBeatmapGenerationWindow.axaml` | View | 単一譜面生成ウィンドウ |
 | `SingleBeatmapGenerationWindow.axaml.cs` | CodeBehind | |
-| `SoundTouch.cs` (リンク) | P/Invoke | SoundTouch DLL P/Invoke ラッパー（SoundTouch/ からリンク） |
-| `LameMp3Encoder.cs` (リンク) | P/Invoke | LAME MP3エンコーダ P/Invoke ラッパー（Lame/ からリンク、LibraryImport Source Generator） |
 
 ### 依存モジュール
 
@@ -1508,9 +1512,7 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - **Settings** — `ISettingsService`（osu!フォルダパス取得、`PreferUnicode` 監視）
 - **Shared** — `ViewModelBase` を継承
 - **Translate** — UIの多言語化
-- **NAudio / NAudio.Vorbis** — オーディオファイルの読み込み・レート変換・WAV出力
-- **SoundTouch (C/C++)** — SoundTouch 2.4.1 によるテンポ変更処理（DTモード、LGPL-2.1）
-- **LAME (libmp3lame.dll)** — LAME 3.100 によるMP3エンコード（VBR品質: 標準=4 / 高品質=0 の2択、LGPL-2.1）
+- **FFmpeg (subprocess)** — `native/ffmpeg/win-x64/ffmpeg.exe` を `Process.Start` で起動し、オーディオのデコード・レート変換・エンコードを実施（n8.1 LGPL static build, DTモードは `atempo` チェーン、NCモードは `asetrate+aresample`、MP3 は `libmp3lame` / VBR、OGG は `libvorbis`、WAV は `pcm_s16le`、LGPL-2.1-or-later）
 
 ### ビートマップリスト表示機能
 
@@ -1538,9 +1540,9 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 ### NativeAOT対応
 
-- SoundTouch の P/Invoke は `[DllImport]` による静的バインディング（SoundTouch.cs ラッパー）
-- LAME の P/Invoke は `[LibraryImport]`（Source Generator）による静的バインディング（LameMp3Encoder.cs）
-- OGG出力は OggVorbisEncoder（リフレクション不使用）、WAV出力は NAudio の WaveFileWriter、MP3出力は LameMp3Encoder を使用
+- ffmpeg は `Process.Start` + `ProcessStartInfo.ArgumentList` による subprocess 実行のため、P/Invoke は不要で AOT 互換
+- 入力オーディオのメタデータ抽出は純 C# パーサー `AudioInputMetadataReader`（`BinaryPrimitives` ベース）で行い、`JsonSerializer` / `JsonSerializerContext` や subprocess を追加せずに処理する
+- `FfmpegArgumentsBuilder` は純関数 static クラスで、引数組立にリフレクションを使用しない
 - ReflectionBindingは不使用（全Viewに `x:DataType` 指定）
 
 ---

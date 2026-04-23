@@ -12,6 +12,23 @@ if (Test-Path $vsWherePath) {
     Write-Host "Warning: vswhere.exe not found at $vsWherePath" -ForegroundColor Yellow
 }
 
+# ffmpeg.exe が存在しなければ事前にダウンロード
+$ffmpegNativePath = Join-Path $PSScriptRoot "native\ffmpeg\win-x64\ffmpeg.exe"
+if (-not (Test-Path $ffmpegNativePath)) {
+    Write-Host "ffmpeg.exe が見つかりません。ダウンロードします..." -ForegroundColor Yellow
+    $downloadScript = Join-Path $PSScriptRoot "scripts\Download-Ffmpeg.ps1"
+    & $downloadScript `
+        -DestPath $ffmpegNativePath `
+        -Url "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-8.1.zip" `
+        -ExpectedSha256 "4C2891E5DCC1F9A206D43C42CE730163AB947CBC97A447700402136D69095458"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ffmpeg.exe のダウンロードに失敗しました。" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+} else {
+    Write-Host "ffmpeg.exe 確認済み: $ffmpegNativePath" -ForegroundColor DarkGray
+}
+
 # プロジェクトディレクトリに移動
 $projectDir = Join-Path $PSScriptRoot "NakuruTool_Avalonia_AOT\NakuruTool_Avalonia_AOT"
 Push-Location $projectDir
@@ -44,12 +61,12 @@ if ($LASTEXITCODE -eq 0) {
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
     }
 
-    $soundTouchDllFile = Join-Path $publishDir "SoundTouch.dll"
-
-    if (Test-Path $soundTouchDllFile) {
-        $soundTouchDllSize = (Get-Item $soundTouchDllFile).Length / 1MB
-        Write-Host "  SoundTouch.dll: $([math]::Round($soundTouchDllSize, 1)) MB" -ForegroundColor White
+    $ffmpegExeFile = Join-Path $publishDir "ffmpeg.exe"
+    if (Test-Path $ffmpegExeFile) {
+        $ffmpegExeSize = (Get-Item $ffmpegExeFile).Length / 1MB
+        Write-Host "  ffmpeg.exe: $([math]::Round($ffmpegExeSize, 1)) MB" -ForegroundColor White
     }
+
     # ライセンスファイルを licenses/ フォルダに集約して同梱
     $licensesDir = Join-Path $publishDir "licenses"
     if (-not (Test-Path $licensesDir)) {
@@ -75,21 +92,29 @@ if ($LASTEXITCODE -eq 0) {
     }
 
     # SoundTouch LGPL ライセンスファイル
-    $soundTouchLicenseSource = Join-Path $PSScriptRoot "SoundTouch\COPYING.TXT"
-    if (Test-Path $soundTouchLicenseSource) {
-        Copy-Item -Path $soundTouchLicenseSource -Destination (Join-Path $licensesDir "SoundTouch_COPYING.TXT") -Force
-        Write-Host "  Included SoundTouch COPYING.TXT" -ForegroundColor DarkGray
-    } else {
-        Write-Host "  Warning: SoundTouch COPYING.TXT not found, skipping." -ForegroundColor Yellow
-    }
+    # （FFmpeg subprocess 方式への移行により SoundTouch は同梱していません）
 
     # LAME LGPL ライセンスファイル
-    $lameLicenseSource = Join-Path $PSScriptRoot "Lame\COPYING.TXT"
-    if (Test-Path $lameLicenseSource) {
-        Copy-Item -Path $lameLicenseSource -Destination (Join-Path $licensesDir "LAME_COPYING.TXT") -Force
-        Write-Host "  Included LAME COPYING.TXT" -ForegroundColor DarkGray
+    # （FFmpeg subprocess 方式への移行により LAME DLL は同梱していません。
+    #   MP3 エンコードは FFmpeg 同梱の libmp3lame で行われます。
+    #   該当ライセンスは FFmpeg_LICENSE.txt に含まれます。）
+
+    # FFmpeg LGPL ライセンス (同梱 ffmpeg.exe 用)
+    $ffmpegLicenseSource = Join-Path $PSScriptRoot "native\ffmpeg\win-x64\LICENSE.txt"
+    if (Test-Path $ffmpegLicenseSource) {
+        Copy-Item -Path $ffmpegLicenseSource -Destination (Join-Path $licensesDir "FFmpeg_LICENSE.txt") -Force
+        Write-Host "  Included FFmpeg LICENSE.txt" -ForegroundColor DarkGray
     } else {
-        Write-Host "  Warning: LAME COPYING.TXT not found, skipping." -ForegroundColor Yellow
+        Write-Host "  Warning: FFmpeg LICENSE.txt not found, skipping." -ForegroundColor Yellow
+    }
+
+    # FFmpeg 同梱バイナリの NOTICE
+    $ffmpegNoticeSource = Join-Path $PSScriptRoot "native\ffmpeg\win-x64\NOTICE.txt"
+    if (Test-Path $ffmpegNoticeSource) {
+        Copy-Item -Path $ffmpegNoticeSource -Destination (Join-Path $licensesDir "FFmpeg_NOTICE.txt") -Force
+        Write-Host "  Included FFmpeg NOTICE.txt" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Warning: FFmpeg NOTICE.txt not found, skipping." -ForegroundColor Yellow
     }
 
     # 配布用のユーザーガイドを同梱

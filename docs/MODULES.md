@@ -1469,6 +1469,8 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 オーディオ出力形式は入力ファイルの拡張子に応じて自動選択される（MP3→MP3, OGG→OGG, WAV→WAV）。オーディオレート変換・エンコードは FFmpeg（n8.1 LGPL static build）を subprocess として起動して行い、MP3 は `libmp3lame`、OGG は `libvorbis`、WAV は `pcm_s16le` で出力する。MP3 出力時、純 C# パーサー（`AudioInputMetadataReader`）で事前にチャンネル数を取得し、3ch 以上の場合は OGG にフォールバックする。
 
+出力先 `Songs/{folderName}.osz` が既に存在する場合は全上書きせず、既存 .osz に対して `ZipArchiveMode.Update` で不足エントリのみを追加マージする（同名エントリは `FullName` を `/` 正規化・大小文字無視で比較して既存優先でスキップ）。既存 .osz が `InvalidDataException` で開けない場合のみ `ZipFile.CreateFromDirectory` による新規作成にフォールバックする。
+
 ### 構成ファイル一覧
 
 | ファイル | 種別 | 概要 |
@@ -1492,7 +1494,7 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み、SampleFilenameMap適用） |
 | `OsuFileAssetParser.cs` | サービス | .osuファイルおよび関連.osbファイルから参照アセットを解析・抽出 |
 | `OsuReferencedAssets.cs` | モデル | .osuファイルが参照する外部アセットの分類済みデータ（MainAudio / SampleAudioFiles / NonAudioFiles） |
-| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成） |
+| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック） |
 | `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替） |
 | `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト |
 | `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |

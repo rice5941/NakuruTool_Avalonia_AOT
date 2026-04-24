@@ -527,8 +527,45 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             if (!string.IsNullOrEmpty(oszDir) && !Directory.Exists(oszDir))
                 Directory.CreateDirectory(oszDir);
 
-            ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
-            File.Move(oszTmpPath, oszPath, overwrite: true);
+            if (!File.Exists(oszPath))
+            {
+                ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
+                File.Move(oszTmpPath, oszPath, overwrite: true);
+            }
+            else
+            {
+                // 既存 .osz をベースに、未収録エントリのみ追加（衝突時は既存優先）
+                File.Copy(oszPath, oszTmpPath, overwrite: true);
+
+                try
+                {
+                    using (var archive = ZipFile.Open(oszTmpPath, ZipArchiveMode.Update, Encoding.UTF8))
+                    {
+                        var existingEntries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var e in archive.Entries)
+                            existingEntries.Add(e.FullName.Replace('\\', '/'));
+
+                        foreach (var absPath in Directory.EnumerateFiles(tempDir, "*", SearchOption.AllDirectories))
+                        {
+                            var rel = Path.GetRelativePath(tempDir, absPath).Replace('\\', '/');
+                            if (existingEntries.Contains(rel))
+                                continue;
+
+                            archive.CreateEntryFromFile(absPath, rel, CompressionLevel.Fastest);
+                        }
+                    }
+
+                    File.Move(oszTmpPath, oszPath, overwrite: true);
+                }
+                catch (InvalidDataException ex)
+                {
+                    Debug.WriteLine($"[BeatmapRateGenerator] 既存 .osz を開けないため新規作成にフォールバック: {oszPath} - {ex.Message}");
+                    TryDeleteFile(oszTmpPath);
+
+                    ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
+                    File.Move(oszTmpPath, oszPath, overwrite: true);
+                }
+            }
 
             progress?.Report(new RateGenerationProgress("完了", total, total, 100));
 
@@ -639,8 +676,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         var inputExt = Path.GetExtension(originalName).ToLowerInvariant();
         var outputExt = inputExt switch
         {
-            // MP3はVBR再生位置追跡の問題を避けるためOGGに変換する
-            ".mp3" => ".ogg",
+            ".mp3" => ".mp3",
             ".wav" => ".wav",
             _ => ".ogg",
         };

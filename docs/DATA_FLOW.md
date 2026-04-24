@@ -848,9 +848,9 @@ sequenceDiagram
         Note over OFC: タイミング・ノート・BPM変換<br/>+ SampleFilenameMapでヒットサウンド参照を更新
         OFC-->>BRG: 変換済み.osu → tempDir
 
-        Note over BRG: 7. tempDir → .osz
+        Note over BRG: 7. tempDir → .osz<br/>既存 .osz がある場合は<br/>Update モードで不足エントリのみ追加マージ<br/>（同名エントリは既存優先でスキップ）
         BRG->>ZIP: ZipFile.CreateFromDirectory(tempDir, oszTmpPath)
-        ZIP-->>BRG: .osz.tmp 作成
+        ZIP-->>BRG: .osz.tmp 作成<br/>（既存 .osz がある場合は File.Copy 後 ZipArchiveMode.Update で開きマージ。<br/>InvalidDataException 時は新規作成へフォールバック）
 
         Note over BRG: 8. atomic File.Move で最終配置
         BRG->>Songs: File.Move(oszTmpPath, oszPath, overwrite: true)
@@ -873,6 +873,7 @@ sequenceDiagram
 6. **非音声ファイルのコピー** — `NonAudioFiles`（背景画像・動画・スプライト・.osbファイル等）を元フォルダから一時ディレクトリにコピー。サブディレクトリ構造を維持
 7. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換。`SampleFilenameMap` によりSampleイベント行およびHitObjectのヒットサウンド参照をリネーム後のファイル名に更新
 8. **.osz作成** — `ZipFile.CreateFromDirectory()` で一時ディレクトリからoszTmpPathに.oszを生成後、`File.Move()` で最終パスにatomicに配置。一時ディレクトリとoszTmpPathはfinallyブロックで確実に削除
+   - **既存 .osz が存在する場合のマージ動作** — 出力先 `Songs/{folderName}.osz` が既に存在する場合は、`File.Copy` で作業用コピー（oszTmpPath）を作成し `ZipArchiveMode.Update` で開く。既存エントリの `FullName` を `/` 区切りに正規化し大文字小文字を無視した集合を作り、tempDir 内のファイルのうちその集合に含まれない**不足エントリのみを追加**する（同名エントリは既存優先でスキップ＝上書きしない）。マージ完了後に `File.Move(overwrite: true)` で最終配置する。既存 .osz が破損等で `InvalidDataException` により開けない場合のみ、従来どおり `ZipFile.CreateFromDirectory` による新規作成にフォールバックする
 
 ### .osz内の構成例
 

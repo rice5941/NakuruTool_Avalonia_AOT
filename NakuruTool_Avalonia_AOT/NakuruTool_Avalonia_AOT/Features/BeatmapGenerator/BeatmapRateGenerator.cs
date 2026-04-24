@@ -626,12 +626,15 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     private string ResolveOszOutputPath(string folderName)
     {
         var songsFolder = Path.Combine(_settingsService.SettingsData.OsuFolderPath, "Songs");
-        var candidate = Path.Combine(songsFolder, $"{folderName}.osz");
+        // folderName にパス区切り文字が含まれる場合（Songs 直下ではなくサブフォルダ構成）、
+        // osz は Songs 直下に置くため、末尾のフォルダ名のみをファイル名として使用する
+        var safeFileName = Path.GetFileName(folderName.TrimEnd('\\', '/'));
+        var candidate = Path.Combine(songsFolder, $"{safeFileName}.osz");
         if (candidate.Length <= 240)
             return candidate;
 
         var hash = ComputeStableHashSuffix(folderName);
-        var shortened = folderName.Length > 180 ? folderName[..180] : folderName;
+        var shortened = safeFileName.Length > 180 ? safeFileName[..180] : safeFileName;
         return Path.Combine(songsFolder, $"{shortened}_{hash}.osz");
     }
 

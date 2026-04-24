@@ -99,14 +99,12 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
             var result = await _beatmapRateGenerator.GenerateAsync(
                 TargetBeatmap, RateGeneration.ToOptions(), progress, _cts.Token);
             generationDone = true;
+            GenerationProgressValue = 100;
 
             if (result.Success)
             {
                 IsCompleted = true;
-                var message = string.Format(
-                    lang.GetString("BeatmapGen.GenerationComplete"),
-                    result.AppliedRate,
-                    result.GeneratedOszPath ?? "");
+                var message = string.Format(lang.GetString("BeatmapGen.GenerationComplete"));
                 if (result.SkippedFileCount > 0)
                 {
                     message += "\n" + string.Format(

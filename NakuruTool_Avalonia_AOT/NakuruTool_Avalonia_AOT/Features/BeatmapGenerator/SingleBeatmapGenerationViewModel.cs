@@ -105,12 +105,6 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
             {
                 IsCompleted = true;
                 var message = string.Format(lang.GetString("BeatmapGen.GenerationComplete"));
-                if (result.SkippedFileCount > 0)
-                {
-                    message += "\n" + string.Format(
-                        lang.GetString("BeatmapGen.SkippedFiles"),
-                        result.SkippedFileCount);
-                }
                 message += "\n" + lang.GetString("BeatmapGen.RefreshHint");
                 GenerationStatusMessage = message;
             }

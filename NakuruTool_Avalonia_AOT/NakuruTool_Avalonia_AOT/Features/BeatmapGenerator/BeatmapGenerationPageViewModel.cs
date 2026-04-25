@@ -143,17 +143,9 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
                     lang.GetString("BeatmapGen.BatchComplete"),
                     beatmaps.Length,
                     result.SuccessCount);
-                var totalSkipped = 0;
-                foreach (var r in result.Results)
-                {
-                    if (r.Success) totalSkipped += r.SkippedFileCount;
-                }
-                if (totalSkipped > 0)
-                {
-                    message += "\n" + string.Format(
-                        lang.GetString("BeatmapGen.SkippedFiles"),
-                        totalSkipped);
-                }
+
+                message += "\n" + lang.GetString("BeatmapGen.RefreshHint");
+                
                 GenerationStatusMessage = message;
             }
         }

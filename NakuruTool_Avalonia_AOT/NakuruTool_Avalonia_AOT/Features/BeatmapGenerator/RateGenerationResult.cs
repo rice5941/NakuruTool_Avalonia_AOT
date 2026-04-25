@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 
 namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
@@ -22,6 +23,9 @@ public sealed record RateGenerationResult
 
     /// <summary>参照欠落で警告をスキップしたファイル数</summary>
     public int SkippedFileCount { get; init; }
+
+    /// <summary>参照欠落でスキップしたファイルの名前一覧（ログ用）</summary>
+    public IReadOnlyList<string> SkippedFiles { get; init; } = [];
 
     /// <summary>元 beatmap の情報（ログ用）</summary>
     public required Beatmap SourceBeatmap { get; init; }

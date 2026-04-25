@@ -138,20 +138,6 @@
                         x:DataType="local:BeatmapGenerationPageViewModel">
                 <TextBlock Text="{Binding GenerationStatusMessage}" TextWrapping="Wrap"/>
                 <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100"/>
-                <Border Grid.Row="1"
-                    Background="{DynamicResource SemiYellow0}"
-                    BorderBrush="{DynamicResource SemiYellow3}"
-                    Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
-                                            Foreground="{DynamicResource SemiYellow7}"
-                                            VerticalAlignment="Center"/>
-                        <TextBlock Text="{translate:Translate 'BeatmapGen.BatchRefreshHint'}"
-                                    Foreground="{DynamicResource SemiYellow9}"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                     <Button Content="{translate:Translate 'BeatmapGen.BatchGenerate'}"
                         Command="{Binding BatchGenerateCommand}"/>

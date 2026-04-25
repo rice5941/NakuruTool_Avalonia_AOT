@@ -44,6 +44,26 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
     private static readonly char[] InvalidFileNameChars = ['"', '*', '\\', '/', '?', '<', '>', '|', ':'];
 
+    private static readonly HashSet<string> s_defaultHitsoundNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "normal-hitnormal", "normal-hitclap", "normal-hitfinish", "normal-hitwhistle",
+        "normal-slidertick", "normal-sliderslide", "normal-sliderwhistle",
+        "soft-hitnormal", "soft-hitclap", "soft-hitfinish", "soft-hitwhistle",
+        "soft-slidertick", "soft-sliderslide", "soft-sliderwhistle",
+        "drum-hitnormal", "drum-hitclap", "drum-hitfinish", "drum-hitwhistle",
+        "drum-slidertick", "drum-sliderslide", "drum-sliderwhistle",
+    };
+
+    /// <summary>
+    /// osu! 標準ヒットサウンドファイルかどうかを判定する。
+    /// 拡張子を除いたファイル名で比較する。
+    /// </summary>
+    internal static bool IsDefaultHitsoundFile(string fileName)
+    {
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        return s_defaultHitsoundNames.Contains(nameWithoutExt);
+    }
+
     public BeatmapRateGenerator(
         IAudioRateChanger audioRateChanger,
         IOsuFileRateConverter osuFileRateConverter,
@@ -285,13 +305,19 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         var sampleNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var sampleFile in allSampleAudioFiles)
         {
-            var dir = Path.GetDirectoryName(sampleFile);
             var nameOnly = Path.GetFileName(sampleFile);
+            var normalizedForCheck = NormalizeAssetRelativePath(sampleFile);
+            // デフォルトヒットサウンドはファイルが存在しない場合のみ変換対象外
+            // 実ファイルが存在する場合は通常通り変換する
+            if (IsDefaultHitsoundFile(nameOnly) &&
+                !File.Exists(Path.Combine(beatmapFolder, ToFileSystemRelativePath(normalizedForCheck))))
+                continue;
+            var dir = Path.GetDirectoryName(sampleFile);
             var renamed = BuildAudioFileName(nameOnly, representativeRate, options.ChangePitch);
             var renamedPath = string.IsNullOrEmpty(dir)
                 ? renamed
                 : NormalizeAssetRelativePath(Path.Combine(dir, renamed));
-            sampleNameMap[NormalizeAssetRelativePath(sampleFile)] = renamedPath;
+            sampleNameMap[normalizedForCheck] = renamedPath;
         }
 
         progress?.Report(new RateGenerationProgress("パス解決完了", 0, total, 5));
@@ -367,6 +393,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             // === 4. サンプル音声のレート変換 ===
             var convertedSampleCount = 0;
             var skippedFileCount = 0;
+            var skippedFiles = new List<string>();
             var sampleIndex = 0;
             var sampleTotal = allSampleAudioFiles.Count;
 
@@ -381,6 +408,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 {
                     Debug.WriteLine($"[BeatmapRateGenerator] 警告: サンプル音声が見つかりません: {sampleFile}");
                     skippedFileCount++;
+                    skippedFiles.Add(sampleFile);
                     sampleIndex++;
                     continue;
                 }
@@ -393,9 +421,15 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 var renamedDir = Path.GetDirectoryName(renamedOutputPath);
                 if (!string.IsNullOrEmpty(renamedDir))
                     Directory.CreateDirectory(renamedDir);
-                var originalDir = Path.GetDirectoryName(originalOutputPath);
-                if (!string.IsNullOrEmpty(originalDir))
-                    Directory.CreateDirectory(originalDir);
+
+                // デフォルトヒットサウンドは元ファイル名でも参照されるため原音をそのままコピー
+                if (IsDefaultHitsoundFile(Path.GetFileName(normalizedSample)))
+                {
+                    var originalDir = Path.GetDirectoryName(originalOutputPath);
+                    if (!string.IsNullOrEmpty(originalDir))
+                        Directory.CreateDirectory(originalDir);
+                    File.Copy(inputSamplePath, originalOutputPath, overwrite: true);
+                }
 
                 var samplePercent = sampleTotal > 0
                     ? 30 + (sampleIndex * 35 / sampleTotal)
@@ -436,13 +470,27 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                     File.Copy(inputSamplePath, renamedOutputPath, overwrite: true);
                 }
 
-                // 原音を元ファイル名で保持
-                File.Copy(inputSamplePath, originalOutputPath, overwrite: true);
-
                 sampleIndex++;
             }
 
             progress?.Report(new RateGenerationProgress("サンプル音声変換完了", 0, total, 65));
+
+            // === 4.5 osuで参照されていないがフォルダ内に存在するデフォルトヒットサウンドをコピー ===
+            // osuエンジンはデフォルトヒットサウンドを.osuファイルで参照せずとも同フォルダの同名ファイルを使用するため
+            string[] hitsoundExtensions = [".wav", ".ogg", ".mp3"];
+            foreach (var ext in hitsoundExtensions)
+            {
+                foreach (var defaultName in s_defaultHitsoundNames)
+                {
+                    var fileName = defaultName + ext;
+                    var normalizedKey = NormalizeAssetRelativePath(fileName);
+                    if (allSampleAudioFiles.Contains(normalizedKey)) continue; // 既に変換対象として処理済み
+                    var sourcePath = Path.Combine(beatmapFolder, fileName);
+                    if (!File.Exists(sourcePath)) continue;
+                    var destPath = Path.Combine(tempDir, fileName);
+                    File.Copy(sourcePath, destPath, overwrite: true);
+                }
+            }
 
             // === 5. 非音声ファイルのコピー ===
             foreach (var nonAudioFile in allNonAudioFiles)
@@ -457,6 +505,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 {
                     Debug.WriteLine($"[BeatmapRateGenerator] 警告: 非音声ファイルが見つかりません: {nonAudioFile}");
                     skippedFileCount++;
+                    skippedFiles.Add(nonAudioFile);
                     continue;
                 }
 
@@ -579,6 +628,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                     AppliedRate = rates[i],
                     ConvertedSampleCount = convertedSampleCount,
                     SkippedFileCount = skippedFileCount,
+                    SkippedFiles = skippedFiles,
                     SourceBeatmap = beatmapsInGroup[i],
                 };
             }

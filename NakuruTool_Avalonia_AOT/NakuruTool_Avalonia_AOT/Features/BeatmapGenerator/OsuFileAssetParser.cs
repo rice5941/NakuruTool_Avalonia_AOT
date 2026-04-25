@@ -349,11 +349,16 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
 
     private static bool IsPathSafe(string relativePath, string beatmapFolder)
     {
-        // 1. ".." を含むパスを reject
-        if (relativePath.Contains("..", StringComparison.Ordinal))
+        // 1. パスセグメントとして ".." が含まれる場合のみ reject
+        //    （ファイル名中の ".." は許容。例: calc..mp3）
+        var segments = relativePath.Split('/');
+        foreach (var segment in segments)
         {
-            Debug.WriteLine($"パストラバーサル検出（..）: {relativePath}");
-            return false;
+            if (segment == "..")
+            {
+                Debug.WriteLine($"パストラバーサル検出（..セグメント）: {relativePath}");
+                return false;
+            }
         }
 
         // 2. 絶対パスを reject

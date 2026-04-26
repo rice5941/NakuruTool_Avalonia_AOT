@@ -150,6 +150,13 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         if (line.StartsWith("AudioFilename:", StringComparison.Ordinal))
             return $"AudioFilename: {options.NewAudioFilename}";
 
+        if (line.StartsWith("AudioLeadIn:", StringComparison.Ordinal))
+        {
+            var valueStr = line["AudioLeadIn:".Length..].Trim();
+            if (int.TryParse(valueStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+                return $"AudioLeadIn: {ScaleTime(value, options.Rate).ToString(CultureInfo.InvariantCulture)}";
+        }
+
         if (line.StartsWith("PreviewTime:", StringComparison.Ordinal))
         {
             var valueStr = line["PreviewTime:".Length..].Trim();
@@ -204,57 +211,16 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//", StringComparison.Ordinal))
             return line;
 
-        var parts = line.Split(',');
-        if (parts.Length < 2)
+        // .osu 内の indented storyboard command (`_F` 等) は触らない
+        if (StoryboardSyntaxHelper.IsCommandLine(line))
             return line;
 
-        // ブレイクタイム: 2,startTime,endTime
-        if (parts[0] == "2" && parts.Length >= 3)
-        {
-            if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var startTime)
-                && int.TryParse(parts[2], CultureInfo.InvariantCulture, out var endTime))
-            {
-                parts[1] = ScaleTime(startTime, options.Rate).ToString(CultureInfo.InvariantCulture);
-                parts[2] = ScaleTime(endTime, options.Rate).ToString(CultureInfo.InvariantCulture);
-                return string.Join(',', parts);
-            }
-        }
-
-        // ビデオ: Video,startTime,... or 1,startTime,...
-        if ((parts[0].Equals("Video", StringComparison.OrdinalIgnoreCase) || parts[0] == "1") && parts.Length >= 2)
-        {
-            if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var startTime))
-            {
-                parts[1] = ScaleTime(startTime, options.Rate).ToString(CultureInfo.InvariantCulture);
-                return string.Join(',', parts);
-            }
-        }
-
-        // Sample: Sample,time,layer,"filename",volume
-        if (parts[0].Equals("Sample", StringComparison.OrdinalIgnoreCase) && parts.Length >= 4)
-        {
-            if (int.TryParse(parts[1], CultureInfo.InvariantCulture, out var sampleTime))
-            {
-                parts[1] = ScaleTime(sampleTime, options.Rate).ToString(CultureInfo.InvariantCulture);
-            }
-
-            // filename 置換
-            if (options.SampleFilenameMap is { Count: > 0 } map && parts.Length >= 4)
-            {
-                var rawName = parts[3].Trim();
-                var hadQuotes = rawName.Length >= 2 && rawName[0] == '"' && rawName[^1] == '"';
-                var unquoted = hadQuotes ? rawName[1..^1] : rawName;
-                var normalized = unquoted.Replace('\\', '/').Trim();
-                if (map.TryGetValue(normalized, out var renamed))
-                {
-                    parts[3] = hadQuotes ? $"\"{renamed}\"" : renamed;
-                }
-            }
-
-            return string.Join(',', parts);
-        }
-
-        return line;
+        // .osu の Animation の frameDelay は触らない→ scaleAnimationFrameDelay: false
+        return StoryboardLineRateTransformer.TransformEventLine(
+            line,
+            options.Rate,
+            options.SampleFilenameMap,
+            scaleAnimationFrameDelay: false);
     }
 
     private static string TransformTimingPointLine(string line, decimal rate)

@@ -96,8 +96,14 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
                 GenerationStatusMessage = p.Message;
             });
 
-            var result = await _beatmapRateGenerator.GenerateAsync(
-                TargetBeatmap, RateGeneration.ToOptions(), progress, _cts.Token);
+            // 内部に同期 I/O・ZIP 圧縮・.osu パース等が多数含まれるため、
+            // UI スレッドをブロックしないようスレッドプール上で実行する。
+            var options = RateGeneration.ToOptions();
+            var token = _cts.Token;
+            var beatmap = TargetBeatmap;
+            var result = await Task.Run(
+                () => _beatmapRateGenerator.GenerateAsync(beatmap, options, progress, token),
+                token);
             generationDone = true;
             GenerationProgressValue = 100;
 

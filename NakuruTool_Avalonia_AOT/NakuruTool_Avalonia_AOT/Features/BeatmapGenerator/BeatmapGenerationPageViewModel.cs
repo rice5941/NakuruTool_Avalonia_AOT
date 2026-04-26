@@ -129,8 +129,16 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
                 GenerationStatusMessage = p.Message;
             });
 
-            var result = await _beatmapRateGenerator.GenerateBatchAsync(
-                beatmaps.AsMemory(), RateGeneration.ToOptions(), progress, _cts.Token);
+            // 内部に同期 I/O・ZIP 圧縮・.osu パース等が多数含まれるため、
+            // UI スレッドをブロックしないようスレッドプール上で実行する。
+            // Progress<T> は呼び出し元の SynchronizationContext をキャプチャするため、
+            // UI スレッドへの進捗反映は引き続き安全に行われる。
+            var options = RateGeneration.ToOptions();
+            var token = _cts.Token;
+            var memory = beatmaps.AsMemory();
+            var result = await Task.Run(
+                () => _beatmapRateGenerator.GenerateBatchAsync(memory, options, progress, token),
+                token);
             generationDone = true;
 
             if (result.WasCancelled)
@@ -139,6 +147,11 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
             }
             else
             {
+                // ThreadPool 上で遅延実行された進捗コールバックが
+                // 100% 報告の後に到着して値を巻き戻すケースに備え、明示的に 100 をセットする。
+                // (generationDone=true により以降のコールバックはゲートで弾かれる)
+                GenerationProgressValue = 100;
+
                 var message = string.Format(
                     lang.GetString("BeatmapGen.BatchComplete"),
                     beatmaps.Length,

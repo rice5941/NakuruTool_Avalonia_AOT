@@ -39,7 +39,6 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 {
     private readonly IAudioRateChanger _audioRateChanger;
     private readonly IOsuFileRateConverter _osuFileRateConverter;
-    private readonly IOsbFileRateConverter _osbFileRateConverter;
     private readonly IOsuFileAssetParser _osuFileAssetParser;
     private readonly ISettingsService _settingsService;
 
@@ -68,13 +67,11 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     public BeatmapRateGenerator(
         IAudioRateChanger audioRateChanger,
         IOsuFileRateConverter osuFileRateConverter,
-        IOsbFileRateConverter osbFileRateConverter,
         IOsuFileAssetParser osuFileAssetParser,
         ISettingsService settingsService)
     {
         _audioRateChanger = audioRateChanger;
         _osuFileRateConverter = osuFileRateConverter;
-        _osbFileRateConverter = osbFileRateConverter;
         _osuFileAssetParser = osuFileAssetParser;
         _settingsService = settingsService;
     }
@@ -516,20 +513,8 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 if (!string.IsNullOrEmpty(destDir))
                     Directory.CreateDirectory(destDir);
 
-                // .osb は変換、それ以外は raw copy
-                if (Path.GetExtension(nonAudioFile).Equals(".osb", StringComparison.OrdinalIgnoreCase))
-                {
-                    var osbOptions = new OsbFileConvertOptions
-                    {
-                        Rate = (decimal)representativeRate,
-                        SampleFilenameMap = sampleNameMap,
-                    };
-                    _osbFileRateConverter.Convert(srcPath, destPath, osbOptions);
-                }
-                else
-                {
-                    File.Copy(srcPath, destPath, overwrite: true);
-                }
+                // 非音声アセット（.osb 含む）は raw コピー
+                File.Copy(srcPath, destPath, overwrite: true);
             }
 
             progress?.Report(new RateGenerationProgress("ファイルコピー完了", 0, total, 75));

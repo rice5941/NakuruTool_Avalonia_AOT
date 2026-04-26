@@ -215,12 +215,10 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
         if (StoryboardSyntaxHelper.IsCommandLine(line))
             return line;
 
-        // .osu の Animation の frameDelay は触らない→ scaleAnimationFrameDelay: false
         return StoryboardLineRateTransformer.TransformEventLine(
             line,
             options.Rate,
-            options.SampleFilenameMap,
-            scaleAnimationFrameDelay: false);
+            options.SampleFilenameMap);
     }
 
     private static string TransformTimingPointLine(string line, decimal rate)

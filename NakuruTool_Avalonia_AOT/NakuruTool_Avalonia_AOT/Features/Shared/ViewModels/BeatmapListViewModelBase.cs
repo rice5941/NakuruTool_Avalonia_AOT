@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using R3;
 
@@ -207,7 +208,8 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         var folderPath = Path.Combine(osuFolderPath, "Songs", _contextMenuBeatmap.FolderName);
         if (Directory.Exists(folderPath))
         {
-            Process.Start("explorer.exe", folderPath);
+            // FolderName にスペース・カンマ・括弧が含まれていても 1 引数として渡るよう ArgumentList を使う。
+            Process.Start(ExplorerProcessStartInfoFactory.CreateOpenFolder(folderPath));
         }
     }
 
@@ -253,11 +255,52 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     public bool TryPrepareContextMenu(Beatmap beatmap)
     {
-        _contextMenuBeatmap = !string.IsNullOrEmpty(beatmap.FolderName) ? beatmap : null;
+        if (string.IsNullOrEmpty(beatmap.FolderName))
+        {
+            _contextMenuBeatmap = null;
+        }
+        else if (beatmap.BeatmapSetId > 0)
+        {
+            _contextMenuBeatmap = beatmap;
+        }
+        else
+        {
+            // BeatmapSetId が osu!.db から取得できなかった (=0) 場合のみ、
+            // 対応する .osu ファイルの [Metadata] セクションを読み、
+            // BeatmapSetID をフォールバックとして取得する。
+            _contextMenuBeatmap = TryFillBeatmapSetIdFromOsuFile(beatmap);
+        }
+
         CopyDownloadUrlCommand.NotifyCanExecuteChanged();
         OpenInExplorerCommand.NotifyCanExecuteChanged();
         GenerateBeatmapCommand.NotifyCanExecuteChanged();
         return _contextMenuBeatmap is not null;
+    }
+
+    private Beatmap TryFillBeatmapSetIdFromOsuFile(Beatmap beatmap)
+    {
+        var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
+        if (string.IsNullOrEmpty(osuFolderPath) ||
+            string.IsNullOrEmpty(beatmap.OsuFileName))
+        {
+            return beatmap;
+        }
+
+        var osuPath = Path.Combine(
+            osuFolderPath,
+            "Songs",
+            beatmap.FolderName,
+            beatmap.OsuFileName);
+
+        if (!File.Exists(osuPath))
+            return beatmap;
+
+        if (OsuFileMetadataReader.TryReadBeatmapSetId(osuPath, out var setId) && setId > 0)
+        {
+            return beatmap with { BeatmapSetId = setId };
+        }
+
+        return beatmap;
     }
 
     public void ClearContextMenuBeatmap()

@@ -1,7 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:semi="https://irihi.tech/semi"
-             xmlns:u-semi="https://irihi.tech/ursa/themes/semi"
              xmlns:Mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="NakuruTool_Avalonia_AOT.Tests.TestApp"
              RequestedThemeVariant="Light">
@@ -9,7 +8,6 @@
     <Application.Styles>
         <semi:SemiTheme Locale="ja-JP" />
         <semi:DataGridSemiTheme />
-        <u-semi:SemiTheme Locale="ja-JP" />
         <Mi:MaterialIconStyles />
         <Style Selector="Window">
             <Setter Property="FontFamily" 

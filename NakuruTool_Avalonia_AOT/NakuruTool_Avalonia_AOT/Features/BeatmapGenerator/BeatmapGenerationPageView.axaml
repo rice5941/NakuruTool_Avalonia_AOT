@@ -81,5 +81,12 @@
                              ModGroupName="BeatmapGenMod"
                              DataGridRowHeight="80"/>
 
+        <!-- 単体beatmap生成オーバーレイ (共通 UserControl) -->
+        <local:SingleBeatmapGenerationOverlayView
+            Grid.Column="0" Grid.ColumnSpan="5"
+            IsVisible="{Binding IsSingleGenerationOverlayVisible}"
+            ViewModel="{Binding SingleGenerationViewModel}"
+            CloseCommand="{Binding CloseSingleGenerationCommand}"/>
+
     </Grid>
 </UserControl>

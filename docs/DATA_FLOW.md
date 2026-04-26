@@ -665,6 +665,33 @@ flowchart TD
 3. **表示更新** — `UpdateShowBeatmaps()` で `Span` スライスによるページ分のデータ取得後、`beatmap with { ... }` でMod/ScoreSystem対応の値に差し替えて `ShowBeatmaps` に転写
 4. **Mod/ScoreSystem切替** — `OnSelectedModCategoryChanged` / `OnSelectedScoreSystemCategoryChanged` が `UpdateShowBeatmaps()` を再呼び出し
 
+### 単体beatmap生成オーバーレイの起動フロー
+
+`MapListView` 内の DataGrid 行コンテキストメニュー「Generate Beatmap」から発火する単体生成フローは、`MapListPageView` と `BeatmapGenerationPageView` の双方に共通 UserControl `SingleBeatmapGenerationOverlayView` を配置することで再利用される。VM 側の起動経路は両画面で書き分ける。
+
+```mermaid
+flowchart LR
+    subgraph MapList["MapList ページ (中継経由)"]
+        MLV1["DataGrid 右クリック → Generate"] -->|GenerateBeatmapCommand| MLVM["MapListViewModel.OnGenerateBeatmap"]
+        MLVM -->|R3 Subject OnNext| GBR["GenerateBeatmapRequested"]
+        GBR -->|MapListPageView code-behind 購読| MLPVM["MapListPageViewModel.ShowSingleGeneration(beatmap)"]
+    end
+
+    subgraph BeatmapGen["BeatmapGeneration ページ (直接呼び出し)"]
+        BGV1["DataGrid 右クリック → Generate"] -->|GenerateBeatmapCommand| BGVM["BeatmapGenerationPageViewModel.OnGenerateBeatmap (override)"]
+        BGVM -->|直接同期呼び出し| BGSG["BeatmapGenerationPageViewModel.ShowSingleGeneration(beatmap)"]
+    end
+
+    MLPVM --> SVM["SingleBeatmapGenerationViewModel<br/>を new (旧 VM は Dispose)"]
+    BGSG --> SVM
+    SVM -->|IsSingleGenerationOverlayVisible = true| OVL["SingleBeatmapGenerationOverlayView<br/>(共通 UserControl)"]
+```
+
+- 共通 UserControl の API は `StyledProperty<SingleBeatmapGenerationViewModel?> ViewModel` と `StyledProperty<ICommand?> CloseCommand` の 2 本。dim 背景は UserControl 内に内包し、内側 `Grid` は `DataContext="{Binding #OverlayRoot.ViewModel}"` で切り替えて CompiledBinding を効かせる（NativeAOT 安全）。
+- `BeatmapGenerationPageViewModel` は `Subject<Beatmap>` や code-behind 中継を持たず、`OnGenerateBeatmap` override から直接 `ShowSingleGeneration` を呼ぶ。`MapList` 側は既存の `GenerateBeatmapRequested` 中継を維持する。
+- バッチ⇄単体は相互排他: `CanBatchGenerate` に `!IsSingleGenerationOverlayVisible`、`CanGenerateBeatmapFromContextMenu => !IsGenerating && !IsSingleGenerationOverlayVisible` を追加し、`OnIsGeneratingChanged` / `OnIsSingleGenerationOverlayVisibleChanged` で互いの `Command.NotifyCanExecuteChanged()` を発火する。
+- `BeatmapGenerationPageViewModel` ではコレクション切替（`SelectedCollection` 変更）時に `CloseSingleGeneration()` を呼び、stale なオーバーレイを残さない。`Dispose` 時には `SingleGenerationViewModel?.Dispose()` を呼ぶ。
+
 ### 7.5 IsAudioPanelMode変更時のチェーン
 
 オーディオパネルモードの切り替えは`MapListViewModel.OnIsAudioPanelModeChanged()`で処理される。R3リアクティブチェーンではなく、CommunityToolkit.Mvvmの`partial method`パターンを使用。

@@ -1535,8 +1535,8 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `RateGenerationView.axaml` | View | レート設定UI |
 | `RateGenerationView.axaml.cs` | CodeBehind | |
 | `SingleBeatmapGenerationViewModel.cs` | ViewModel | 単一譜面指定のレート生成 |
-| `SingleBeatmapGenerationWindow.axaml` | View | 単一譜面生成ウィンドウ |
-| `SingleBeatmapGenerationWindow.axaml.cs` | CodeBehind | |
+| `SingleBeatmapGenerationOverlayView.axaml` | View (UserControl) | 単体beatmap生成オーバーレイの共通UserControl。`StyledProperty<SingleBeatmapGenerationViewModel?> ViewModel` と `StyledProperty<ICommand?> CloseCommand` を公開し、半透明 dim 背景を内包する。`MapListPageView` / `BeatmapGenerationPageView` 双方から再利用される |
+| `SingleBeatmapGenerationOverlayView.axaml.cs` | CodeBehind | `StyledProperty` 2 本の登録のみ。R3 購読・リフレクションは持たない |
 
 ### .osu / .osb レート変換アーキテクチャ
 
@@ -1556,16 +1556,17 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 ### ビートマップリスト表示機能
 
-`BeatmapGenerationPageView` は5カラム構成で、中央カラムに **共通 `MapListView`** を埋め込み、コレクション内譜面のDataGrid・ヘッダー・ページネーションを描画する。DataGrid／ヘッダー／ページネーション／重複していた Resources・Styles はページ側からは削除済みで、`MapListView` の `StyledProperty` 群で表示要素を切り替える（`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false`、`ScoreSystemGroupName` / `ModGroupName` で RadioButton グループを分離、`DataGridRowHeight` で行高を調整）。コンテキストメニュー（Copy/Open/Generate）は両画面共通で表示され、`IBeatmapListViewModel` 経由で Command が配線される（生成ページ側の `GenerateBeatmapCommand` はバッチ生成 UI と機能重複するため `CanGenerateBeatmapFromContextMenu` の override をせず基底既定の No-op / `CanExecute=false` で運用）。
+`BeatmapGenerationPageView` は5カラム構成で、中央カラムに **共通 `MapListView`** を埋め込み、コレクション内譜面のDataGrid・ヘッダー・ページネーションを描画する。DataGrid／ヘッダー／ページネーション／重複していた Resources・Styles はページ側からは削除済みで、`MapListView` の `StyledProperty` 群で表示要素を切り替える（`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false`、`ScoreSystemGroupName` / `ModGroupName` で RadioButton グループを分離、`DataGridRowHeight` で行高を調整）。コンテキストメニュー（Copy/Open/Generate）は両画面共通で表示され、`IBeatmapListViewModel` 経由で Command が配線される。生成ページ側の `GenerateBeatmapCommand` は `OnGenerateBeatmap` を override して `ShowSingleGeneration(beatmap)` を直接呼び出し、共通 `SingleBeatmapGenerationOverlayView` をページ全面に重ねて表示する。バッチ生成中（`IsGenerating`）または単体オーバーレイ表示中（`IsSingleGenerationOverlayVisible`）は ContextMenu Generate を `CanGenerateBeatmapFromContextMenu => !IsGenerating && !IsSingleGenerationOverlayVisible` で無効化し、逆に単体オーバーレイ表示中は `CanBatchGenerate` も `!IsSingleGenerationOverlayVisible` で抑止することで、バッチと単体生成は相互排他となる。
 
 `BeatmapGenerationPageViewModel` は `BeatmapListViewModelBase`（Shared）を継承し、`MapListView` の `DataContext` 契約（`ShowBeatmaps` / `SelectedBeatmap` / `CurrentPage` / `PageCount` / `PageSize` / `PageSizes` / `PreviousPageCommand` / `NextPageCommand` / `SelectedModCategory` / `SelectedScoreSystemCategory` ほか）は基底側で満たされる。固有責務は **コレクション選択 → MD5 マッチングによる譜面解決 → 基底 `SetSourceBeatmaps()` 呼び出し** と **バッチレート生成（`BatchGenerateAsync` / `CancelGeneration`）** に絞られる。
 
 #### 固有責務
 
-- `CollectionSelectorViewModel.SelectedCollection` の変更を R3 で監視し、`RefreshCollectionBeatmaps()` を実行
+- `CollectionSelectorViewModel.SelectedCollection` の変更を R3 で監視し、`RefreshCollectionBeatmaps()` を実行（同時に `CloseSingleGeneration()` を呼んで stale な単体オーバーレイを閉じる）
 - コレクション内 MD5 を `IDatabaseService.TryGetBeatmapByMd5()` で解決し、得られた `Beatmap[]` を基底 `SetSourceBeatmaps()` に渡す（ページ数再計算と `CurrentPage = 1` リセットは基底で連鎖）
 - `FilteredCount` を R3 で購読し、`BatchGenerateCommand.NotifyCanExecuteChanged()` を呼ぶ（`BatchGenerate.CanExecute` は `FilteredCount > 0` を含む）
-- 派生固有 leaf 状態（`IsGenerating` / `GenerationProgressValue` / `GenerationStatusMessage` / `SelectedGenerationTabIndex`）は派生で `[ObservableProperty]` を継続使用（継承境界を越えないため安全）
+- 単体生成 state（`SingleGenerationViewModel` / `IsSingleGenerationOverlayVisible`）と `CloseSingleGenerationCommand` を保持し、ContextMenu の `OnGenerateBeatmap` override から `ShowSingleGeneration(beatmap)` を直接呼ぶ。`ShowSingleGeneration` は旧 VM を `Dispose` してから新 VM を `new` し、`Dispose` でも `SingleGenerationViewModel?.Dispose()` を呼ぶ
+- 派生固有 leaf 状態（`IsGenerating` / `GenerationProgressValue` / `GenerationStatusMessage` / `SelectedGenerationTabIndex` / `SingleGenerationViewModel` / `IsSingleGenerationOverlayVisible`）は派生で `[ObservableProperty]` を継続使用（継承境界を越えないため安全）
 
 #### DataGrid列構成（共通 `MapListView` 側）
 

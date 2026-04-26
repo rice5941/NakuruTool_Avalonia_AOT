@@ -121,61 +121,11 @@
             </Border>
         </Border>
 
-        <!-- 単体beatmap生成オーバーレイ -->
-        <Border IsVisible="{Binding IsSingleGenerationOverlayVisible}"
-                Background="#80000000">
-            <Border Theme="{DynamicResource CardBorder}"
-                    Background="{DynamicResource SemiGrey0}" 
-                    HorizontalAlignment="Center" VerticalAlignment="Center" 
-                    MinWidth="420" MaxWidth="500" Padding="16">
-
-                <Grid RowDefinitions="auto,*,auto" RowSpacing="8" ColumnSpacing="8">
-                    <!-- 上部: 曲情報 -->
-                    <StackPanel Grid.Row="0">
-                        <!-- タイトル -->
-                        <TextBlock Text="{Binding SingleGenerationViewModel.DisplayTitle}"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="{DynamicResource SemiGrey9}"/>
-                        <!-- バージョン -->
-                        <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Version}"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="{DynamicResource SemiGrey9}"/>
-                        <!-- アーティスト + クリエイター -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding SingleGenerationViewModel.DisplayArtist}"
-                                       FontSize="14"
-                                       Foreground="{DynamicResource SemiGrey7}"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding SingleGenerationViewModel.TargetBeatmap.Creator}"
-                                       FontSize="14"
-                                       Foreground="{DynamicResource SemiGrey7}"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <!-- レート設定 -->
-                    <BeatmapGen:RateGenerationView  Grid.Row="1" DataContext="{Binding SingleGenerationViewModel.RateGeneration}"/>
-                    <!-- 進捗 -->
-                    <StackPanel Grid.Row="2" Spacing="8">
-                        <TextBlock Text="{Binding SingleGenerationViewModel.GenerationStatusMessage}" TextWrapping="Wrap"/>
-                        <ProgressBar Value="{Binding SingleGenerationViewModel.GenerationProgressValue}" Maximum="100"/>
-                        <!-- ボタン -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                            <Button Content="{translate:Translate 'BeatmapGen.Generate'}"
-                                    Command="{Binding SingleGenerationViewModel.GenerateCommand}"/>
-                            <Button Content="{translate:Translate 'BeatmapGen.Close'}"
-                                    Command="{Binding CloseSingleGenerationCommand}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Border>
+        <!-- 単体beatmap生成オーバーレイ (共通 UserControl) -->
+        <BeatmapGen:SingleBeatmapGenerationOverlayView
+            IsVisible="{Binding IsSingleGenerationOverlayVisible}"
+            ViewModel="{Binding SingleGenerationViewModel}"
+            CloseCommand="{Binding CloseSingleGenerationCommand}"/>
     </Panel>
 
 </UserControl>

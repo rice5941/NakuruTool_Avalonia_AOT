@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="500"
+             x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.SingleBeatmapGenerationOverlayView"
+             x:DataType="local:SingleBeatmapGenerationOverlayView"
+             x:Name="OverlayRoot">
+
+    <Border Background="#80000000"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Theme="{DynamicResource CardBorder}"
+                Background="{DynamicResource SemiGrey0}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MinWidth="420" MaxWidth="500" Padding="16">
+
+            <Grid DataContext="{Binding #OverlayRoot.ViewModel}"
+                  x:DataType="local:SingleBeatmapGenerationViewModel"
+                  RowDefinitions="auto,*,auto" RowSpacing="8" ColumnSpacing="8">
+                <!-- 上部: 曲情報 -->
+                <StackPanel Grid.Row="0">
+                    <!-- タイトル -->
+                    <TextBlock Text="{Binding DisplayTitle}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource SemiGrey9}"/>
+                    <!-- バージョン -->
+                    <TextBlock Text="{Binding TargetBeatmap.Version}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"
+                               Foreground="{DynamicResource SemiGrey9}"/>
+                    <!-- アーティスト + クリエイター -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding DisplayArtist}"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource SemiGrey7}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TargetBeatmap.Creator}"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource SemiGrey7}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- レート設定 -->
+                <local:RateGenerationView Grid.Row="1" DataContext="{Binding RateGeneration}"/>
+                <!-- 進捗 -->
+                <StackPanel Grid.Row="2" Spacing="8">
+                    <TextBlock Text="{Binding GenerationStatusMessage}" TextWrapping="Wrap"/>
+                    <ProgressBar Value="{Binding GenerationProgressValue}" Maximum="100"/>
+                    <!-- ボタン -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                        <Button Content="{translate:Translate 'BeatmapGen.Generate'}"
+                                Command="{Binding GenerateCommand}"/>
+                        <Button Content="{translate:Translate 'BeatmapGen.Close'}"
+                                Command="{Binding #OverlayRoot.CloseCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+
+</UserControl>

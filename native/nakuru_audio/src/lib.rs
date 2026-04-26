@@ -29,16 +29,36 @@ fn probe_duration_mp3(path: &str) -> Option<std::time::Duration> {
     }
 }
 
+/// ファイル先頭の 4 バイトを読み取り Ogg コンテナのシグネチャ "OggS" か判定する
+/// 拡張子が `.mp3` でも実体が Ogg/Vorbis のケースに対応するための補助関数
+fn is_ogg_container(path: &str) -> bool {
+    use std::io::Read;
+
+    let mut file = match std::fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return false,
+    };
+    let mut magic = [0u8; 4];
+    if file.read_exact(&mut magic).is_err() {
+        return false;
+    }
+    &magic == b"OggS"
+}
+
 /// OGG/Vorbis ファイルの再生時間を取得する
 /// lewton の total_duration() が常に None を返すためのフォールバック
 fn probe_duration_ogg(path: &str) -> Option<std::time::Duration> {
     use std::io::{Read, Seek, SeekFrom};
 
+    // 拡張子が `.ogg` / `.oga` の場合はそのまま処理。それ以外は先頭シグネチャで Ogg かどうかを判定。
+    // 普通の MP3 で無駄にファイル全走査しないためにシグネチャチェックを入れる。
     let extension = std::path::Path::new(path)
         .extension()
-        .and_then(|ext| ext.to_str())?;
-
-    if !extension.eq_ignore_ascii_case("ogg") {
+        .and_then(|ext| ext.to_str());
+    let is_ogg_ext = extension
+        .map(|e| e.eq_ignore_ascii_case("ogg") || e.eq_ignore_ascii_case("oga"))
+        .unwrap_or(false);
+    if !is_ogg_ext && !is_ogg_container(path) {
         return None;
     }
 
@@ -65,9 +85,7 @@ fn probe_duration_ogg(path: &str) -> Option<std::time::Duration> {
     if gp_start + 8 > tail_buf.len() {
         return None;
     }
-    let granule_pos = i64::from_le_bytes(
-        tail_buf[gp_start..gp_start + 8].try_into().ok()?
-    );
+    let granule_pos = i64::from_le_bytes(tail_buf[gp_start..gp_start + 8].try_into().ok()?);
     if granule_pos <= 0 {
         return None;
     }
@@ -83,14 +101,14 @@ fn probe_duration_ogg(path: &str) -> Option<std::time::Duration> {
     if rate_start + 4 > head_buf.len() {
         return None;
     }
-    let sample_rate = u32::from_le_bytes(
-        head_buf[rate_start..rate_start + 4].try_into().ok()?
-    );
+    let sample_rate = u32::from_le_bytes(head_buf[rate_start..rate_start + 4].try_into().ok()?);
     if sample_rate == 0 {
         return None;
     }
 
-    Some(std::time::Duration::from_secs_f64(granule_pos as f64 / sample_rate as f64))
+    Some(std::time::Duration::from_secs_f64(
+        granule_pos as f64 / sample_rate as f64,
+    ))
 }
 
 /// オーディオプレイヤーの状態
@@ -194,7 +212,8 @@ pub extern "C" fn nakuru_audio_play(
                         // Get duration before consuming source
                         // total_duration() は MP3 の Xing ヘッダーがない場合に None を返すため
                         // mp3-duration によるフォールバックを使用する
-                        let total_duration = source.total_duration()
+                        let total_duration = source
+                            .total_duration()
                             .or_else(|| probe_duration_mp3(path_str))
                             .or_else(|| probe_duration_ogg(path_str));
 
@@ -340,7 +359,11 @@ pub extern "C" fn nakuru_audio_get_duration(player: *mut AudioPlayer) -> f64 {
     }
     unsafe {
         let player = &*player;
-        player.duration.lock().map(|d| d.as_secs_f64()).unwrap_or(0.0)
+        player
+            .duration
+            .lock()
+            .map(|d| d.as_secs_f64())
+            .unwrap_or(0.0)
     }
 }
 

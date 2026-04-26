@@ -83,6 +83,16 @@ CommunityToolkit.MvvmはSource Generatorにより `[ObservableProperty]`、`[Rel
 - `SettingsData` では `[ObservableProperty]` を使用せず手動で `SetProperty` を呼び出すことでJSONシリアライズとの共存を実現している
 - ViewModelの基底クラス `ViewModelBase` は `ObservableObject` を継承し、`CompositeDisposable` でR3のライフサイクル管理を行う
 
+#### CommunityToolkit.Mvvm の継承パターン
+
+譜面一覧系 ViewModel（`MapListViewModel` / `BeatmapGenerationPageViewModel`）は共通基底 `BeatmapListViewModelBase` を介してページング・ContextMenu などの責務を共有している。CTM の Source Generator を継承境界をまたいで使う際に踏むべき注意点を以下に整理する。本パターンはリフレクション・IL Emit を一切導入せず、AOT 安全である。
+
+- **`[ObservableProperty]` 由来の partial メソッドは継承境界を越えられない**: CTM が生成する `partial void On<Name>Changed(...)` / `On<Name>Changing(...)` は C# 仕様上 **暗黙 `private`** であり、`virtual` / `override` / `new` / `sealed` 化できない。そのため `[ObservableProperty]` の宣言と `OnXxxChanged` partial 実装は **基底クラス内に閉じる** こと。派生で差分を入れたい場合は、別途 `protected virtual` フックを基底に用意して partial から呼び出す形にする。
+- **`OnXxxChanged` partial の発火順序**: 生成された setter は「`field = value;` → `OnXxxChanged(...)` → `OnPropertyChanged()`」の順に実行する。`PropertyChanged` 後の順序が必要な処理（例: `SelectedBeatmap` を引き金にする AudioPlayer 起動）を partial に書くと R3 の `ObserveProperty` 経路と発火順がずれるため、**順序要件のある処理は R3 購読のまま維持する**。
+- **`[RelayCommand]` は基底に置けば派生から再利用可能**: 生成される `XxxCommand` プロパティは `public` で、派生クラスから `XxxCommand.NotifyCanExecuteChanged()` を呼べる。`CanExecute` 判定の派生差分は `protected virtual bool` フックで吸収する（基底が partial や private メソッドを介して評価する形にしない）。
+- **派生の leaf 状態は派生で `[ObservableProperty]` を継続使用してよい**: `BeatmapGenerationPageViewModel.IsGenerating` のように、継承境界を越えて partial を共有する必要がない leaf 状態は派生クラス側で `[ObservableProperty]` を使ってよい。基底と派生で同名プロパティが衝突しない限り、混在しても AOT 互換性は損なわれない。
+- **リフレクション・IL Emit は不要**: CTM の Source Generator は C# コードを生成するだけで `System.Reflection.Emit` / `MakeGenericType` 等は呼び出さない。本継承パターンも `protected virtual` フックと `[RelayCommand]` 継承のみで実現しており、リフレクション・動的型生成・`dynamic` を一切導入しない。
+
 ### 3.3 JSONシリアライズ
 
 `System.Text.Json` のSource Generator（`JsonSerializerContext`）を使用し、リフレクションベースのシリアライズを完全に排除する。

@@ -7,6 +7,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
@@ -18,10 +19,12 @@ using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NakuruTool_Avalonia_AOT.Tests;
@@ -595,7 +598,7 @@ public class MockMapListPageViewModel : MapListPageViewModel
 /// <summary>
 /// テスト用のモックMapListViewModel
 /// </summary>
-public class MockMapListViewModel : IMapListViewModel
+public class MockMapListViewModel : ObservableObject, IMapListViewModel
 {
     private readonly AvaloniaList<Beatmap> _showBeatmapsList = [];
     private List<Beatmap> _allBeatmaps = [];
@@ -615,6 +618,8 @@ public class MockMapListViewModel : IMapListViewModel
         }
     }
     public int FilteredPages { get; private set; } = 1;
+    /// <summary>共通 BeatmapList View 向け alias。<see cref="FilteredPages"/> と同値。</summary>
+    public int PageCount => FilteredPages;
     public int FilteredCount { get; private set; }
     public int PageSize
     {
@@ -630,6 +635,37 @@ public class MockMapListViewModel : IMapListViewModel
     public Beatmap? SelectedBeatmap { get; set; }
     public ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
     public ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
+
+    public IRelayCommand PreviousPageCommand { get; }
+    public IRelayCommand NextPageCommand { get; }
+
+    // ---- ContextMenu 共通契約 (No-op 実装) ----
+    public IRelayCommand CopyDownloadUrlCommand { get; } = new RelayCommand(() => { }, () => false);
+    public IRelayCommand OpenInExplorerCommand { get; } = new RelayCommand(() => { }, () => false);
+    public IRelayCommand GenerateBeatmapCommand { get; } = new RelayCommand(() => { }, () => false);
+
+    public void SetClipboardWriter(Func<string, Task>? writer) { }
+    public void SelectBeatmapForContextMenu(Beatmap beatmap) { }
+    public bool TryPrepareContextMenu(Beatmap beatmap) => false;
+    public void ClearContextMenuBeatmap() { }
+
+    public MockMapListViewModel()
+    {
+        PreviousPageCommand = new RelayCommand(() =>
+        {
+            if (_currentPage > 1)
+            {
+                CurrentPage = _currentPage - 1;
+            }
+        });
+        NextPageCommand = new RelayCommand(() =>
+        {
+            if (_currentPage < FilteredPages)
+            {
+                CurrentPage = _currentPage + 1;
+            }
+        });
+    }
 
     public void Initialize()
     {

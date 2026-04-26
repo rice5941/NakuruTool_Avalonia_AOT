@@ -23,9 +23,6 @@ namespace NakuruTool_Avalonia_AOT
 #endif
                 .UsePlatformDetect()
                 .WithInterFont()
-#if DEBUG
-                .WithDeveloperTools()
-#endif
                 .LogToTrace();
         }
 }

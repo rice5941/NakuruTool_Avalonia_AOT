@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
@@ -98,7 +97,7 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
                     break;
 
                 case OsuSection.Events:
-                    ParseEventsLine(line, beatmapFolder, sampleAudioFiles, nonAudioFiles, variables: null);
+                    ParseEventsLine(line, beatmapFolder, sampleAudioFiles, nonAudioFiles);
                     break;
 
                 case OsuSection.HitObjects:
@@ -181,10 +180,10 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
-            var expandedLine = ExpandVariables(line, variables);
+            var expandedLine = StoryboardSyntaxHelper.ExpandVariables(line, variables);
             if (expandedLine is null)
                 continue; // 未定義変数を含む行 → スキップ
-            ParseEventsLine(expandedLine, beatmapFolder, sampleAudioFiles, nonAudioFiles, variables);
+            ParseEventsLine(expandedLine, beatmapFolder, sampleAudioFiles, nonAudioFiles);
         }
     }
 
@@ -192,8 +191,7 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
         string line,
         string beatmapFolder,
         HashSet<string> sampleAudioFiles,
-        HashSet<string> nonAudioFiles,
-        Dictionary<string, string>? variables)
+        HashSet<string> nonAudioFiles)
     {
         // Storyboard コマンド行（スペースまたは _ で始まる行）はスキップ
         if (line.Length > 0 && (line[0] == ' ' || line[0] == '_'))
@@ -207,49 +205,61 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
         if (parts.Length < 2)
             return;
 
-        var eventType = parts[0].Trim();
+        var kind = StoryboardSyntaxHelper.ClassifyEvent(parts[0].Trim());
 
-        // 背景画像: 0,0,"filename",x,y
-        if (eventType == "0" && parts.Length >= 3)
+        switch (kind)
         {
-            var filename = StripQuotes(parts[2].Trim());
-            TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
-            return;
-        }
+            case StoryboardEventKind.Background:
+                // 0,0,"filename",x,y
+                if (parts.Length >= 3)
+                {
+                    var filename = StripQuotes(parts[2].Trim());
+                    TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
+                }
+                break;
 
-        // 動画: Video,time,"filename" or 1,time,"filename"
-        if ((eventType.Equals("Video", StringComparison.OrdinalIgnoreCase) || eventType == "1") && parts.Length >= 3)
-        {
-            var filename = StripQuotes(parts[2].Trim());
-            TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
-            return;
-        }
+            case StoryboardEventKind.Video:
+                // Video,time,"filename" or 1,time,"filename"
+                if (parts.Length >= 3)
+                {
+                    var filename = StripQuotes(parts[2].Trim());
+                    TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
+                }
+                break;
 
-        // Sample: Sample,time,layer,"filename",volume
-        if (eventType.Equals("Sample", StringComparison.OrdinalIgnoreCase) && parts.Length >= 4)
-        {
-            var filename = StripQuotes(parts[3].Trim());
-            TryAddSampleAudioFile(filename, beatmapFolder, sampleAudioFiles);
-            return;
-        }
+            case StoryboardEventKind.Sprite:
+                // Sprite,layer,origin,"filename",x,y
+                if (parts.Length >= 4)
+                {
+                    var filename = StripQuotes(parts[3].Trim());
+                    TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
+                }
+                break;
 
-        // Sprite: Sprite,layer,origin,"filename",x,y
-        if (eventType.Equals("Sprite", StringComparison.OrdinalIgnoreCase) && parts.Length >= 4)
-        {
-            var filename = StripQuotes(parts[3].Trim());
-            TryAddNonAudioFile(filename, beatmapFolder, nonAudioFiles);
-            return;
-        }
+            case StoryboardEventKind.Sample:
+                // Sample,time,layer,"filename",volume
+                if (parts.Length >= 4)
+                {
+                    var filename = StripQuotes(parts[3].Trim());
+                    TryAddSampleAudioFile(filename, beatmapFolder, sampleAudioFiles);
+                }
+                break;
 
-        // Animation: Animation,layer,origin,"filename",x,y,frameCount,frameDelay,...
-        if (eventType.Equals("Animation", StringComparison.OrdinalIgnoreCase) && parts.Length >= 7)
-        {
-            var filename = StripQuotes(parts[3].Trim());
-            if (int.TryParse(parts[6].Trim(), out var frameCount) && frameCount > 0)
-            {
-                ExpandAnimationFrames(filename, frameCount, beatmapFolder, nonAudioFiles);
-            }
-            return;
+            case StoryboardEventKind.Animation:
+                // Animation,layer,origin,"filename",x,y,frameCount,frameDelay,...
+                if (parts.Length >= 7)
+                {
+                    var filename = StripQuotes(parts[3].Trim());
+                    if (int.TryParse(parts[6].Trim(), out var frameCount) && frameCount > 0)
+                    {
+                        ExpandAnimationFrames(filename, frameCount, beatmapFolder, nonAudioFiles);
+                    }
+                }
+                break;
+
+            // Break / Colour / Unknown: アセット参照なし
+            default:
+                break;
         }
     }
 
@@ -384,44 +394,6 @@ public sealed class OsuFileAssetParser : IOsuFileAssetParser
     {
         var ext = Path.GetExtension(path);
         return s_audioExtensions.Contains(ext);
-    }
-
-    private static string? ExpandVariables(string line, Dictionary<string, string> variables)
-    {
-        if (!line.Contains('$'))
-            return line;
-
-        var result = line;
-        // 変数名の長さ降順でソート（最長一致）
-        var sortedVariables = variables.OrderByDescending(kvp => kvp.Key.Length);
-
-        var index = 0;
-        while (index < result.Length)
-        {
-            var dollarIndex = result.IndexOf('$', index);
-            if (dollarIndex < 0)
-                break;
-
-            var matched = false;
-            foreach (var kvp in sortedVariables)
-            {
-                if (result.AsSpan(dollarIndex).StartsWith(kvp.Key.AsSpan(), StringComparison.Ordinal))
-                {
-                    result = string.Concat(result.AsSpan(0, dollarIndex), kvp.Value, result.AsSpan(dollarIndex + kvp.Key.Length));
-                    index = dollarIndex + kvp.Value.Length;
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched)
-            {
-                Debug.WriteLine($"未定義変数を検出: {line}");
-                return null;
-            }
-        }
-
-        return result;
     }
 
     private static OsuSection? DetectSection(string line)

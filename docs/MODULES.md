@@ -1471,6 +1471,8 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 出力先 `Songs/{folderName}.osz` が既に存在する場合は全上書きせず、既存 .osz に対して `ZipArchiveMode.Update` で不足エントリのみを追加マージする（同名エントリは `FullName` を `/` 正規化・大小文字無視で比較して既存優先でスキップ）。既存 .osz が `InvalidDataException` で開けない場合のみ `ZipFile.CreateFromDirectory` による新規作成にフォールバックする。
 
+`.osb`（外部ストーリーボード）ファイルもレート変換対象であり、`OsbFileRateConverter` で時間軸 / sample 参照名 / Animation frameDelay を変換する。
+
 ### 構成ファイル一覧
 
 | ファイル | 種別 | 概要 |
@@ -1491,9 +1493,14 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `FfmpegExecutionException.cs` | internal sealed | FFmpeg 実行失敗時にスローされる例外（exit code / stderr 末尾を保持） |
 | `AudioInputMetadata.cs` | internal readonly record struct | 入力オーディオのチャンネル数 / サンプルレートを保持する値オブジェクト |
 | `AudioInputMetadataReader.cs` | internal static | 純 C# 実装の WAV / MP3 / OGG（Vorbis / Opus）メタデータパーサー。`BinaryPrimitives` ベースでリフレクション・動的コード生成を用いず NativeAOT 安全 |
-| `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み、SampleFilenameMap適用） |
-| `OsuFileAssetParser.cs` | サービス | .osuファイルおよび関連.osbファイルから参照アセットを解析・抽出 |
+| `OsuFileRateConverter.cs` | サービス | .osuファイルのタイミング・メタデータ変換（StreamReaderによる逐次読み込み、SampleFilenameMap適用、AudioLeadIn の rate スケール、Events 行は StoryboardLineRateTransformer に委譲、indented storyboard command は素通し） |
+| `OsuFileAssetParser.cs` | サービス | .osuファイルおよび関連.osbファイルから参照アセットを解析・抽出（event 行 alias 判定は StoryboardSyntaxHelper.ClassifyEvent、.osb の [Variables] 展開は StoryboardSyntaxHelper.ExpandVariables） |
 | `OsuReferencedAssets.cs` | モデル | .osuファイルが参照する外部アセットの分類済みデータ（MainAudio / SampleAudioFiles / NonAudioFiles） |
+| `IOsbFileRateConverter.cs` | インターフェース | .osbファイルレート変換の契約定義 |
+| `OsbFileConvertOptions.cs` | モデル | .osbファイル変換オプション（Rate / SampleFilenameMap） |
+| `OsbFileRateConverter.cs` | サービス | .osb（外部ストーリーボード）ファイルのレート変換実装。`[Variables]` 展開後に `[Events]` の top-level event 行と indented command 行を時間軸スケールし、`Animation` の frameDelay も `/rate` する |
+| `StoryboardSyntaxHelper.cs` | internal static | storyboard event/command の alias 正規化（numeric 0-6 ↔ 文字列 alias）と `[Variables]` 最長一致展開のヘルパー |
+| `StoryboardLineRateTransformer.cs` | internal static | top-level event 行と indented command 行のレート変換ロジック（`.osu` / `.osb` で frameDelay スケール有無を切り替えるフラグ付き） |
 | `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック） |
 | `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替） |
 | `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト |
@@ -1507,6 +1514,14 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `SingleBeatmapGenerationViewModel.cs` | ViewModel | 単一譜面指定のレート生成 |
 | `SingleBeatmapGenerationWindow.axaml` | View | 単一譜面生成ウィンドウ |
 | `SingleBeatmapGenerationWindow.axaml.cs` | CodeBehind | |
+
+### .osu / .osb レート変換アーキテクチャ
+
+- `StoryboardSyntaxHelper` が storyboard 構文の alias 正規化（numeric 0-6 ↔ Background / Video / Break / Colour / Sprite / Sample / Animation）と `[Variables]` の最長一致展開を一手に担い、`.osu` / `.osb` 両経路から共通利用される。
+- `StoryboardLineRateTransformer` は top-level event 行と indented command 行の時間軸スケールを担当し、`Animation` 行の frameDelay スケール有無をフラグで切り替えることで `.osu` / `.osb` 双方から再利用される。
+- `.osu` 側（`OsuFileRateConverter`）は indented storyboard command 行を素通しし、frameDelay も変更しない（osu! は埋め込み storyboard を inline に保持するためレート差を直接適用しない）。
+- `.osb` 側（`OsbFileRateConverter`）は indented command 行と Animation の frameDelay も `/rate` する（外部ストーリーボードはオーディオと独立に時間軸を持つため）。
+- `BeatmapRateGenerator` は非音声アセットのコピー時に拡張子で振り分け、`.osb` のみ `IOsbFileRateConverter.Convert` に委譲してレート変換済みストーリーボードを `.osz` に格納する。
 
 ### 依存モジュール
 

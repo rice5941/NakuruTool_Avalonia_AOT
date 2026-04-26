@@ -6,34 +6,22 @@ namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 
 /// <summary>
 /// Storyboard 行を rate に応じて時間軸変換する共有 static helper。
-/// <c>.osu</c> / <c>.osb</c> 双方の <c>[Events]</c> セクションから利用される。
+/// <c>.osu</c> の <c>[Events]</c> セクションから利用される。
 /// 入力 raw token を保持し、canonical 化はしない（<c>5</c> なら <c>5</c>、<c>Sample</c> なら <c>Sample</c>）。
 /// </summary>
 internal static class StoryboardLineRateTransformer
 {
     /// <summary>
-    /// top-level event 宣言行を変換する。Animation の <c>frameDelay</c> は変換しない（<c>.osu</c> 用）。
-    /// </summary>
-    public static string TransformEventLine(
-        string line,
-        decimal rate,
-        IReadOnlyDictionary<string, string>? sampleFilenameMap)
-        => TransformEventLine(line, rate, sampleFilenameMap, scaleAnimationFrameDelay: false);
-
-    /// <summary>
     /// top-level event 宣言行（先頭がインデントでない行）を変換する。
+    /// Animation の <c>frameDelay</c> は変換しない（<c>.osu</c> 仕様）。
     /// </summary>
     /// <param name="line">変換対象の行。</param>
     /// <param name="rate">レート倍率。</param>
     /// <param name="sampleFilenameMap">Sample event の filename リネームマップ。null / 空なら無変換。</param>
-    /// <param name="scaleAnimationFrameDelay">
-    /// <c>true</c> のとき Animation の <c>frameDelay</c> を <c>/rate</c> でスケールする。<c>.osb</c> 用。
-    /// </param>
     public static string TransformEventLine(
         string line,
         decimal rate,
-        IReadOnlyDictionary<string, string>? sampleFilenameMap,
-        bool scaleAnimationFrameDelay)
+        IReadOnlyDictionary<string, string>? sampleFilenameMap)
     {
         if (string.IsNullOrEmpty(line))
             return line;
@@ -91,8 +79,7 @@ internal static class StoryboardLineRateTransformer
 
             case StoryboardEventKind.Animation:
                 // Animation,layer,origin,"filename",x,y,frameCount,frameDelay,loopType
-                if (scaleAnimationFrameDelay && parts.Length >= 8)
-                    changed |= TryScaleField(parts, 7, rate);
+                // .osu 仕様: frameDelay はスケールしない
                 break;
 
             case StoryboardEventKind.Unknown:
@@ -101,73 +88,6 @@ internal static class StoryboardLineRateTransformer
         }
 
         return changed ? string.Join(',', parts) : line;
-    }
-
-    /// <summary>
-    /// indented storyboard command 行（先頭が <c>' '</c> または <c>'_'</c>）を変換する。
-    /// 行頭の prefix（インデント）はそのまま保持する。
-    /// </summary>
-    public static string TransformCommandLine(string line, decimal rate)
-    {
-        if (string.IsNullOrEmpty(line))
-            return line;
-
-        var (prefix, body) = StoryboardSyntaxHelper.SplitCommandPrefix(line);
-        if (prefix.Length == 0)
-            return line;
-
-        if (body.Length == 0)
-            return line;
-
-        var parts = body.Split(',');
-        if (parts.Length < 2)
-            return line;
-
-        var kind = StoryboardSyntaxHelper.ClassifyCommand(parts[0].Trim());
-        var changed = false;
-
-        switch (kind)
-        {
-            case StoryboardCommandKind.Fade:
-            case StoryboardCommandKind.Move:
-            case StoryboardCommandKind.MoveX:
-            case StoryboardCommandKind.MoveY:
-            case StoryboardCommandKind.Scale:
-            case StoryboardCommandKind.VectorScale:
-            case StoryboardCommandKind.Rotate:
-            case StoryboardCommandKind.Colour:
-            case StoryboardCommandKind.Parameter:
-                // <Cmd>,easing,startTime,endTime,...
-                if (parts.Length < 3)
-                    return line;
-                changed |= TryScaleField(parts, 2, rate);
-                if (parts.Length >= 4 && parts[3].Length > 0)
-                    changed |= TryScaleField(parts, 3, rate);
-                break;
-
-            case StoryboardCommandKind.Loop:
-                // L,startTime,loopCount
-                changed |= TryScaleField(parts, 1, rate);
-                break;
-
-            case StoryboardCommandKind.Trigger:
-                // T,triggerType,startTime,endTime[,group]
-                if (parts.Length < 4)
-                    return line;
-                changed |= TryScaleField(parts, 2, rate);
-                if (parts[3].Length > 0)
-                    changed |= TryScaleField(parts, 3, rate);
-                break;
-
-            case StoryboardCommandKind.Unknown:
-            default:
-                return line;
-        }
-
-        if (!changed)
-            return line;
-
-        return prefix + string.Join(',', parts);
     }
 
     /// <summary>

@@ -20,28 +20,9 @@ internal enum StoryboardEventKind
 }
 
 /// <summary>
-/// Storyboard インデント付きコマンド行（<c>_F</c> / <c>_M</c> 等）の種別。
-/// </summary>
-internal enum StoryboardCommandKind
-{
-    Unknown,
-    Fade,
-    Move,
-    MoveX,
-    MoveY,
-    Scale,
-    VectorScale,
-    Rotate,
-    Colour,
-    Parameter,
-    Loop,
-    Trigger,
-}
-
-/// <summary>
 /// Storyboard 行の構文解析共通ヘルパー。
 /// alias 正規化・コマンド行判定・<c>[Variables]</c> 展開を、
-/// <c>OsuFileAssetParser</c> / <c>OsuFileRateConverter</c> / <c>OsbFileRateConverter</c>
+/// <c>OsuFileAssetParser</c> / <c>OsuFileRateConverter</c>
 /// から共有して呼び出す。
 /// NativeAOT 制約に従い、リフレクション・動的コード生成・LINQ 動的式は使用しない。
 /// </summary>
@@ -94,57 +75,6 @@ internal static class StoryboardSyntaxHelper
     /// </summary>
     public static bool IsCommandLine(string line)
         => line.Length > 0 && (line[0] == ' ' || line[0] == '_');
-
-    /// <summary>
-    /// indented command 行を、行頭の <c>' '</c> / <c>'_'</c> 連続部分（prefix）と
-    /// それ以降の本体（body）に分離する。混在も許容する（例: <c>"__F..."</c>, <c>"  F..."</c>, <c>"_ F..."</c>）。
-    /// </summary>
-    public static (string Prefix, string Body) SplitCommandPrefix(string line)
-    {
-        var i = 0;
-        while (i < line.Length && (line[i] == ' ' || line[i] == '_'))
-            i++;
-
-        if (i == 0)
-            return (string.Empty, line);
-
-        return (line[..i], line[i..]);
-    }
-
-    /// <summary>
-    /// indented command 行 body の先頭トークン（例 <c>F</c>, <c>MX</c>, <c>L</c>）を
-    /// <see cref="StoryboardCommandKind"/> に正規化する。OrdinalIgnoreCase。
-    /// </summary>
-    public static StoryboardCommandKind ClassifyCommand(string token)
-    {
-        if (string.IsNullOrEmpty(token))
-            return StoryboardCommandKind.Unknown;
-
-        if (token.Equals("F", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Fade;
-        if (token.Equals("M", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Move;
-        if (token.Equals("MX", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.MoveX;
-        if (token.Equals("MY", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.MoveY;
-        if (token.Equals("S", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Scale;
-        if (token.Equals("V", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.VectorScale;
-        if (token.Equals("R", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Rotate;
-        if (token.Equals("C", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Colour;
-        if (token.Equals("P", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Parameter;
-        if (token.Equals("L", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Loop;
-        if (token.Equals("T", StringComparison.OrdinalIgnoreCase))
-            return StoryboardCommandKind.Trigger;
-
-        return StoryboardCommandKind.Unknown;
-    }
 
     /// <summary>
     /// <c>[Variables]</c> の longest-match 展開を 1 行に対して適用する。

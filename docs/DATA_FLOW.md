@@ -931,7 +931,7 @@ sequenceDiagram
    - **DTモード（デフォルト）**: FFmpeg `atempo` フィルターチェーンによるピッチ保持テンポ変更（`atempo` の有効範囲 0.5–2.0 を超える倍率は複数段のチェーンに分解）
    - **NCモード**: FFmpeg `asetrate` + `aresample` によるサンプルレート変更（ピッチ変更を伴う）
 5. **ヒットサウンドのレート変換+リネーム** — `SampleAudioFiles` の各ファイルをメインオーディオと同じレート・モードで変換し、リネーム後のファイル名で一時ディレクトリに出力。変換元の原音も元ファイル名でコピーして保持する。変換失敗時は原音をリネーム後のファイル名でコピー（フォールバック）
-6. **非音声ファイルのコピー** — `NonAudioFiles`（背景画像・動画・スプライト・.osbファイル等）を元フォルダから一時ディレクトリにコピー。サブディレクトリ構造を維持
+6. **非音声ファイルのコピー** — `NonAudioFiles`（背景画像・動画・スプライト・.osbファイル等）を元フォルダから一時ディレクトリにコピー。サブディレクトリ構造を維持。`.osb` も `File.Copy` で raw コピーされ、時間軸変換・sample 参照名置換・`Animation.frameDelay` スケールはいずれも行わない
 7. **.osuファイル変換** — `OsuFileRateConverter` がタイミングポイント、ノート配置、BPM、難易度名等をレートに応じて変換。`SampleFilenameMap` によりSampleイベント行およびHitObjectのヒットサウンド参照をリネーム後のファイル名に更新
 8. **.osz作成** — `ZipFile.CreateFromDirectory()` で一時ディレクトリからoszTmpPathに.oszを生成後、`File.Move()` で最終パスにatomicに配置。一時ディレクトリとoszTmpPathはfinallyブロックで確実に削除
    - **既存 .osz が存在する場合のマージ動作** — 出力先 `Songs/{folderName}.osz` が既に存在する場合は、`File.Copy` で作業用コピー（oszTmpPath）を作成し `ZipArchiveMode.Update` で開く。既存エントリの `FullName` を `/` 区切りに正規化し大文字小文字を無視した集合を作り、tempDir 内のファイルのうちその集合に含まれない**不足エントリのみを追加**する（同名エントリは既存優先でスキップ＝上書きしない）。マージ完了後に `File.Move(overwrite: true)` で最終配置する。既存 .osz が破損等で `InvalidDataException` により開けない場合のみ、従来どおり `ZipFile.CreateFromDirectory` による新規作成にフォールバックする

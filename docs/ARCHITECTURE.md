@@ -122,7 +122,7 @@ requirement/           # 要件定義
 | `BeatmapGenerationPageView` | `BeatmapGenerationPageViewModel` |
 | `CollectionSelectorView` | `CollectionSelectorViewModel` |
 | `RateGenerationView` | `RateGenerationViewModel` |
-| `SingleBeatmapGenerationWindow` | `SingleBeatmapGenerationViewModel` |
+| `SingleBeatmapGenerationOverlayView` | `SingleBeatmapGenerationViewModel` |
 
 #### ViewModelBase の責務
 

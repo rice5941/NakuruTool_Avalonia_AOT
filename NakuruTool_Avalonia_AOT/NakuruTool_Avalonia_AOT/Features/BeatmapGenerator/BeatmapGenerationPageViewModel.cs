@@ -17,6 +17,7 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
 {
     private readonly IDatabaseService _databaseService;
     private readonly IBeatmapRateGenerator _beatmapRateGenerator;
+    private readonly ISettingsService _settingsService;
     private CancellationTokenSource? _cts;
 
     public IBeatmapRateGenerator BeatmapRateGenerator => _beatmapRateGenerator;
@@ -36,6 +37,12 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     [ObservableProperty]
     public partial string GenerationStatusMessage { get; set; } = "";
 
+    [ObservableProperty]
+    public partial SingleBeatmapGenerationViewModel? SingleGenerationViewModel { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSingleGenerationOverlayVisible { get; set; } = false;
+
     public BeatmapGenerationPageViewModel(
         IDatabaseService databaseService,
         IBeatmapRateGenerator beatmapRateGenerator,
@@ -44,6 +51,7 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     {
         _databaseService = databaseService;
         _beatmapRateGenerator = beatmapRateGenerator;
+        _settingsService = settingsService;
 
         CollectionSelector = new CollectionSelectorViewModel(databaseService);
         RateGeneration = new RateGenerationViewModel();
@@ -51,6 +59,8 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
         CollectionSelector.ObserveProperty(nameof(CollectionSelectorViewModel.SelectedCollection))
             .Subscribe(_ =>
             {
+                // コレクション切替時は単体生成オーバーレイを閉じる (stale な VM を残さない)
+                CloseSingleGeneration();
                 BatchGenerateCommand.NotifyCanExecuteChanged();
                 RefreshCollectionBeatmaps();
             })
@@ -73,6 +83,7 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
 
     private bool CanBatchGenerate() =>
         !IsGenerating &&
+        !IsSingleGenerationOverlayVisible &&
         CollectionSelector.SelectedCollection is not null &&
         !RateGeneration.HasValidationErrors &&
         FilteredCount > 0;
@@ -157,6 +168,32 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
         _cts?.Cancel();
     }
 
+    public void ShowSingleGeneration(Beatmap beatmap)
+    {
+        // 旧 VM を Dispose してから新規生成 (stale 参照防止)
+        SingleGenerationViewModel?.Dispose();
+        SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator, _settingsService);
+        IsSingleGenerationOverlayVisible = true;
+    }
+
+    [RelayCommand]
+    private void CloseSingleGeneration()
+    {
+        IsSingleGenerationOverlayVisible = false;
+        SingleGenerationViewModel?.Dispose();
+        SingleGenerationViewModel = null;
+    }
+
+    /// <summary>ContextMenu 経由の単体生成リクエストをオーバーレイで処理する。</summary>
+    protected override void OnGenerateBeatmap(Beatmap target)
+    {
+        ShowSingleGeneration(target);
+    }
+
+    /// <summary>バッチ生成中／単体オーバーレイ表示中は ContextMenu Generate を無効化する。</summary>
+    protected override bool CanGenerateBeatmapFromContextMenu =>
+        !IsGenerating && !IsSingleGenerationOverlayVisible;
+
     private void RefreshCollectionBeatmaps()
     {
         var collection = CollectionSelector.SelectedCollection;
@@ -182,6 +219,13 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     {
         BatchGenerateCommand.NotifyCanExecuteChanged();
         CancelGenerationCommand.NotifyCanExecuteChanged();
+        GenerateBeatmapCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsSingleGenerationOverlayVisibleChanged(bool value)
+    {
+        BatchGenerateCommand.NotifyCanExecuteChanged();
+        GenerateBeatmapCommand.NotifyCanExecuteChanged();
     }
 
     public override void Dispose()
@@ -189,6 +233,8 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
+        SingleGenerationViewModel?.Dispose();
+        SingleGenerationViewModel = null;
         CollectionSelector.Dispose();
         RateGeneration.Dispose();
         base.Dispose();

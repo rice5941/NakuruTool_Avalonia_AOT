@@ -131,6 +131,19 @@ requirement/           # 要件定義
 - `Dispose()` で全購読を一括解放
 - `LanguageService.Instance` への参照を提供（`LangServiceInstance`）
 
+#### ViewModel 階層図
+
+譜面一覧系 ViewModel は `BeatmapListViewModelBase`（abstract）に共通責務（ページング・ContextMenu コマンド・Mod / ScoreSystem 切替・`PreferUnicode` 監視）を集約し、`MapListViewModel` と `BeatmapGenerationPageViewModel` がこれを継承する。
+
+```
+ViewModelBase
+└── BeatmapListViewModelBase  (abstract, IBeatmapListViewModel 実装)
+    ├── MapListViewModel              (フィルタ / AudioPlayer ナビゲート)
+    └── BeatmapGenerationPageViewModel(コレクション解決 / バッチレート生成)
+```
+
+DI バインドは `IMapListViewModel → MapListViewModel` のまま不変（`IMapListViewModel` は `IBeatmapListViewModel` を継承する形に内部仕様で縮小済み）。
+
 #### コンパイル済みバインディング
 
 - csproj で `AvaloniaUseCompiledBindingsByDefault` = `true` を設定

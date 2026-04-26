@@ -116,58 +116,48 @@
 
 | ファイル | 種別 | 概要 |
 |---------|------|------|
-| `MapListViewModel.cs` | ViewModel | フィルタ済み譜面一覧・ページング・オーディオ連携・コンテキストメニュー制御 |
-| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義 |
-| `MapListView.axaml.cs` | CodeBehind | DataGrid右クリック時のコンテキストメニュー表示制御（行ヒットテスト・メニュー生成） |
+| `MapListViewModel.cs` | ViewModel | フィルタ済み譜面一覧の保持・オーディオ連携・ナビゲーションを担う。`BeatmapListViewModelBase`（Shared）を継承し、ページング / ContextMenu / Mod・ScoreSystem 切替 / `PreferUnicode` 監視は基底側で集約される。`IMapListViewModel`（`IBeatmapListViewModel` 継承）を実装し、`MapListView` を BeatmapGenerator と共有する |
+| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義。共通 BeatmapList View として再利用され、表示要素は `StyledProperty`（`ShowAudioPlayer` / `ShowTotalCount` / `ShowFilteredCount` / `ShowResolvedCount` / `ShowHistoryColumn` / `ShowIsPlayedColumn` / `ScoreSystemGroupName` / `ModGroupName` / `DataGridRowHeight`）で切替する。コンテキストメニュー（Copy/Open/Generate）は両画面共通で常に有効 |
+| `MapListView.axaml.cs` | CodeBehind | 上記 `StyledProperty` の定義、DataGrid右クリック時のコンテキストメニュー表示制御（行ヒットテスト）、`IBeatmapListViewModel` 経由での Command 配線 |
 
-#### 責務
+#### 固有責務（基底に集約済みの共通責務は除く）
 
-- フィルタ済み譜面配列（`FilteredBeatmapsArray`）の管理
-- ページング処理（表示用部分配列 `ShowBeatmaps` の管理）
-- 譜面選択時のオーディオ自動再生
-- オーディオパネルモードの管理と設定永続化
-- フィルタ済み譜面配列のナビゲーションコンテキスト提供（AudioPlayerPanelViewModelへ）
-- 前後トラック移動時のページ遷移とスクロール
+- フィルタ済み譜面配列（`FilteredBeatmapsArray`）の管理（`MapFilterViewModel` 経由でフィルタ実行 → 基底 `SetSourceBeatmaps()` に渡す）
+- 譜面選択時のオーディオ自動再生（`SelectedBeatmap` を R3 で購読し AudioPlayer 起動）
+- オーディオパネルのナビゲーションコンテキスト提供（`AudioPlayerPanelViewModel` へフィルタ済み配列を渡す）
+- 前後トラック移動時のページ遷移（`NavigateToFilteredIndex(int)` で `_isNavigating` ガード付き）
+- `IMapListViewModel` 互換 alias（`FilteredPages => PageCount`、`FilteredBeatmapsArray => SourceBeatmapsRaw`）の提供
 
-#### データ構造
+#### データ構造（固有プロパティのみ抜粋）
 
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
-| `ShowBeatmaps` | `IAvaloniaReadOnlyList<Beatmap>` | 現在ページに表示中の譜面リスト |
-| `FilteredBeatmapsArray` | `Beatmap[]` | フィルタ適用後の全譜面配列 |
-| `TotalCount` | `int` | DB内の全譜面数 |
-| `FilteredCount` | `int` | フィルタ後の譜面数 |
-| `CurrentPage` | `int` | 現在ページ（1始まり） |
-| `FilteredPages` | `int` | フィルタ後の総ページ数 |
-| `PageSize` | `int` | 1ページあたりの表示件数（デフォルト: 20） |
-| `SelectedBeatmap` | `Beatmap?` | 選択中の譜面 |
+| `FilteredBeatmapsArray` | `Beatmap[]` | フィルタ適用後の全譜面配列（基底 `SourceBeatmapsRaw` の alias） |
+| `FilteredPages` | `int` | フィルタ後の総ページ数（基底 `PageCount` の alias） |
 | `AudioPlayer` | `AudioPlayerViewModel` | オーディオ再生コントロール |
 | `AudioPlayerPanel` | `AudioPlayerPanelViewModel` | 高機能オーディオパネル |
-| `IsAudioPanelMode` | `bool` | オーディオパネル表示モード（設定に永続化） |
 
-#### ページング仕様
-
-- 選択可能なページサイズ: **10 / 20 / 50 / 100**（`PageSizes` プロパティ）
-- デフォルトページサイズ: **20**
-- ページ変更時は `UpdateShowBeatmaps()` で `FilteredBeatmapsArray` から `Span` でスライスした部分を `AvaloniaList` に転写
+> ページング系（`ShowBeatmaps` / `CurrentPage` / `PageSize` / `PageSizes` / `TotalCount` / `FilteredCount`）、選択（`SelectedBeatmap`）、Mod / ScoreSystem（`SelectedModCategory` / `SelectedScoreSystemCategory`）は `BeatmapListViewModelBase` が提供する。
 
 #### フィルタ連携
 
 - `MapFilterViewModel.FilterChanged`（R3 `Observable<Unit>`）を購読
-- 発火時に `ApplyFilter()` → `UpdateFilteredBeatmapsArray()` + `UpdateFilteredPages()` + `UpdateShowBeatmaps()`
-- フィルタ実行はZLinqの `AsValueEnumerable().Where().ToArray()` で実施
+- 発火時に `ApplyFilter()` → `UpdateFilteredBeatmapsArray()`（ZLinq の `AsValueEnumerable().Where().ToArray()`）→ 基底 `SetSourceBeatmaps(arr)` を呼び、ページ数再計算と `CurrentPage = 1` リセットが基底で連鎖実行される
+- 同時に `AudioPlayerPanel.SetNavigationContext()` でフィルタ結果を連携
 
 #### オーディオ連携
 
-- `SelectedBeatmap` プロパティの変更をR3の `ObserveProperty` で監視
-- 変更時に `AudioPlayer.PlayBeatmapAudio(SelectedBeatmap)` を呼び出し、自動的にプレビュー再生
-- `IsAudioPanelMode` が `true` の場合、選択変更時に `AudioPlayerPanel.PlayBeatmap()` を呼び出し
+- `SelectedBeatmap` の変更を R3 `ObserveProperty` で監視（基底 partial フックは順序要件のため使わず、`PropertyChanged` 発火後の購読を維持）
+- `_isNavigating` 中は再生をキックしない
+- 設定 `AutoPlayOnSelect` に応じて `AudioPlayerPanel.PlayBeatmap()` を呼び出し
 - `AudioPlayerPanel.NavigateToFilteredIndex` コールバック経由でページ遷移を実行
-- `ApplyFilter()` 呼び出し時に `AudioPlayerPanel.SetNavigationContext()` でフィルタ結果を連携
 
-#### コンテキストメニュー
+#### コンテキストメニュー（基底実装の利用）
 
-- **コンテキストメニュー** — DataGrid行の右クリックで「ダウンロードURLをコピー」コンテキストメニューを表示。`SelectBeatmapForContextMenu()` で右クリック行を選択（`_isNavigating` で音声再生を抑制）、`TryPrepareContextMenu()` でメニュー表示判定、`CopyDownloadUrlAsync()` で `{BeatmapMirrorUrl}{BeatmapSetId}` 形式のURLをクリップボードにコピー
+- DataGrid 行の右クリックでコンテキストメニュー（Copy / Open / Generate）を表示
+- `SelectBeatmapForContextMenu` を override し、`_isNavigating` ガード付きで `SelectedBeatmap` を設定
+- `OnGenerateBeatmap` を override し、`_generateBeatmapRequested.OnNext(target)` を発行
+- `CanGenerateBeatmapFromContextMenu => true` を override し、Generate コマンドを有効化
 
 ---
 
@@ -990,6 +980,8 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 | フォルダ/ファイル | 概要 |
 |----------------|------|
 | `ViewModels/ViewModelBase.cs` | ViewModel基底クラス |
+| `ViewModels/IBeatmapListViewModel.cs` | 共通 BeatmapList View（`MapListView`）が要求する ViewModel 契約。`MapListViewModel` と `BeatmapGenerationPageViewModel` の双方が実装する（既存 public 名は維持し alias で吸収） |
+| `ViewModels/BeatmapListViewModelBase.cs` | 譜面一覧系 ViewModel の共通基底（abstract）。`IBeatmapListViewModel` 実装と共通責務（ページング・ContextMenu コマンド・Mod / ScoreSystem 切替・`PreferUnicode` 監視）を集約する |
 | `Extensions/R3Extensions.cs` | R3関連の拡張メソッド |
 | `Converters/` | XAML用の値コンバーター（16クラス） |
 
@@ -1014,6 +1006,37 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 | `LangServiceInstance` | `LanguageService` | 翻訳サービスへの参照（`LanguageService.Instance`） |
 | `Disposables` | `CompositeDisposable` | R3購読のライフサイクル管理 |
 | `Dispose()` | `virtual void` | `Disposables.Dispose()` を呼び出し |
+
+---
+
+### BeatmapListViewModelBase
+
+譜面一覧系 ViewModel（`MapListViewModel` / `BeatmapGenerationPageViewModel`）の共通基底クラス（`abstract`、`ViewModelBase` 継承、`IBeatmapListViewModel` 実装）。両画面で重複していたページング・ContextMenu・Mod / ScoreSystem 切替・`PreferUnicode` 監視のロジックを集約する。
+
+#### 共通責務
+
+| 責務 | 内容 |
+|------|------|
+| ソース配列管理 | `protected SetSourceBeatmaps(Beatmap[])` で派生からソース配列を差し替える。内部で `FilteredCount` 更新 → `RecalculatePageCount()` → `CurrentPage = 1`（既に 1 なら `UpdateShowBeatmaps()` を直接実行）の連鎖が走る |
+| ページング | `ShowBeatmaps` / `CurrentPage` / `PageCount` / `PageSize` / `PageSizes`（`{10,20,50,100}`）/ `FilteredCount` / `TotalCount` を保持。`NextPageCommand` / `PreviousPageCommand` を提供 |
+| Mod / ScoreSystem 切替 | `SelectedModCategory` / `SelectedScoreSystemCategory` の変更で `UpdateShowBeatmaps()` を再実行し、表示用 score（`Beatmap.GetBestScore` 等）を再投影 |
+| ContextMenu | `_contextMenuBeatmap` の保持、`SetClipboardWriter` / `TryPrepareContextMenu` / `ClearContextMenuBeatmap` / `SelectBeatmapForContextMenu`（`virtual`）と `CopyDownloadUrlCommand` / `OpenInExplorerCommand` / `GenerateBeatmapCommand` を提供 |
+| `PreferUnicode` 監視 | ctor で `ISettingsData.PreferUnicode` を R3 で購読し、変更時に `UpdateShowBeatmaps()` を呼び DataGrid 行を再構築（`UnicodeDisplayConverter` 再評価） |
+
+#### Template Method フック（派生での override 用）
+
+| フック | 既定 | override 例 |
+|-------|------|-------------|
+| `protected virtual void OnGenerateBeatmap(Beatmap target)` | No-op | `MapListViewModel`: `_generateBeatmapRequested.OnNext(target)` |
+| `protected virtual bool CanGenerateBeatmapFromContextMenu` | `false` | `MapListViewModel`: `true` |
+| `public virtual void SelectBeatmapForContextMenu(Beatmap)` | `SelectedBeatmap = beatmap` | `MapListViewModel`: `_isNavigating` ガード付きで設定 |
+
+#### 仕様メモ
+
+- `PageSize` 変更時は両派生で `CurrentPage = 1` にリセットされる（仕様統一）。
+- `RecalculatePageCount()` は `PageCount` の算出のみで末尾クランプは行わない（呼び出し経路で必ず `CurrentPage = 1` がセットされるため、二重発火を避ける）。
+- 派生固有 leaf 状態（例: `IsGenerating`）は派生で `[ObservableProperty]` を継続使用してよい（継承境界を越えないため安全）。
+- `SelectedBeatmap` の変更フックは順序要件（`PropertyChanged` 発火後に AudioPlayer を起動）を保つため partial メソッドへ寄せず、派生側で R3 `ObserveProperty` 購読のまま維持する。
 
 ---
 
@@ -1502,8 +1525,8 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `StoryboardSyntaxHelper.cs` | internal static | storyboard event/command の alias 正規化（numeric 0-6 ↔ 文字列 alias）と `[Variables]` 最長一致展開のヘルパー |
 | `StoryboardLineRateTransformer.cs` | internal static | top-level event 行と indented command 行のレート変換ロジック（`.osu` / `.osb` で frameDelay スケール有無を切り替えるフラグ付き） |
 | `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック） |
-| `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替） |
-| `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト |
+| `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替）。`IBeatmapListViewModel`（Shared）を実装し、共通 `MapListView` をコレクション内譜面リストとして埋め込む |
+| `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト。譜面リスト部は `MapListView` を埋め込み、`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false` などの `StyledProperty` で表示要素を制御する |
 | `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |
 | `CollectionSelectorViewModel.cs` | ViewModel | コレクション選択・一括レート生成 |
 | `CollectionSelectorView.axaml` | View | コレクション選択UI |
@@ -1533,9 +1556,18 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 ### ビートマップリスト表示機能
 
-`BeatmapGenerationPageView` は5カラム構成で、中央カラムにコレクション内譜面のDataGridを表示する。
+`BeatmapGenerationPageView` は5カラム構成で、中央カラムに **共通 `MapListView`** を埋め込み、コレクション内譜面のDataGrid・ヘッダー・ページネーションを描画する。DataGrid／ヘッダー／ページネーション／重複していた Resources・Styles はページ側からは削除済みで、`MapListView` の `StyledProperty` 群で表示要素を切り替える（`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false`、`ScoreSystemGroupName` / `ModGroupName` で RadioButton グループを分離、`DataGridRowHeight` で行高を調整）。コンテキストメニュー（Copy/Open/Generate）は両画面共通で表示され、`IBeatmapListViewModel` 経由で Command が配線される（生成ページ側の `GenerateBeatmapCommand` はバッチ生成 UI と機能重複するため `CanGenerateBeatmapFromContextMenu` の override をせず基底既定の No-op / `CanExecute=false` で運用）。
 
-#### DataGrid列構成
+`BeatmapGenerationPageViewModel` は `BeatmapListViewModelBase`（Shared）を継承し、`MapListView` の `DataContext` 契約（`ShowBeatmaps` / `SelectedBeatmap` / `CurrentPage` / `PageCount` / `PageSize` / `PageSizes` / `PreviousPageCommand` / `NextPageCommand` / `SelectedModCategory` / `SelectedScoreSystemCategory` ほか）は基底側で満たされる。固有責務は **コレクション選択 → MD5 マッチングによる譜面解決 → 基底 `SetSourceBeatmaps()` 呼び出し** と **バッチレート生成（`BatchGenerateAsync` / `CancelGeneration`）** に絞られる。
+
+#### 固有責務
+
+- `CollectionSelectorViewModel.SelectedCollection` の変更を R3 で監視し、`RefreshCollectionBeatmaps()` を実行
+- コレクション内 MD5 を `IDatabaseService.TryGetBeatmapByMd5()` で解決し、得られた `Beatmap[]` を基底 `SetSourceBeatmaps()` に渡す（ページ数再計算と `CurrentPage = 1` リセットは基底で連鎖）
+- `FilteredCount` を R3 で購読し、`BatchGenerateCommand.NotifyCanExecuteChanged()` を呼ぶ（`BatchGenerate.CanExecute` は `FilteredCount > 0` を含む）
+- 派生固有 leaf 状態（`IsGenerating` / `GenerationProgressValue` / `GenerationStatusMessage` / `SelectedGenerationTabIndex`）は派生で `[ObservableProperty]` を継続使用（継承境界を越えないため安全）
+
+#### DataGrid列構成（共通 `MapListView` 側）
 
 | 列 | 概要 |
 |---|------|
@@ -1544,16 +1576,11 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | LN率 | LongNoteRate（%表示） |
 | スコア情報 | BestScore・BestAccuracy・Grade（Mod/ScoreSystem依存） |
 
-#### Mod / ScoreSystem切替
+#### Mod / ScoreSystem 切替・ページネーション
 
-- `SelectedModCategory`（NoMod / HT / DT）と `SelectedScoreSystemCategory`（Default / v1 / v2）でスコア表示を切替
-- 切替時は `UpdateShowBeatmaps()` でDataGrid行を再構築し、`Beatmap.GetBestScore()` / `GetBestAccuracy()` / `GetGrade()` で対応する値を表示
-
-#### ページネーション
-
-- ページサイズ: 10 / 20 / 50 / 100（デフォルト: 20）
-- `RefreshCollectionBeatmaps()` でコレクション選択時にMD5マッチングで譜面を解決し `_resolvedBeatmaps` に格納
-- `UpdateShowBeatmaps()` で `Span` スライスによりページ分のデータを `ShowBeatmaps`（`AvaloniaList`）に転写
+- `SelectedModCategory` / `SelectedScoreSystemCategory` の切替時は基底 `UpdateShowBeatmaps()` のみが走り、DataGrid 行が再投影される（`Beatmap.GetBestScore` / `GetBestAccuracy` / `GetGrade` 経由）
+- ページサイズは基底 `PageSizes`（10 / 20 / 50 / 100、デフォルト 20）を共有
+- `PageSize` 変更時は **両画面共通で `CurrentPage = 1` にリセット** される（仕様統一。BeatmapGen 側はかつて旧ページが保持されていたが、基底化に伴い MapList 現行挙動に統一）
 
 ### NativeAOT対応
 

@@ -186,6 +186,14 @@ NakuruTool_Avalonia_AOT/NakuruTool_Avalonia_AOT.Tests/bin/Debug/net10.0/Screensh
 
 - **FilterCondition.Matches()**: 各フィルタ対象・比較タイプの組み合わせに対する正確なマッチング検証
 - **ページング処理**: `MapListViewModel` のページ計算・境界値テスト
+- **`BeatmapListViewModelBase`（共通基底）**: 譜面一覧系 ViewModel の共通基底のため、派生に依存しない単体テストを追加することで両画面の回帰を一括で抑止できる。推奨ケース:
+  - `SetSourceBeatmaps(arr)` 呼び出しで `FilteredCount` / `PageCount` / `ShowBeatmaps` が連動更新され、`CurrentPage` が常に 1 にリセットされる（`FilteredCount` が縮んだ場合・`CurrentPage` が既に 1 の場合の双方を確認）
+  - `PageSize` 変更時に `PageCount` が再計算され、両画面で `CurrentPage` が 1 にリセットされる（仕様統一）
+  - `SelectedModCategory` / `SelectedScoreSystemCategory` 変更で `UpdateShowBeatmaps()` のみが走り、`PageCount` / `CurrentPage` には触れない
+  - `TryPrepareContextMenu` / `ClearContextMenuBeatmap` で `CopyDownloadUrlCommand` / `OpenInExplorerCommand` / `GenerateBeatmapCommand` の `CanExecute` が更新される
+  - `GenerateBeatmapCommand` の `CanExecute` が `CanGenerateBeatmapFromContextMenu` フックの override に従う
+
+> **`MockMapListViewModel` の扱い**: `MockMapListViewModel` は引き続き `BeatmapListViewModelBase` を継承せず独立実装のままとする（`ObservableObject` 直系で実 VM の基底ロジックを再利用しないため、基底クラス変更の影響を受けない）。`IMapListViewModel` 縮小（`IBeatmapListViewModel` 継承化）に伴い実装メンバが減る方向で簡素化される。
 
 ### DBパーサー・GenerateCollectionService の検証
 

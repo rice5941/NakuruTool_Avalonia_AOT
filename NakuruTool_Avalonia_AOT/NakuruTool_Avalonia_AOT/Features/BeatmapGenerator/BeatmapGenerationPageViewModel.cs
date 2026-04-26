@@ -1,4 +1,3 @@
-using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
@@ -14,41 +13,16 @@ using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 
-public partial class BeatmapGenerationPageViewModel : ViewModelBase
+public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
 {
     private readonly IDatabaseService _databaseService;
     private readonly IBeatmapRateGenerator _beatmapRateGenerator;
-    private readonly ISettingsService _settingsService;
-    private readonly AvaloniaList<Beatmap> _showBeatmapsList;
-    private Beatmap[] _resolvedBeatmaps = Array.Empty<Beatmap>();
+    private CancellationTokenSource? _cts;
 
     public IBeatmapRateGenerator BeatmapRateGenerator => _beatmapRateGenerator;
 
     public CollectionSelectorViewModel CollectionSelector { get; }
     public RateGenerationViewModel RateGeneration { get; }
-
-    [ObservableProperty]
-    public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; }
-
-    [ObservableProperty]
-    public partial int ResolvedBeatmapCount { get; set; }
-
-    [ObservableProperty]
-    public partial ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
-
-    [ObservableProperty]
-    public partial ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
-
-    [ObservableProperty]
-    public partial int CurrentBeatmapPage { get; set; } = 1;
-
-    [ObservableProperty]
-    public partial int BeatmapPageCount { get; set; } = 1;
-
-    [ObservableProperty]
-    public partial int BeatmapPageSize { get; set; } = 20;
-
-    public IAvaloniaReadOnlyList<int> BeatmapPageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
     [ObservableProperty]
     public partial int SelectedGenerationTabIndex { get; set; } = 0;
@@ -62,19 +36,14 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial string GenerationStatusMessage { get; set; } = "";
 
-    private CancellationTokenSource? _cts;
-
     public BeatmapGenerationPageViewModel(
         IDatabaseService databaseService,
         IBeatmapRateGenerator beatmapRateGenerator,
         ISettingsService settingsService)
+        : base(settingsService)
     {
         _databaseService = databaseService;
         _beatmapRateGenerator = beatmapRateGenerator;
-        _settingsService = settingsService;
-
-        _showBeatmapsList = new AvaloniaList<Beatmap>();
-        ShowBeatmaps = _showBeatmapsList;
 
         CollectionSelector = new CollectionSelectorViewModel(databaseService);
         RateGeneration = new RateGenerationViewModel();
@@ -91,9 +60,9 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
             .Subscribe(_ => BatchGenerateCommand.NotifyCanExecuteChanged())
             .AddTo(Disposables);
 
-        _settingsService.SettingsData.ObservePropertyAndSubscribe(
-            nameof(ISettingsData.PreferUnicode),
-            () => UpdateShowBeatmaps(),
+        this.ObservePropertyAndSubscribe(
+            nameof(FilteredCount),
+            () => BatchGenerateCommand.NotifyCanExecuteChanged(),
             Disposables);
     }
 
@@ -102,7 +71,11 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
         CollectionSelector.RefreshCollections();
     }
 
-    private bool CanBatchGenerate() => !IsGenerating && CollectionSelector.SelectedCollection is not null && !RateGeneration.HasValidationErrors && ResolvedBeatmapCount > 0;
+    private bool CanBatchGenerate() =>
+        !IsGenerating &&
+        CollectionSelector.SelectedCollection is not null &&
+        !RateGeneration.HasValidationErrors &&
+        FilteredCount > 0;
 
     [RelayCommand(CanExecute = nameof(CanBatchGenerate))]
     private async Task BatchGenerateAsync()
@@ -110,7 +83,7 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
         var collection = CollectionSelector.SelectedCollection;
         if (collection is null) return;
 
-        var beatmaps = _resolvedBeatmaps;
+        var beatmaps = SourceBeatmapsRaw;
         if (beatmaps.Length == 0) return;
 
         _cts = new CancellationTokenSource();
@@ -158,7 +131,7 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
                     result.SuccessCount);
 
                 message += "\n" + lang.GetString("BeatmapGen.RefreshHint");
-                
+
                 GenerationStatusMessage = message;
             }
         }
@@ -184,24 +157,12 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
         _cts?.Cancel();
     }
 
-    [RelayCommand(CanExecute = nameof(CanGoToNextBeatmapPage))]
-    private void NextBeatmapPage() => CurrentBeatmapPage++;
-    private bool CanGoToNextBeatmapPage() => CurrentBeatmapPage < BeatmapPageCount;
-
-    [RelayCommand(CanExecute = nameof(CanGoToPreviousBeatmapPage))]
-    private void PreviousBeatmapPage() => CurrentBeatmapPage--;
-    private bool CanGoToPreviousBeatmapPage() => CurrentBeatmapPage > 1;
-
     private void RefreshCollectionBeatmaps()
     {
         var collection = CollectionSelector.SelectedCollection;
         if (collection is null)
         {
-            _resolvedBeatmaps = Array.Empty<Beatmap>();
-            ResolvedBeatmapCount = 0;
-            UpdateBeatmapPageCount();
-            CurrentBeatmapPage = 1;
-            UpdateShowBeatmaps();
+            SetSourceBeatmaps(Array.Empty<Beatmap>());
             BatchGenerateCommand.NotifyCanExecuteChanged();
             return;
         }
@@ -213,74 +174,8 @@ public partial class BeatmapGenerationPageViewModel : ViewModelBase
                 results.Add(beatmap);
         }
 
-        _resolvedBeatmaps = results.ToArray();
-        ResolvedBeatmapCount = _resolvedBeatmaps.Length;
-        UpdateBeatmapPageCount();
-        CurrentBeatmapPage = 1;
-        UpdateShowBeatmaps();
+        SetSourceBeatmaps(results.ToArray());
         BatchGenerateCommand.NotifyCanExecuteChanged();
-    }
-
-    private void UpdateBeatmapPageCount()
-    {
-        var size = Math.Max(1, BeatmapPageSize);
-        BeatmapPageCount = Math.Max(1, (ResolvedBeatmapCount + size - 1) / size);
-    }
-
-    private void UpdateShowBeatmaps()
-    {
-        var size = Math.Max(1, BeatmapPageSize);
-        var skip = (CurrentBeatmapPage - 1) * size;
-        var remaining = Math.Max(0, _resolvedBeatmaps.Length - skip);
-        var take = Math.Min(size, remaining);
-
-        _showBeatmapsList.Clear();
-
-        if (take > 0)
-        {
-            var mod = SelectedModCategory;
-            var scoreSystem = SelectedScoreSystemCategory;
-            var span = _resolvedBeatmaps.AsSpan(skip, take);
-            foreach (var beatmap in span)
-            {
-                var displayed = beatmap with
-                {
-                    BestScore = beatmap.GetBestScore(scoreSystem, mod),
-                    BestAccuracy = beatmap.GetBestAccuracy(scoreSystem, mod),
-                    Grade = beatmap.GetGrade(scoreSystem, mod)
-                };
-                _showBeatmapsList.Add(displayed);
-            }
-        }
-    }
-
-    partial void OnCurrentBeatmapPageChanged(int value)
-    {
-        UpdateShowBeatmaps();
-        NextBeatmapPageCommand.NotifyCanExecuteChanged();
-        PreviousBeatmapPageCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnBeatmapPageCountChanged(int value)
-    {
-        NextBeatmapPageCommand.NotifyCanExecuteChanged();
-        PreviousBeatmapPageCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnBeatmapPageSizeChanged(int value)
-    {
-        UpdateBeatmapPageCount();
-        UpdateShowBeatmaps();
-    }
-
-    partial void OnSelectedModCategoryChanged(ModCategory value)
-    {
-        UpdateShowBeatmaps();
-    }
-
-    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value)
-    {
-        UpdateShowBeatmaps();
     }
 
     partial void OnIsGeneratingChanged(bool value)

@@ -154,6 +154,40 @@ flowchart LR
 
 ユーザーがフィルタ条件を操作すると、R3リアクティブチェーンを通じて譜面一覧が自動更新される。
 
+### 3.1 BeatmapList 表示更新（共通フロー）
+
+`MapListViewModel` / `BeatmapGenerationPageViewModel` の双方は `BeatmapListViewModelBase` を継承し、ソース配列差し替え→ページ数算出→ページ反映の流れを共通化している。
+
+```mermaid
+flowchart TD
+    DERV["派生.SetSourceBeatmaps(arr)"] -->|"_sourceBeatmaps = arr"| FC["基底: FilteredCount = arr.Length"]
+    FC -->|partial OnFilteredCountChanged| RPC["基底: RecalculatePageCount()<br/>(PageCount 算出のみ・末尾クランプなし)"]
+    RPC --> CPCHECK{"CurrentPage != 1 ?"}
+    CPCHECK -->|Yes| CPRESET["CurrentPage = 1<br/>(partial OnCurrentPageChanged)"]
+    CPCHECK -->|No| DIRECT["UpdateShowBeatmaps() を直接呼ぶ"]
+    CPRESET --> USB["UpdateShowBeatmaps()"]
+    DIRECT --> USB
+    USB -->|"Span skip/take + Mod/ScoreSystem 投影"| AL["AvaloniaList.Clear/Add<br/>(_showBeatmapsList)"]
+    AL -->|Binding| DG["DataGrid 反映"]
+
+    PSZ["PageSize 変更"] -->|partial OnPageSizeChanged| RPC2["基底: RecalculatePageCount()"]
+    RPC2 --> CPCHECK
+    Note1["注: PageSize 変更時は両画面で<br/>CurrentPage = 1 にリセット<br/>(仕様統一)"]
+
+    MOD["SelectedModCategory 変更"] -->|partial| USB
+    SS["SelectedScoreSystemCategory 変更"] -->|partial| USB
+    PU["PreferUnicode 変更<br/>(基底 ctor の R3 購読)"] --> USB
+```
+
+#### 仕様メモ
+
+- `SetSourceBeatmaps(arr)` は入口で必ず `CurrentPage = 1` にリセットされる（既に 1 なら `UpdateShowBeatmaps()` を直接呼ぶ）。フィルタ変更・コレクション変更後に旧ページに留まらないことを保証する。
+- `PageSize` 変更時も両画面で `CurrentPage = 1` にリセットされる（仕様統一。`BeatmapGenerationPageViewModel` 側はかつて旧ページを保持していたが、基底化に伴い `MapListViewModel` 現行挙動に揃えた）。
+- Mod / ScoreSystem 切替（`SelectedModCategory` / `SelectedScoreSystemCategory`）では `UpdateShowBeatmaps()` のみが走り、`PageCount` / `CurrentPage` には触れない。
+- `UpdateShowBeatmaps()` は `AvaloniaList` のインスタンス自体を差し替えず `Clear()` + `Add()` で内容を更新する（DataGrid の差分通知契約を維持）。
+
+### 3.2 MapList のフィルタチェーン
+
 ```mermaid
 flowchart TD
     U["ユーザー操作"] -->|条件追加/変更/削除| FC["FilterCondition<br/>(ObservableObject)"]
@@ -194,7 +228,7 @@ flowchart TD
 | デフォルト | 20 |
 | 選択可能 | 10, 20, 50, 100 |
 
-`PageSize` 変更時は `OnPageSizeChanged` → `UpdateFilteredPages()` → `UpdateShowBeatmaps()` の順で更新。
+`PageSize` 変更時の挙動は §3.1「BeatmapList 表示更新（共通フロー）」を参照（基底 `BeatmapListViewModelBase` が `RecalculatePageCount()` → `CurrentPage = 1` リセットを連鎖実行する）。
 
 ---
 

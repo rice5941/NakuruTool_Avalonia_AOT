@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "Error al escribir el JSON de colección: {0}",
     "CollectionJsonImportNote": "Importa el .osz generado en osu!, recarga la base de datos y luego importa este JSON.",
     "CollectionJsonSkipped": "Se han excluido {0} beatmap(s) del JSON.",
-    "CollectionJsonSkippedDueToCollision": "Se han excluido {0} beatmap(s) del JSON por colisión de nombres con el .osz existente.",
     "CollectionJsonCancelled": "La generación del JSON de colección se canceló. Los archivos .osz se han generado correctamente.",
     "BeatmapCount": "{0} Beatmaps"
   }

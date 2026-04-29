@@ -48,7 +48,6 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
         var beatmaps = new List<CollectionExchangeBeatmap>(results.Count);
         var seenMd5 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var skippedCount = 0;
-        var collisionCount = 0;
 
         foreach (var result in results)
         {
@@ -64,17 +63,12 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
                 continue;
             }
 
-            // JsonItem 欠落は IncludedInOsz の判定より優先して Skipped 扱い。
-            // (JsonItem == null && IncludedInOsz == false の場合は Skipped に集約)
+            // JsonItem 欠落のみ Skipped 扱い。IncludedInOsz は JSON 出力可否に影響させない
+            // (既存 .osz と同名 entry が衝突しても、レート生成済み .osu の MD5/メタは
+            //  通常同一なため、JSON 取込み上は問題にならない)。
             if (result.JsonItem is null)
             {
                 skippedCount++;
-                continue;
-            }
-
-            if (!result.IncludedInOsz)
-            {
-                collisionCount++;
                 continue;
             }
 
@@ -97,8 +91,7 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
                 OutputCollectionName = outputCollectionName,
                 WrittenBeatmapCount = 0,
                 SkippedBeatmapCount = skippedCount,
-                CollisionSkippedCount = collisionCount,
-                WarningMessage = BuildWarningMessage(skippedCount, collisionCount, fileWritten: false),
+                WarningMessage = BuildWarningMessage(skippedCount, fileWritten: false),
             };
         }
 
@@ -106,8 +99,7 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
 
         var rateLabelForFile = SanitizeForFileName(rateLabelDisplay.Replace(' ', '_'));
         var sanitizedCollectionName = SanitizeForFileName(sourceCollectionName);
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
-        var fileName = $"{sanitizedCollectionName}_{rateLabelForFile}_{timestamp}.json";
+        var fileName = $"{sanitizedCollectionName}_{rateLabelForFile}.json";
         var outputFilePath = Path.Combine(OutputFolder, fileName);
         var tempPath = outputFilePath + ".tmp";
 
@@ -144,8 +136,7 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
             OutputCollectionName = outputCollectionName,
             WrittenBeatmapCount = beatmaps.Count,
             SkippedBeatmapCount = skippedCount,
-            CollisionSkippedCount = collisionCount,
-            WarningMessage = BuildWarningMessage(skippedCount, collisionCount, fileWritten: true),
+            WarningMessage = BuildWarningMessage(skippedCount, fileWritten: true),
         };
     }
 
@@ -208,9 +199,9 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
         return new string(chars);
     }
 
-    private static string? BuildWarningMessage(int skipped, int collision, bool fileWritten)
+    private static string? BuildWarningMessage(int skipped, bool fileWritten)
     {
-        if (skipped == 0 && collision == 0)
+        if (skipped == 0)
             return null;
 
         var sb = new StringBuilder();
@@ -221,12 +212,6 @@ public sealed class RateGenerationCollectionJsonWriter : IRateGenerationCollecti
         {
             if (sb.Length > 0) sb.Append(' ');
             sb.Append(CultureInfo.InvariantCulture, $"Skipped {skipped} beatmap(s).");
-        }
-
-        if (collision > 0)
-        {
-            if (sb.Length > 0) sb.Append(' ');
-            sb.Append(CultureInfo.InvariantCulture, $"{collision} beatmap(s) excluded due to .osz entry collision.");
         }
 
         return sb.Length == 0 ? null : sb.ToString();

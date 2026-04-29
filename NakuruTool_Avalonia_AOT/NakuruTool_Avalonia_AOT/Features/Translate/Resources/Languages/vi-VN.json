@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "Ghi JSON bộ sưu tập thất bại: {0}",
     "CollectionJsonImportNote": "Hãy nhập tệp .osz đã tạo vào osu!, nạp lại DB, sau đó nhập tệp JSON này.",
     "CollectionJsonSkipped": "{0} beatmap đã bị loại khỏi JSON.",
-    "CollectionJsonSkippedDueToCollision": "{0} beatmap đã bị loại khỏi JSON do trùng tên với .osz hiện có.",
     "CollectionJsonCancelled": "Đã hủy xuất JSON bộ sưu tập. Các tệp .osz đã được tạo thành công.",
     "BeatmapCount": "{0} Beatmaps"
   }

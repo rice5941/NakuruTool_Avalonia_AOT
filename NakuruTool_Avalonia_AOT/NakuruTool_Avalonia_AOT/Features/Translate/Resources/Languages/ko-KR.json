@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "컬렉션 JSON 작성에 실패했습니다: {0}",
     "CollectionJsonImportNote": "osu!에서 생성된 .osz를 가져온 뒤 DB를 다시 불러온 후 이 JSON을 가져오세요.",
     "CollectionJsonSkipped": "{0}개의 비트맵이 JSON에서 제외되었습니다.",
-    "CollectionJsonSkippedDueToCollision": "기존 .osz 내 같은 이름의 비트맵과 충돌하여 {0}개의 비트맵이 JSON에서 제외되었습니다.",
     "CollectionJsonCancelled": "컬렉션 JSON 출력이 취소되었습니다. .osz 파일은 정상적으로 생성되었습니다.",
     "BeatmapCount": "{0} Beatmaps"
   }

@@ -179,12 +179,6 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
                                 lang.GetString("BeatmapGen.CollectionJsonSkipped"),
                                 writeResult.SkippedBeatmapCount);
                         }
-                        if (writeResult.CollisionSkippedCount > 0)
-                        {
-                            message += "\n" + string.Format(
-                                lang.GetString("BeatmapGen.CollectionJsonSkippedDueToCollision"),
-                                writeResult.CollisionSkippedCount);
-                        }
                     }
                     catch (OperationCanceledException)
                     {

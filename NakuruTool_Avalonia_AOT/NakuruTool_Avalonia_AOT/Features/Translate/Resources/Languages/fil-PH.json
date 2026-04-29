@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "Nabigong isulat ang collection JSON: {0}",
     "CollectionJsonImportNote": "I-import ang nabuong .osz sa osu!, i-reload ang DB, pagkatapos ay i-import ang JSON na ito.",
     "CollectionJsonSkipped": "{0} beatmap ang hindi isinama sa JSON.",
-    "CollectionJsonSkippedDueToCollision": "{0} beatmap ang hindi isinama sa JSON dahil sa banggaan ng pangalan sa umiiral na .osz.",
     "CollectionJsonCancelled": "Nakansela ang paggawa ng collection JSON. Matagumpay na nabuo ang mga .osz file.",
     "BeatmapCount": "{0} Beatmaps"
   }

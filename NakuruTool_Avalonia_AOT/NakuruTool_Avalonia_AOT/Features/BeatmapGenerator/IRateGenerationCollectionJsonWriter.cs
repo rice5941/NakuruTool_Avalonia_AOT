@@ -35,9 +35,6 @@ public sealed record RateGenerationCollectionJsonWriteResult
     /// <summary>JSON 化対象から除外された件数 (JsonItem 欠落・dedupe など)。</summary>
     public int SkippedBeatmapCount { get; init; }
 
-    /// <summary>同一エントリ衝突などで .osz に収録されず JSON 化を見送った件数。</summary>
-    public int CollisionSkippedCount { get; init; }
-
     /// <summary>UI 等に表示するための簡易警告メッセージ (i18n は呼び出し側責務)。</summary>
     public string? WarningMessage { get; init; }
 }

@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "Gagal menulis JSON koleksi: {0}",
     "CollectionJsonImportNote": "Import .osz yang dijana ke dalam osu!, muat semula DB, kemudian import JSON ini.",
     "CollectionJsonSkipped": "{0} beatmap dikecualikan daripada JSON.",
-    "CollectionJsonSkippedDueToCollision": "{0} beatmap dikecualikan daripada JSON kerana perlanggaran nama dengan .osz sedia ada.",
     "CollectionJsonCancelled": "Penjanaan JSON koleksi dibatalkan. Fail .osz telah dijana dengan jayanya.",
     "BeatmapCount": "{0} Beatmaps"
   }

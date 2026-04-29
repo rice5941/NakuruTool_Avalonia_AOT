@@ -267,7 +267,6 @@
     "CollectionJsonFailed": "写入收藏夹 JSON 失败：{0}",
     "CollectionJsonImportNote": "请先在 osu! 中导入生成的 .osz 并重新加载数据库，然后再导入此 JSON。",
     "CollectionJsonSkipped": "有 {0} 个谱面未包含在 JSON 中。",
-    "CollectionJsonSkippedDueToCollision": "由于与现有 .osz 内的同名谱面冲突，有 {0} 个谱面未包含在 JSON 中。",
     "CollectionJsonCancelled": "收藏夹 JSON 输出已取消。.osz 文件已成功生成。",
     "BeatmapCount": "{0} Beatmaps"
   }

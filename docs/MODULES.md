@@ -1526,7 +1526,7 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック）。tempDir に生成した .osu から `OsuFileMetadataReader` で `[Metadata]` / `[Difficulty]` を読み、`MD5.HashData(Stream)` で MD5 を計算し `RateGenerationJsonItem` を構築。最終 .osz に実際に entry が追加されたか（既存衝突でスキップされていないか）を `IncludedInOsz` として `RateGenerationResult` に保持する |
 | `RateGenerationJsonItem.cs` | モデル | 生成 .osu 由来の JSON 1 アイテム（Title / Artist / Version / Creator / Cs / BeatmapsetId / Md5）。BeatmapGenerator 内で完結し ImportExport DTO には依存しない |
 | `IRateGenerationCollectionJsonWriter.cs` | インターフェース | 一括レート生成の sidecar JSON 出力契約 |
-| `RateGenerationCollectionJsonWriter.cs` | サービス | `RateGenerationResult.JsonItem` / `IncludedInOsz` から `CollectionExchangeData` 互換 JSON を組み立て `imports/rate-generation/` へ出力。`ImportExportJsonContext` を `JsonSerializerOptions` 付きで再構築して使用し、新規 JSON 型は追加しない |
+| `RateGenerationCollectionJsonWriter.cs` | サービス | `RateGenerationResult.JsonItem` から `CollectionExchangeData` 互換 JSON を組み立て `imports/rate-generation/` へ出力。`IncludedInOsz` は出力フィルタに使用せず（既存 .osz との entry 名衝突有無に関わらず JSON 対象に含める）、Md5 dedupe のみ適用。`ImportExportJsonContext` を `JsonSerializerOptions` 付きで再構築して使用し、新規 JSON 型は追加しない |
 | `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替）。`IBeatmapListViewModel`（Shared）を実装し、共通 `MapListView` をコレクション内譜面リストとして埋め込む |
 | `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト。譜面リスト部は `MapListView` を埋め込み、`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false` などの `StyledProperty` で表示要素を制御する |
 | `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |
@@ -1588,18 +1588,17 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 
 一括レート生成（`BeatmapGenerationPageViewModel.BatchGenerateAsync`）では、`RateGenerationViewModel.EmitCollectionJson`（既定 `true`、永続化なし、単体生成 UI では非表示）が ON かつ 1 件以上成功した場合のみ、`IRateGenerationCollectionJsonWriter.WriteBatchAsync` を `Task.Run` 経由で呼び出して sidecar JSON を出力する。
 
-- 入力ソースは各 `RateGenerationResult` の `JsonItem` と `IncludedInOsz`。集計ルールは以下の通り:
-  - `Success == false`（生成自体が失敗した結果）は writer の集計対象外。`Skipped` / `CollisionSkipped` どちらにも含めず単に無視する
+- 入力ソースは各 `RateGenerationResult` の `JsonItem`。`IncludedInOsz` は結果情報として `RateGenerationResult` に保持されるが、writer はこれをフィルタとして参照しない。集計ルールは以下の通り:
+  - `Success == false`（生成自体が失敗した結果）は writer の集計対象外。`Skipped` にも含めず単に無視する
   - `Success == true` であっても `GeneratedOszPath` 欠落 / `JsonItem == null` / `Md5` が空または重複（同一バッチ内で先勝ち dedupe）といった「JSON 化できなかった」結果は `SkippedBeatmapCount` に集計
-  - `Success == true` かつ `JsonItem != null` だが `IncludedInOsz == false`（既存 .osz に同名 entry が存在し追加されなかった）結果は `CollisionSkippedCount` に集計
-  - 上記いずれにも該当しない結果のみ `CollectionExchangeBeatmap` として収録
+  - 上記以外の `Success == true` かつ `JsonItem != null` の結果は `IncludedInOsz` の値に関わらず `CollectionExchangeBeatmap` として収録される（既存 .osz 同名 entry 衝突時も、レート生成済み .osu の MD5 / メタは通常同一のため import 上問題にならない）
 - 出力先は `{AppDirectory}/imports/rate-generation/{SanitizedCollectionName}_{rateLabelForFile}_{yyyyMMdd_HHmmss}.json`
   - `SanitizedCollectionName` は元コレクション名から `Path.GetInvalidFileNameChars()` 該当文字を `_` に置換したもの
   - `rateLabelForFile` はレート表示ラベル（例: `1.25x DT HP8 OD5`）の空白を `_` に置換し、同様にサニタイズしたもの
   - 例: `7K LN 練習_1.25x_DT_HP8_OD5_20260429_123456.json`
 - ペイロードは `CollectionExchangeData`（`Name = "{元コレクション名} [<rate label>]"`、例: `7K LN 練習 [1.25x DT HP8 OD5]`、`Beatmaps = List<CollectionExchangeBeatmap>`）であり、ImportExport モジュールの既存 JSON と完全互換。新規 JSON 型は導入しない
 - 取り込み導線は **osu! 側で `.osz` を Songs に取り込み → アプリで DB 再読み込み → ImportExport 画面で当該 JSON を Import** の運用とする（writer 自身は collection.db を書かない）
-- `BeatmapGenerationPageViewModel` 側のステータス文には writer 結果を 1 行ずつ追記する（成功時の `CollectionJsonEmitted` と `CollectionJsonImportNote`、件数があれば `CollectionJsonSkipped` / `CollectionJsonSkippedDueToCollision`、`OperationCanceledException` 時は `CollectionJsonCancelled`、その他例外時は `CollectionJsonFailed`）
+- `BeatmapGenerationPageViewModel` 側のステータス文には writer 結果を 1 行ずつ追記する（成功時の `CollectionJsonEmitted` と `CollectionJsonImportNote`、件数があれば `CollectionJsonSkipped`、`OperationCanceledException` 時は `CollectionJsonCancelled`、その他例外時は `CollectionJsonFailed`）
 
 ### NativeAOT対応
 

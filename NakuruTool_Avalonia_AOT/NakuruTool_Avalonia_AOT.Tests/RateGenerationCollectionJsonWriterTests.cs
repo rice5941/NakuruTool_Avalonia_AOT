@@ -127,7 +127,6 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
         Assert.False(result.FileWritten);
         Assert.Equal(0, result.WrittenBeatmapCount);
         Assert.Equal(0, result.SkippedBeatmapCount);
-        Assert.Equal(0, result.CollisionSkippedCount);
     }
 
     [Fact]
@@ -225,8 +224,10 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteBatchAsync_NotIncludedInOsz_IsCountedAsCollisionSkipped()
+    public async Task WriteBatchAsync_NotIncludedInOsz_StillIncludedInJson()
     {
+        // 仕様変更: 既存 .osz 内の同名 entry 衝突 (IncludedInOsz=false) であっても
+        // JsonItem があれば JSON 出力対象に含める。
         var writer = new RateGenerationCollectionJsonWriter();
         var options = new RateGenerationOptions { Rate = 1.25 };
         var results = new List<RateGenerationResult>
@@ -236,10 +237,17 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
 
         var result = await writer.WriteBatchAsync("Coll", options, results);
 
-        Assert.False(result.FileWritten);
-        Assert.Equal(0, result.WrittenBeatmapCount);
-        Assert.Equal(1, result.CollisionSkippedCount);
+        Assert.True(result.FileWritten);
+        Assert.Equal(1, result.WrittenBeatmapCount);
         Assert.Equal(0, result.SkippedBeatmapCount);
+
+        await using var stream = File.OpenRead(result.OutputFilePath!);
+        var data = await JsonSerializer.DeserializeAsync(
+            stream,
+            ImportExportJsonContext.Default.CollectionExchangeData);
+        Assert.NotNull(data);
+        Assert.Single(data!.Beatmaps);
+        Assert.Equal("md5collide", data.Beatmaps[0].Md5);
     }
 
     [Fact]
@@ -256,7 +264,6 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
 
         Assert.False(result.FileWritten);
         Assert.Equal(1, result.SkippedBeatmapCount);
-        Assert.Equal(0, result.CollisionSkippedCount);
     }
 
     [Fact]
@@ -360,7 +367,7 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteBatchAsync_NullJsonItemAndNotIncluded_IsCountedAsSkippedOnly()
+    public async Task WriteBatchAsync_NullJsonItemAndNotIncluded_IsCountedAsSkipped()
     {
         // 仕様: JsonItem が null の場合は IncludedInOsz の値に関わらず Skipped として扱う。
         var writer = new RateGenerationCollectionJsonWriter();
@@ -375,7 +382,6 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
         Assert.False(result.FileWritten);
         Assert.Equal(0, result.WrittenBeatmapCount);
         Assert.Equal(1, result.SkippedBeatmapCount);
-        Assert.Equal(0, result.CollisionSkippedCount);
     }
 
     [Fact]
@@ -401,9 +407,9 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
             },
             // JsonItem null -> Skipped (IncludedInOsz=true)
             MakeSuccessResult("md5nojson", included: true, withJsonItem: false),
-            // JsonItem null かつ IncludedInOsz=false -> Skipped (CollisionSkipped にしない)
+            // JsonItem null かつ IncludedInOsz=false -> Skipped (JsonItem 欠落理由)
             MakeSuccessResult("md5composite", included: false, withJsonItem: false),
-            // IncludedInOsz=false かつ JsonItem あり -> CollisionSkipped
+            // IncludedInOsz=false かつ JsonItem あり -> JSON に含める (仕様変更)
             MakeSuccessResult("md5collide", included: false, withJsonItem: true),
             // 正常
             MakeSuccessResult("md5ok", included: true, withJsonItem: true),
@@ -412,9 +418,8 @@ public sealed class RateGenerationCollectionJsonWriterTests : IDisposable
         var result = await writer.WriteBatchAsync("Coll", options, results);
 
         Assert.True(result.FileWritten);
-        Assert.Equal(1, result.WrittenBeatmapCount);
+        Assert.Equal(2, result.WrittenBeatmapCount);
         Assert.Equal(3, result.SkippedBeatmapCount);
-        Assert.Equal(1, result.CollisionSkippedCount);
     }
 
     [Fact]

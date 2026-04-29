@@ -974,15 +974,15 @@ flowchart TD
     G --> Z[".osz 生成 / 既存 .osz と ZipArchiveMode.Update でマージ"]
     Z --> I{"同名 entry が既存で実際に追加されたか"}
     I -->|Yes| RT["RateGenerationResult.IncludedInOsz = true"]
-    I -->|No| RF["RateGenerationResult.IncludedInOsz = false (collision)"]
+    I -->|No| RF["RateGenerationResult.IncludedInOsz = false (collision、writer はフィルタに使わない)"]
 
     RT --> W["RateGenerationCollectionJsonWriter.WriteBatchAsync()"]
     RF --> W
     J --> W
-    W -->|"Success && JsonItem != null && IncludedInOsz && Md5 ユニーク"| INC["CollectionExchangeBeatmap として収録"]
+    W -->|"Success && JsonItem != null && Md5 ユニーク"| INC["CollectionExchangeBeatmap として収録 (IncludedInOsz に関わらず)"]
     W -->|"!Success"| IGN["集計対象外（無視）"]
     W -->|"Success && (GeneratedOszPath 空 / JsonItem null / Md5 空 or 重複)"| SKP["SkippedBeatmapCount に計上"]
-    W -->|"Success && JsonItem != null && !IncludedInOsz"| COL["CollisionSkippedCount に計上"]
+    INC --> O["imports/rate-generation/{SanitizedCollectionName}_{rateLabelForFile}_{yyyyMMdd_HHmmss}.json"]
     INC --> O["imports/rate-generation/{SanitizedCollectionName}_{rateLabelForFile}_{yyyyMMdd_HHmmss}.json"]
 ```
 

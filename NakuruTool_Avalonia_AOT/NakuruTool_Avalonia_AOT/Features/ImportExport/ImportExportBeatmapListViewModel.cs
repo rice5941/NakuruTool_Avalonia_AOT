@@ -33,6 +33,10 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     [ObservableProperty]
     public partial bool HasDownloadedItems { get; set; } = false;
 
+    /// <summary>キュー待ち or DL中の譜面が1つ以上存在するか</summary>
+    [ObservableProperty]
+    public partial bool IsDownloadInProgress { get; set; } = false;
+
     [ObservableProperty]
     public partial bool ShowOnlyMissing { get; set; } = false;
 
@@ -87,7 +91,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         }
     }
 
-    private bool CanDownloadAllMissing() => !IsAnyDownloading;
+    private bool CanDownloadAllMissing() => !IsDownloadInProgress;
 
     [RelayCommand(CanExecute = nameof(CanCancelDownloads))]
     private async Task CancelDownloadsAsync()
@@ -95,20 +99,25 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         await _downloadService.CancelAllAsync();
     }
 
-    private bool CanCancelDownloads() => IsAnyDownloading;
+    private bool CanCancelDownloads() => IsDownloadInProgress;
 
     /// <summary>DL中またはキュー待ちの譜面が1つでもあるか</summary>
-    private bool IsAnyDownloading
+    private bool ComputeIsAnyDownloading()
     {
-        get
+        foreach (var item in _allPreviewRows)
         {
-            foreach (var item in _allPreviewRows)
-            {
-                if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
-                    return true;
-            }
-            return false;
+            if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
+                return true;
         }
+        return false;
+    }
+
+    /// <summary>DL状態を再評価して関連プロパティ/コマンドを更新する</summary>
+    private void RefreshDownloadState()
+    {
+        IsDownloadInProgress = ComputeIsAnyDownloading();
+        DownloadAllMissingCommand.NotifyCanExecuteChanged();
+        CancelDownloadsCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -126,6 +135,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         ApplyMissingFilter();
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+        RefreshDownloadState();
     }
 
     /// <summary>
@@ -143,6 +153,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         ShowOnlyMissing = false;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
+        RefreshDownloadState();
     }
 
     private void SubscribeItemEvents()
@@ -153,8 +164,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
             item.ObserveProperty(nameof(ImportExportBeatmapItem.DownloadState))
                 .Subscribe(_ =>
                 {
-                    DownloadAllMissingCommand.NotifyCanExecuteChanged();
-                    CancelDownloadsCommand.NotifyCanExecuteChanged();
+                    RefreshDownloadState();
                     if (!HasDownloadedItems)
                         HasDownloadedItems = CheckHasDownloadedItems();
                     if (ShowOnlyMissing)

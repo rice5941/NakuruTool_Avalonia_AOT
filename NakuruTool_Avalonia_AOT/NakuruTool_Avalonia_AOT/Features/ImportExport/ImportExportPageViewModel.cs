@@ -115,6 +115,18 @@ public partial class ImportExportPageViewModel : ViewModelBase, IDisposable
                     ExportViewModel.SelectedExportCollection = null;
             })
             .AddTo(Disposables);
+
+        // DL中はImport/Exportのプレビュー対象選択を不可にする
+        // （行選択でプレビュー対象が変わるとDLがキャンセルされるため）
+        BeatmapListViewModel.ObservePropertyAndSubscribe(
+            nameof(ImportExportBeatmapListViewModel.IsDownloadInProgress),
+            () =>
+            {
+                var canSelect = !BeatmapListViewModel.IsDownloadInProgress;
+                ExportViewModel.CanSelectPreviewSource = canSelect;
+                ImportViewModel.CanSelectPreviewSource = canSelect;
+            },
+            Disposables);
     }
 
     public void Initialize()

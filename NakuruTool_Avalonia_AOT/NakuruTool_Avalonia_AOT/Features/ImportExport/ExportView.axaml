@@ -12,7 +12,8 @@
 
     <Border BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
             Background="{DynamicResource SemiGrey0}">
-        <Grid RowDefinitions="Auto,*,Auto,Auto">
+        <Grid RowDefinitions="Auto,*,Auto,Auto"
+              IsEnabled="{Binding CanSelectPreviewSource}">
 
             <!-- Row 0: ヘッダー（Exportアイコン + タイトル） -->
             <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"

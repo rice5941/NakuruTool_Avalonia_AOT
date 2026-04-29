@@ -39,6 +39,10 @@ public partial class ExportViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool IsProgressVisible { get; set; } = false;
 
+    /// <summary>プレビュー対象の選択（行クリック）が許可されているか</summary>
+    [ObservableProperty]
+    public partial bool CanSelectPreviewSource { get; set; } = true;
+
     private readonly Subject<ImportExportBeatmapItem[]> _previewRequestedSubject;
     public Observable<ImportExportBeatmapItem[]> PreviewRequested => _previewRequestedSubject;
 

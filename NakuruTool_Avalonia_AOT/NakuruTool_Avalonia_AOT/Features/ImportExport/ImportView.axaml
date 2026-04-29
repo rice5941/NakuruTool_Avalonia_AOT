@@ -14,7 +14,8 @@
             BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource SemiGrey3}"
             Background="{DynamicResource SemiGrey0}"
             DragDrop.AllowDrop="True">
-        <Grid RowDefinitions="Auto,*,Auto,Auto">
+        <Grid RowDefinitions="Auto,*,Auto,Auto"
+              IsEnabled="{Binding CanSelectPreviewSource}">
 
             <!-- Row 0: ヘッダー（Importアイコン + タイトル） -->
             <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"

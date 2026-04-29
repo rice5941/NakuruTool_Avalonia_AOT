@@ -57,7 +57,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceA = new MockDatabaseService();
         var mockImportExportServiceA = new MockImportExportService();
         var mockImportExportPageViewModelA = new ImportExportPageViewModel(mockDatabaseServiceA, mockImportExportServiceA, mockSettingsService, new NullBeatmapDownloadService());
-        var mockBeatmapGenerationPageViewModelA = new BeatmapGenerationPageViewModel(mockDatabaseServiceA, new MockBeatmapRateGenerator(), mockSettingsService);
+        var mockBeatmapGenerationPageViewModelA = new BeatmapGenerationPageViewModel(mockDatabaseServiceA, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -133,7 +133,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceB = new MockDatabaseService();
         var mockImportExportServiceB = new MockImportExportService();
         var mockImportExportPageViewModelB = new ImportExportPageViewModel(mockDatabaseServiceB, mockImportExportServiceB, mockSettingsService, new NullBeatmapDownloadService());
-        var mockBeatmapGenerationPageViewModelB = new BeatmapGenerationPageViewModel(mockDatabaseServiceB, new MockBeatmapRateGenerator(), mockSettingsService);
+        var mockBeatmapGenerationPageViewModelB = new BeatmapGenerationPageViewModel(mockDatabaseServiceB, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -226,7 +226,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseServiceC = new MockDatabaseService();
         var mockImportExportServiceC = new MockImportExportService();
         var mockImportExportPageViewModelC = new ImportExportPageViewModel(mockDatabaseServiceC, mockImportExportServiceC, mockSettingsService, new NullBeatmapDownloadService());
-        var mockBeatmapGenerationPageViewModelC = new BeatmapGenerationPageViewModel(mockDatabaseServiceC, new MockBeatmapRateGenerator(), mockSettingsService);
+        var mockBeatmapGenerationPageViewModelC = new BeatmapGenerationPageViewModel(mockDatabaseServiceC, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -293,7 +293,7 @@ public class MainWindowViewScreenshotTests
         var mockDatabaseService3 = new MockDatabaseService();
         var mockImportExportService3 = new MockImportExportService();
         var mockImportExportPageViewModel3 = new ImportExportPageViewModel(mockDatabaseService3, mockImportExportService3, mockSettingsService, new NullBeatmapDownloadService());
-        var mockBeatmapGenerationPageViewModel3 = new BeatmapGenerationPageViewModel(mockDatabaseService3, new MockBeatmapRateGenerator(), mockSettingsService);
+        var mockBeatmapGenerationPageViewModel3 = new BeatmapGenerationPageViewModel(mockDatabaseService3, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter());
 
         // MainWindowViewModelを作成
         var mainWindowViewModel = new MainWindowViewModel(
@@ -856,6 +856,19 @@ public class MockBeatmapRateGenerator : IBeatmapRateGenerator
         IProgress<RateGenerationProgress>? progress = null,
         CancellationToken cancellationToken = default)
         => Task.FromResult(new BatchGenerationResult { Results = [] });
+}
+
+/// <summary>
+/// テスト用のモック RateGenerationCollectionJsonWriter (常に未書き出し結果を返す)
+/// </summary>
+public class MockRateGenerationCollectionJsonWriter : IRateGenerationCollectionJsonWriter
+{
+    public Task<RateGenerationCollectionJsonWriteResult> WriteBatchAsync(
+        string sourceCollectionName,
+        RateGenerationOptions options,
+        IReadOnlyList<RateGenerationResult> results,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(new RateGenerationCollectionJsonWriteResult { FileWritten = false });
 }
 
 /// <summary>

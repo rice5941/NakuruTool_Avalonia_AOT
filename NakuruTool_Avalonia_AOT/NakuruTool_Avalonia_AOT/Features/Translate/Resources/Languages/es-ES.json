@@ -261,6 +261,14 @@
     "Mp3HighQuality": "Alta calidad",
     "ValidationRequired": "Ingrese un valor",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "Emitir JSON de importación de colección",
+    "EmitCollectionJsonTooltip": "Genera un archivo JSON para la pantalla de importación a partir del MD5 y los metadatos de los archivos .osu generados.",
+    "CollectionJsonEmitted": "JSON de colección escrito: {0} ({1} beatmaps)",
+    "CollectionJsonFailed": "Error al escribir el JSON de colección: {0}",
+    "CollectionJsonImportNote": "Importa el .osz generado en osu!, recarga la base de datos y luego importa este JSON.",
+    "CollectionJsonSkipped": "Se han excluido {0} beatmap(s) del JSON.",
+    "CollectionJsonSkippedDueToCollision": "Se han excluido {0} beatmap(s) del JSON por colisión de nombres con el .osz existente.",
+    "CollectionJsonCancelled": "La generación del JSON de colección se canceló. Los archivos .osz se han generado correctamente.",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

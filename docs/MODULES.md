@@ -983,6 +983,8 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 | `ViewModels/IBeatmapListViewModel.cs` | 共通 BeatmapList View（`MapListView`）が要求する ViewModel 契約。`MapListViewModel` と `BeatmapGenerationPageViewModel` の双方が実装する（既存 public 名は維持し alias で吸収） |
 | `ViewModels/BeatmapListViewModelBase.cs` | 譜面一覧系 ViewModel の共通基底（abstract）。`IBeatmapListViewModel` 実装と共通責務（ページング・ContextMenu コマンド・Mod / ScoreSystem 切替・`PreferUnicode` 監視）を集約する |
 | `Extensions/R3Extensions.cs` | R3関連の拡張メソッド |
+| `OsuFileBasicMetadata.cs` | `.osu` の `[Metadata]` / `[Difficulty]` から抽出した基本項目（Title / Artist / Version / Creator / CircleSize / BeatmapSetID）を保持する readonly ストラクト |
+| `OsuFileMetadataReader.cs` | `.osu` ファイルから `BeatmapSetID` ・基本メタを `Try*` パターンで読む AOT 安全な internal static ヘルパー。`Span<char>` ベース、セクションヘッダ検出で早期打ち切り、リフレクション・動的コード生成不使用 |
 | `Converters/` | XAML用の値コンバーター（16クラス） |
 
 ### 概要
@@ -1521,7 +1523,10 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `OsuReferencedAssets.cs` | モデル | .osuファイルが参照する外部アセットの分類済みデータ（MainAudio / SampleAudioFiles / NonAudioFiles） |
 | `StoryboardSyntaxHelper.cs` | internal static | storyboard event の alias 正規化（numeric 0-6 ↔ 文字列 alias）と `[Variables]` 最長一致展開のヘルパー |
 | `StoryboardLineRateTransformer.cs` | internal static | top-level event 行のレート変換ロジック（`.osu` 用。`Animation.frameDelay` はスケールせず素通し） |
-| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック） |
+| `BeatmapRateGenerator.cs` | サービス | レート生成のオーケストレータ（アセット収集 + オーディオ変換 + .osu変換 → .osz生成。出力先 .osz が既存なら `ZipArchiveMode.Update` で不足エントリのみ追加マージし同名は既存優先でスキップ、`InvalidDataException` 時のみ新規作成にフォールバック）。tempDir に生成した .osu から `OsuFileMetadataReader` で `[Metadata]` / `[Difficulty]` を読み、`MD5.HashData(Stream)` で MD5 を計算し `RateGenerationJsonItem` を構築。最終 .osz に実際に entry が追加されたか（既存衝突でスキップされていないか）を `IncludedInOsz` として `RateGenerationResult` に保持する |
+| `RateGenerationJsonItem.cs` | モデル | 生成 .osu 由来の JSON 1 アイテム（Title / Artist / Version / Creator / Cs / BeatmapsetId / Md5）。BeatmapGenerator 内で完結し ImportExport DTO には依存しない |
+| `IRateGenerationCollectionJsonWriter.cs` | インターフェース | 一括レート生成の sidecar JSON 出力契約 |
+| `RateGenerationCollectionJsonWriter.cs` | サービス | `RateGenerationResult.JsonItem` / `IncludedInOsz` から `CollectionExchangeData` 互換 JSON を組み立て `imports/rate-generation/` へ出力。`ImportExportJsonContext` を `JsonSerializerOptions` 付きで再構築して使用し、新規 JSON 型は追加しない |
 | `BeatmapGenerationPageViewModel.cs` | ViewModel | 生成ページ全体の制御（タブ切替）。`IBeatmapListViewModel`（Shared）を実装し、共通 `MapListView` をコレクション内譜面リストとして埋め込む |
 | `BeatmapGenerationPageView.axaml` | View | 生成ページのレイアウト。譜面リスト部は `MapListView` を埋め込み、`ShowAudioPlayer=false` / `ShowTotalCount=false` / `ShowFilteredCount=false` / `ShowResolvedCount=true` / `ShowHistoryColumn=false` / `ShowIsPlayedColumn=false` などの `StyledProperty` で表示要素を制御する |
 | `BeatmapGenerationPageView.axaml.cs` | CodeBehind | |
@@ -1579,11 +1584,30 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - ページサイズは基底 `PageSizes`（10 / 20 / 50 / 100、デフォルト 20）を共有
 - `PageSize` 変更時は **両画面共通で `CurrentPage = 1` にリセット** される（仕様統一。BeatmapGen 側はかつて旧ページが保持されていたが、基底化に伴い MapList 現行挙動に統一）
 
+### コレクションインポート用 JSON サイドカー出力
+
+一括レート生成（`BeatmapGenerationPageViewModel.BatchGenerateAsync`）では、`RateGenerationViewModel.EmitCollectionJson`（既定 `true`、永続化なし、単体生成 UI では非表示）が ON かつ 1 件以上成功した場合のみ、`IRateGenerationCollectionJsonWriter.WriteBatchAsync` を `Task.Run` 経由で呼び出して sidecar JSON を出力する。
+
+- 入力ソースは各 `RateGenerationResult` の `JsonItem` と `IncludedInOsz`。集計ルールは以下の通り:
+  - `Success == false`（生成自体が失敗した結果）は writer の集計対象外。`Skipped` / `CollisionSkipped` どちらにも含めず単に無視する
+  - `Success == true` であっても `GeneratedOszPath` 欠落 / `JsonItem == null` / `Md5` が空または重複（同一バッチ内で先勝ち dedupe）といった「JSON 化できなかった」結果は `SkippedBeatmapCount` に集計
+  - `Success == true` かつ `JsonItem != null` だが `IncludedInOsz == false`（既存 .osz に同名 entry が存在し追加されなかった）結果は `CollisionSkippedCount` に集計
+  - 上記いずれにも該当しない結果のみ `CollectionExchangeBeatmap` として収録
+- 出力先は `{AppDirectory}/imports/rate-generation/{SanitizedCollectionName}_{rateLabelForFile}_{yyyyMMdd_HHmmss}.json`
+  - `SanitizedCollectionName` は元コレクション名から `Path.GetInvalidFileNameChars()` 該当文字を `_` に置換したもの
+  - `rateLabelForFile` はレート表示ラベル（例: `1.25x DT HP8 OD5`）の空白を `_` に置換し、同様にサニタイズしたもの
+  - 例: `7K LN 練習_1.25x_DT_HP8_OD5_20260429_123456.json`
+- ペイロードは `CollectionExchangeData`（`Name = "{元コレクション名} [<rate label>]"`、例: `7K LN 練習 [1.25x DT HP8 OD5]`、`Beatmaps = List<CollectionExchangeBeatmap>`）であり、ImportExport モジュールの既存 JSON と完全互換。新規 JSON 型は導入しない
+- 取り込み導線は **osu! 側で `.osz` を Songs に取り込み → アプリで DB 再読み込み → ImportExport 画面で当該 JSON を Import** の運用とする（writer 自身は collection.db を書かない）
+- `BeatmapGenerationPageViewModel` 側のステータス文には writer 結果を 1 行ずつ追記する（成功時の `CollectionJsonEmitted` と `CollectionJsonImportNote`、件数があれば `CollectionJsonSkipped` / `CollectionJsonSkippedDueToCollision`、`OperationCanceledException` 時は `CollectionJsonCancelled`、その他例外時は `CollectionJsonFailed`）
+
 ### NativeAOT対応
 
 - ffmpeg は `Process.Start` + `ProcessStartInfo.ArgumentList` による subprocess 実行のため、P/Invoke は不要で AOT 互換
 - 入力オーディオのメタデータ抽出は純 C# パーサー `AudioInputMetadataReader`（`BinaryPrimitives` ベース）で行い、`JsonSerializer` / `JsonSerializerContext` や subprocess を追加せずに処理する
 - `FfmpegArgumentsBuilder` は純関数 static クラスで、引数組立にリフレクションを使用しない
+- 生成 .osu の MD5 は `MD5.HashData(Stream)` をファイル `FileStream` に対して直接呼び出し、ハッシュアルゴリズムをリフレクションで解決しない
+- sidecar JSON は既存 `ImportExportJsonContext`（Source Generator）を再利用し、`new ImportExportJsonContext(options)` で `WriteIndented` / `SnakeCaseLower` / `UnsafeRelaxedJsonEscaping` を付け直して呼び出す。新規 `JsonSerializerContext` の追加は不要
 - ReflectionBindingは不使用（全Viewに `x:DataType` 指定）
 
 ---

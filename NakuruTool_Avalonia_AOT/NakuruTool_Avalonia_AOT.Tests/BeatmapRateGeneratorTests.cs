@@ -243,7 +243,7 @@ public class BeatmapRateGeneratorNonAudioCopyTests : IDisposable
 
     // ====== Fakes ======
 
-    private sealed class FakeAudioRateChanger : IAudioRateChanger
+    internal sealed class FakeAudioRateChanger : IAudioRateChanger
     {
         public Task<AudioRateChangeResult> ChangeRateAsync(
             string inputPath,
@@ -269,22 +269,35 @@ public class BeatmapRateGeneratorNonAudioCopyTests : IDisposable
         }
     }
 
-    private sealed class FakeOsuFileRateConverter : IOsuFileRateConverter
+    internal sealed class FakeOsuFileRateConverter : IOsuFileRateConverter
     {
         public void Convert(string sourceOsuPath, string destinationOsuPath, OsuFileConvertOptions options)
         {
-            File.WriteAllText(destinationOsuPath, "osu file format v14\n[General]\nMode:3\n");
+            // テスト用: 生成 .osu の MD5/メタ抽出を成立させるため、必須メタを含む最小内容を書き出す。
+            var diffName = options.NewDifficultyName ?? "Hard";
+            var content =
+                "osu file format v14\n" +
+                "[General]\nMode:3\n" +
+                "[Metadata]\n" +
+                "Title:FakeTitle\n" +
+                "Artist:FakeArtist\n" +
+                "Creator:FakeCreator\n" +
+                $"Version:{diffName}\n" +
+                "BeatmapSetID:1234\n" +
+                "[Difficulty]\n" +
+                "CircleSize:7\n";
+            File.WriteAllText(destinationOsuPath, content);
         }
     }
 
-    private sealed class FakeOsuFileAssetParser : IOsuFileAssetParser
+    internal sealed class FakeOsuFileAssetParser : IOsuFileAssetParser
     {
         private readonly OsuReferencedAssets _assets;
         public FakeOsuFileAssetParser(OsuReferencedAssets assets) => _assets = assets;
         public OsuReferencedAssets Parse(string osuFilePath) => _assets;
     }
 
-    private sealed class FakeSettingsService : ISettingsService
+    internal sealed class FakeSettingsService : ISettingsService
     {
         public ISettingsData SettingsData { get; }
         public FakeSettingsService(string osuFolderPath)
@@ -296,5 +309,273 @@ public class BeatmapRateGeneratorNonAudioCopyTests : IDisposable
         public bool CheckSettingsPath() => true;
         public string GetSettingsPath() => string.Empty;
         public void Dispose() { }
+    }
+}
+
+/// <summary>
+/// 生成 <c>.osu</c> 由来の <see cref="RateGenerationJsonItem"/> 構築および
+/// <c>IncludedInOsz</c> 判定のテスト。
+/// </summary>
+public class BeatmapRateGeneratorJsonItemTests : IDisposable
+{
+    private readonly string _tempDir;
+    private readonly string _osuFolderPath;
+    private readonly string _songsFolderPath;
+    private readonly string _beatmapFolderPath;
+    private const string FolderName = "TestBeatmapFolder";
+    private const string OsuFileName = "test.osu";
+    private const string AudioFileName = "audio.mp3";
+
+    public BeatmapRateGeneratorJsonItemTests()
+    {
+        _tempDir = Path.Combine(Path.GetTempPath(),
+            "NakuruTool_BeatmapRateGeneratorJsonItemTests_" + Guid.NewGuid().ToString("N"));
+        _osuFolderPath = Path.Combine(_tempDir, "osu");
+        _songsFolderPath = Path.Combine(_osuFolderPath, "Songs");
+        _beatmapFolderPath = Path.Combine(_songsFolderPath, FolderName);
+        Directory.CreateDirectory(_beatmapFolderPath);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(_tempDir))
+                Directory.Delete(_tempDir, recursive: true);
+        }
+        catch
+        {
+            // best effort
+        }
+        GC.SuppressFinalize(this);
+    }
+
+    private Beatmap CreateBeatmap()
+    {
+        File.WriteAllText(Path.Combine(_beatmapFolderPath, OsuFileName),
+            "osu file format v14\n[General]\nAudioFilename: " + AudioFileName + "\nMode:3\n");
+        File.WriteAllBytes(Path.Combine(_beatmapFolderPath, AudioFileName), [0x49, 0x44, 0x33]);
+
+        return new Beatmap
+        {
+            MD5Hash = "00000000000000000000000000000000",
+            Title = "Title",
+            Artist = "Artist",
+            Version = "Hard",
+            Creator = "Creator",
+            FolderName = FolderName,
+            AudioFilename = AudioFileName,
+            OsuFileName = OsuFileName,
+            Grade = string.Empty,
+            BPM = 120,
+        };
+    }
+
+    private BeatmapRateGenerator CreateSut()
+    {
+        var assets = new OsuReferencedAssets
+        {
+            MainAudioFilename = AudioFileName,
+            SampleAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            NonAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+        };
+        var audio = new BeatmapRateGeneratorNonAudioCopyTests.FakeAudioRateChanger();
+        var osu = new BeatmapRateGeneratorNonAudioCopyTests.FakeOsuFileRateConverter();
+        var parser = new BeatmapRateGeneratorNonAudioCopyTests.FakeOsuFileAssetParser(assets);
+        var settings = new BeatmapRateGeneratorNonAudioCopyTests.FakeSettingsService(_osuFolderPath);
+        return new BeatmapRateGenerator(audio, osu, parser, settings);
+    }
+
+    private static string ComputeMd5Hex(byte[] bytes)
+        => System.Convert.ToHexString(System.Security.Cryptography.MD5.HashData(bytes)).ToLowerInvariant();
+
+    [Fact]
+    public async Task NewOsz_PopulatesJsonItemAndIncludedInOsz()
+    {
+        var sut = CreateSut();
+        var beatmap = CreateBeatmap();
+        var options = new RateGenerationOptions { Rate = 1.25 };
+
+        var result = await sut.GenerateAsync(beatmap, options);
+
+        Assert.True(result.Success, $"GenerateAsync が失敗: {result.ErrorMessage}");
+        Assert.NotNull(result.GeneratedOsuEntryName);
+        Assert.NotNull(result.JsonItem);
+        Assert.True(result.IncludedInOsz);
+
+        var item = result.JsonItem!;
+        Assert.Equal("FakeTitle", item.Title);
+        Assert.Equal("FakeArtist", item.Artist);
+        Assert.Equal("FakeCreator", item.Creator);
+        Assert.Equal(7.0, item.Cs);
+        Assert.Equal(1234, item.BeatmapsetId);
+        Assert.False(string.IsNullOrEmpty(item.Md5));
+
+        // .osz 内の生成 .osu エントリ MD5 と一致することを確認
+        using var archive = ZipFile.OpenRead(result.GeneratedOszPath!);
+        var entry = archive.GetEntry(result.GeneratedOsuEntryName!);
+        Assert.NotNull(entry);
+        using var es = entry!.Open();
+        using var ms = new MemoryStream();
+        es.CopyTo(ms);
+        var entryMd5 = ComputeMd5Hex(ms.ToArray());
+        Assert.Equal(entryMd5, item.Md5);
+    }
+
+    [Fact]
+    public async Task ExistingOsz_WithSameOsuEntry_SetsIncludedInOszFalse()
+    {
+        // まず一度生成して .osz を作る
+        var sut1 = CreateSut();
+        var beatmap = CreateBeatmap();
+        var options = new RateGenerationOptions { Rate = 1.25 };
+        var first = await sut1.GenerateAsync(beatmap, options);
+        Assert.True(first.Success, $"first GenerateAsync が失敗: {first.ErrorMessage}");
+        Assert.True(first.IncludedInOsz);
+        Assert.NotNull(first.GeneratedOsuEntryName);
+
+        // 同じ条件でもう一度生成 → 既存 .osz に同名 .osu entry が既にあるためスキップされるはず
+        var sut2 = CreateSut();
+        var second = await sut2.GenerateAsync(beatmap, options);
+
+        Assert.True(second.Success, $"second GenerateAsync が失敗: {second.ErrorMessage}");
+        Assert.Equal(first.GeneratedOsuEntryName, second.GeneratedOsuEntryName);
+        Assert.NotNull(second.JsonItem);
+        Assert.False(second.IncludedInOsz);
+    }
+
+    [Fact]
+    public async Task FailedResult_HasNullJsonItemAndFalseIncluded()
+    {
+        // 元 .osu が存在しない beatmap を渡して失敗させる
+        var sut = CreateSut();
+        var beatmap = new Beatmap
+        {
+            MD5Hash = "00000000000000000000000000000000",
+            Title = "Title",
+            Artist = "Artist",
+            Version = "Hard",
+            Creator = "Creator",
+            FolderName = FolderName,
+            AudioFilename = AudioFileName,
+            OsuFileName = "missing.osu",
+            Grade = string.Empty,
+            BPM = 120,
+        };
+        var options = new RateGenerationOptions { Rate = 1.25 };
+
+        var result = await sut.GenerateAsync(beatmap, options);
+
+        Assert.False(result.Success);
+        Assert.Null(result.GeneratedOsuEntryName);
+        Assert.Null(result.JsonItem);
+        Assert.False(result.IncludedInOsz);
+    }
+
+    [Fact]
+    public async Task ExistingCorruptOsz_FallsBackToNewCreation_IncludedInOszTrue()
+    {
+        // 既存 .osz が壊れていて ZipArchiveMode.Update で開けないケース。
+        // BeatmapRateGenerator は新規作成にフォールバックし、IncludedInOsz==true となる。
+        var oszPath = Path.Combine(_songsFolderPath, FolderName + ".osz");
+        Directory.CreateDirectory(_songsFolderPath);
+        // ZIP として無効なバイト列を書き込む（ZipFile.Open(..., Update) は InvalidDataException を投げる）
+        File.WriteAllBytes(oszPath, "this is not a zip archive"u8.ToArray());
+
+        var sut = CreateSut();
+        var beatmap = CreateBeatmap();
+        var options = new RateGenerationOptions { Rate = 1.25 };
+
+        var result = await sut.GenerateAsync(beatmap, options);
+
+        Assert.True(result.Success, $"GenerateAsync が失敗: {result.ErrorMessage}");
+        Assert.NotNull(result.GeneratedOsuEntryName);
+        Assert.True(result.IncludedInOsz, "フォールバックで新規作成された場合 IncludedInOsz は true となるべき");
+
+        // .osz が ZIP として有効に上書きされ、生成 .osu エントリを含むことを確認
+        using var archive = ZipFile.OpenRead(result.GeneratedOszPath!);
+        Assert.NotNull(archive.GetEntry(result.GeneratedOsuEntryName!));
+    }
+
+    [Fact]
+    public async Task MetadataExtractionFails_StillSucceedsAndIncludedInOsz()
+    {
+        // FakeOsuFileRateConverterWithoutMetadata は [Metadata] を含まない .osu を出力するため、
+        // OsuFileMetadataReader.TryReadBasicMetadata は false を返す。
+        var assets = new OsuReferencedAssets
+        {
+            MainAudioFilename = AudioFileName,
+            SampleAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            NonAudioFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+        };
+        var audio = new BeatmapRateGeneratorNonAudioCopyTests.FakeAudioRateChanger();
+        var osu = new FakeOsuFileRateConverterWithoutMetadata();
+        var parser = new BeatmapRateGeneratorNonAudioCopyTests.FakeOsuFileAssetParser(assets);
+        var settings = new BeatmapRateGeneratorNonAudioCopyTests.FakeSettingsService(_osuFolderPath);
+        var sut = new BeatmapRateGenerator(audio, osu, parser, settings);
+
+        var beatmap = CreateBeatmap();
+        var options = new RateGenerationOptions { Rate = 1.25 };
+
+        var result = await sut.GenerateAsync(beatmap, options);
+
+        Assert.True(result.Success, $"GenerateAsync が失敗: {result.ErrorMessage}");
+        Assert.NotNull(result.GeneratedOsuEntryName);
+        Assert.Null(result.JsonItem);
+        Assert.True(result.IncludedInOsz);
+
+        // .osz 生成自体が成功し、生成 .osu エントリが含まれていることを確認
+        Assert.NotNull(result.GeneratedOszPath);
+        Assert.True(File.Exists(result.GeneratedOszPath!));
+        using var archive = ZipFile.OpenRead(result.GeneratedOszPath!);
+        Assert.NotNull(archive.GetEntry(result.GeneratedOsuEntryName!));
+    }
+
+    [Fact]
+    public async Task ExistingOszWithNonConflictingEntry_UpdateAddsEntry_IncludedInOszTrue()
+    {
+        // 既存 .osz は存在するが、生成される .osu entry とは衝突しない (無関係なダミーエントリのみ)
+        var oszPath = Path.Combine(_songsFolderPath, FolderName + ".osz");
+        Directory.CreateDirectory(_songsFolderPath);
+        using (var fs = File.Create(oszPath))
+        using (var archive = new ZipArchive(fs, ZipArchiveMode.Create))
+        {
+            var entry = archive.CreateEntry("preexisting_dummy.txt");
+            using var es = entry.Open();
+            using var sw = new StreamWriter(es);
+            sw.Write("existing");
+        }
+
+        var sut = CreateSut();
+        var beatmap = CreateBeatmap();
+        var options = new RateGenerationOptions { Rate = 1.25 };
+
+        var result = await sut.GenerateAsync(beatmap, options);
+
+        Assert.True(result.Success, $"GenerateAsync が失敗: {result.ErrorMessage}");
+        Assert.NotNull(result.GeneratedOsuEntryName);
+        Assert.True(result.IncludedInOsz, "衝突しない既存 .osz への追加では IncludedInOsz は true となるべき");
+
+        // 既存ダミーエントリと新規生成 .osu エントリの両方が存在することを確認
+        using var resultArchive = ZipFile.OpenRead(result.GeneratedOszPath!);
+        Assert.NotNull(resultArchive.GetEntry("preexisting_dummy.txt"));
+        Assert.NotNull(resultArchive.GetEntry(result.GeneratedOsuEntryName!));
+    }
+
+    /// <summary>
+    /// テスト用: 生成 .osu に [Metadata] セクションを含めず、
+    /// <c>OsuFileMetadataReader.TryReadBasicMetadata</c> を false にさせる converter。
+    /// </summary>
+    private sealed class FakeOsuFileRateConverterWithoutMetadata : IOsuFileRateConverter
+    {
+        public void Convert(string sourceOsuPath, string destinationOsuPath, OsuFileConvertOptions options)
+        {
+            // 必須メタ (Title/Artist/Version/Creator) を含まないため TryReadBasicMetadata は false。
+            var content =
+                "osu file format v14\n" +
+                "[General]\nMode:3\n" +
+                "[Difficulty]\nCircleSize:7\n";
+            File.WriteAllText(destinationOsuPath, content);
+        }
     }
 }

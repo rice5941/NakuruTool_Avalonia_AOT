@@ -1,4 +1,4 @@
-﻿{
+{
   "App": {
     "Name": "NakuruTool -Osu!mania BeatmapManager-"
   },
@@ -261,6 +261,14 @@
     "Mp3HighQuality": "高品質",
     "ValidationRequired": "入力範囲外です",
     "BeatmapList": "譜面一覧",
+    "EmitCollectionJson": "コレクションインポート用JSONを出力",
+    "EmitCollectionJsonTooltip": "生成した .osu のMD5とメタ情報から、インポート画面で使えるJSONを作成します。",
+    "CollectionJsonEmitted": "コレクションJSONを出力しました: {0} ({1}件)",
+    "CollectionJsonFailed": "コレクションJSONの出力に失敗しました: {0}",
+    "CollectionJsonImportNote": "osu!で生成済み .osz を取り込み、DBを再読み込みしてからインポートしてください。",
+    "CollectionJsonSkipped": "JSON対象外の譜面が {0} 件あります。",
+    "CollectionJsonSkippedDueToCollision": "既存 .osz 内の同名譜面と衝突したため、JSON対象外にした譜面が {0} 件あります。",
+    "CollectionJsonCancelled": "コレクションJSONの出力がキャンセルされました。.osz の生成は完了しています。",
     "BeatmapCount": "{0}件"
   }
 }

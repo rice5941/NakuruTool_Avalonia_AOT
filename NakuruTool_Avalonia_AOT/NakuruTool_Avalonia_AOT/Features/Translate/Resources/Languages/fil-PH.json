@@ -261,6 +261,14 @@
     "Mp3HighQuality": "Mataas na kalidad",
     "ValidationRequired": "Mangyaring maglagay ng halaga",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "Mag-emit ng JSON para sa pag-import ng koleksyon",
+    "EmitCollectionJsonTooltip": "Gumagawa ng JSON file para sa import screen gamit ang MD5 at metadata ng nabuong .osu files.",
+    "CollectionJsonEmitted": "Naisulat ang collection JSON: {0} ({1} beatmaps)",
+    "CollectionJsonFailed": "Nabigong isulat ang collection JSON: {0}",
+    "CollectionJsonImportNote": "I-import ang nabuong .osz sa osu!, i-reload ang DB, pagkatapos ay i-import ang JSON na ito.",
+    "CollectionJsonSkipped": "{0} beatmap ang hindi isinama sa JSON.",
+    "CollectionJsonSkippedDueToCollision": "{0} beatmap ang hindi isinama sa JSON dahil sa banggaan ng pangalan sa umiiral na .osz.",
+    "CollectionJsonCancelled": "Nakansela ang paggawa ng collection JSON. Matagumpay na nabuo ang mga .osz file.",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

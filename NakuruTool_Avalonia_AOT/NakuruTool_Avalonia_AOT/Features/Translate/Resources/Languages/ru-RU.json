@@ -261,6 +261,14 @@
     "Mp3HighQuality": "Высокое",
     "ValidationRequired": "Введите значение",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "Создать JSON для импорта коллекции",
+    "EmitCollectionJsonTooltip": "Создаёт JSON-файл для окна импорта на основе MD5 и метаданных сгенерированных файлов .osu.",
+    "CollectionJsonEmitted": "JSON коллекции записан: {0} ({1} карт)",
+    "CollectionJsonFailed": "Не удалось записать JSON коллекции: {0}",
+    "CollectionJsonImportNote": "Импортируйте созданный .osz в osu!, перезагрузите базу данных, затем импортируйте этот JSON.",
+    "CollectionJsonSkipped": "{0} карт(ы) исключено из JSON.",
+    "CollectionJsonSkippedDueToCollision": "{0} карт(ы) исключено из JSON из-за конфликта имён с существующим .osz.",
+    "CollectionJsonCancelled": "Создание JSON коллекции отменено. Файлы .osz успешно сгенерированы.",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

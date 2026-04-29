@@ -47,7 +47,11 @@ public partial class SingleBeatmapGenerationViewModel : ViewModelBase
     {
         TargetBeatmap = targetBeatmap;
         _beatmapRateGenerator = beatmapRateGenerator;
-        RateGeneration = new RateGenerationViewModel();
+        RateGeneration = new RateGenerationViewModel
+        {
+            // 単体生成オーバーレイでは JSON 出力チェックボックスを表示しない
+            ShowEmitCollectionJsonOption = false,
+        };
         RateGeneration.SourceBpm = targetBeatmap.BPM;
 
         // Unicode優先設定に基づいて表示名を決定

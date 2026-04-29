@@ -261,6 +261,14 @@
     "Mp3HighQuality": "고품질",
     "ValidationRequired": "값을 입력해 주세요",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "컬렉션 가져오기용 JSON 출력",
+    "EmitCollectionJsonTooltip": "생성된 .osu 파일의 MD5와 메타데이터를 사용하여 가져오기 화면용 JSON 파일을 만듭니다.",
+    "CollectionJsonEmitted": "컬렉션 JSON을 작성했습니다: {0} ({1}개)",
+    "CollectionJsonFailed": "컬렉션 JSON 작성에 실패했습니다: {0}",
+    "CollectionJsonImportNote": "osu!에서 생성된 .osz를 가져온 뒤 DB를 다시 불러온 후 이 JSON을 가져오세요.",
+    "CollectionJsonSkipped": "{0}개의 비트맵이 JSON에서 제외되었습니다.",
+    "CollectionJsonSkippedDueToCollision": "기존 .osz 내 같은 이름의 비트맵과 충돌하여 {0}개의 비트맵이 JSON에서 제외되었습니다.",
+    "CollectionJsonCancelled": "컬렉션 JSON 출력이 취소되었습니다. .osz 파일은 정상적으로 생성되었습니다.",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

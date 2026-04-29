@@ -18,6 +18,7 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     private readonly IDatabaseService _databaseService;
     private readonly IBeatmapRateGenerator _beatmapRateGenerator;
     private readonly ISettingsService _settingsService;
+    private readonly IRateGenerationCollectionJsonWriter _collectionJsonWriter;
     private CancellationTokenSource? _cts;
 
     public IBeatmapRateGenerator BeatmapRateGenerator => _beatmapRateGenerator;
@@ -46,12 +47,14 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     public BeatmapGenerationPageViewModel(
         IDatabaseService databaseService,
         IBeatmapRateGenerator beatmapRateGenerator,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IRateGenerationCollectionJsonWriter collectionJsonWriter)
         : base(settingsService)
     {
         _databaseService = databaseService;
         _beatmapRateGenerator = beatmapRateGenerator;
         _settingsService = settingsService;
+        _collectionJsonWriter = collectionJsonWriter;
 
         CollectionSelector = new CollectionSelectorViewModel(databaseService);
         RateGeneration = new RateGenerationViewModel();
@@ -142,6 +145,59 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
                     result.SuccessCount);
 
                 message += "\n" + lang.GetString("BeatmapGen.RefreshHint");
+
+                // コレクションインポート用 JSON 出力 (チェックボックス ON かつ 1 件以上成功した場合のみ)
+                if (RateGeneration.EmitCollectionJson && result.SuccessCount > 0)
+                {
+                    try
+                    {
+                        // JSON 書き出しは MD5 計算 / ファイル I/O を伴うため、
+                        // バッチ生成本体と同様に UI スレッドをブロックしないよう Task.Run で逃がす。
+                        var collectionName = collection.Name;
+                        var batchResults = result.Results;
+                        var writeResult = await Task.Run(
+                            () => _collectionJsonWriter.WriteBatchAsync(
+                                collectionName,
+                                options,
+                                batchResults,
+                                token),
+                            token).ConfigureAwait(true);
+
+                        if (writeResult.FileWritten && writeResult.OutputFilePath is not null)
+                        {
+                            var fileName = System.IO.Path.GetFileName(writeResult.OutputFilePath);
+                            message += "\n" + string.Format(
+                                lang.GetString("BeatmapGen.CollectionJsonEmitted"),
+                                fileName,
+                                writeResult.WrittenBeatmapCount);
+                            message += "\n" + lang.GetString("BeatmapGen.CollectionJsonImportNote");
+                        }
+
+                        if (writeResult.SkippedBeatmapCount > 0)
+                        {
+                            message += "\n" + string.Format(
+                                lang.GetString("BeatmapGen.CollectionJsonSkipped"),
+                                writeResult.SkippedBeatmapCount);
+                        }
+                        if (writeResult.CollisionSkippedCount > 0)
+                        {
+                            message += "\n" + string.Format(
+                                lang.GetString("BeatmapGen.CollectionJsonSkippedDueToCollision"),
+                                writeResult.CollisionSkippedCount);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // .osz の生成自体は完了済みなので、専用キーで JSON 出力のみキャンセルされた旨を示す
+                        message += "\n" + lang.GetString("BeatmapGen.CollectionJsonCancelled");
+                    }
+                    catch (Exception ex)
+                    {
+                        message += "\n" + string.Format(
+                            lang.GetString("BeatmapGen.CollectionJsonFailed"),
+                            ex.Message);
+                    }
+                }
 
                 GenerationStatusMessage = message;
             }

@@ -261,6 +261,14 @@
     "Mp3HighQuality": "คุณภาพสูง",
     "ValidationRequired": "กรุณากรอกค่า",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "ส่งออก JSON สำหรับนำเข้าคอลเลกชัน",
+    "EmitCollectionJsonTooltip": "สร้างไฟล์ JSON สำหรับหน้านำเข้าโดยใช้ MD5 และเมตาดาต้าจากไฟล์ .osu ที่สร้างไว้",
+    "CollectionJsonEmitted": "เขียน JSON คอลเลกชันแล้ว: {0} ({1} บีตแมป)",
+    "CollectionJsonFailed": "เขียน JSON คอลเลกชันล้มเหลว: {0}",
+    "CollectionJsonImportNote": "นำเข้าไฟล์ .osz ที่สร้างใน osu! แล้วโหลดฐานข้อมูลใหม่ก่อนนำเข้า JSON นี้",
+    "CollectionJsonSkipped": "มีบีตแมป {0} รายการที่ไม่ถูกรวมใน JSON",
+    "CollectionJsonSkippedDueToCollision": "มีบีตแมป {0} รายการที่ไม่ถูกรวมใน JSON เนื่องจากชื่อชนกับ .osz ที่มีอยู่",
+    "CollectionJsonCancelled": "การส่งออก JSON คอลเลกชันถูกยกเลิก ไฟล์ .osz ถูกสร้างเรียบร้อยแล้ว",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

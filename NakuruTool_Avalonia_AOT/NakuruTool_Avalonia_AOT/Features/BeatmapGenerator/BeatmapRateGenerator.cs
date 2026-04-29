@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared;
 
 namespace NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 
@@ -177,6 +178,8 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     {
         var total = beatmapsInGroup.Length;
         var results = new RateGenerationResult[total];
+        var generatedOsuEntryNames = new string?[total];
+        var jsonItems = new RateGenerationJsonItem?[total];
 
         // レート確定（各beatmapで個別に算出）
         var rates = new double[total];
@@ -551,6 +554,42 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 try
                 {
                     _osuFileRateConverter.Convert(inputOsuPath, osuOutputPath, convertOptions);
+
+                    // 生成 .osu のエントリ名 (zip 内 rel) を保存
+                    var entryName = newOsuName.Replace('\\', '/');
+                    generatedOsuEntryNames[i] = entryName;
+
+                    // MD5 + メタ抽出。失敗しても .osz 生成は続行する。
+                    try
+                    {
+                        string md5;
+                        using (var fs = File.OpenRead(osuOutputPath))
+                        {
+                            md5 = Convert.ToHexString(MD5.HashData(fs)).ToLowerInvariant();
+                        }
+
+                        if (OsuFileMetadataReader.TryReadBasicMetadata(osuOutputPath, out var meta))
+                        {
+                            jsonItems[i] = new RateGenerationJsonItem
+                            {
+                                Title = meta.Title,
+                                Artist = meta.Artist,
+                                Version = meta.Version,
+                                Creator = meta.Creator,
+                                Cs = meta.CircleSize,
+                                BeatmapsetId = meta.BeatmapSetId,
+                                Md5 = md5,
+                            };
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"[BeatmapRateGenerator] 警告: 生成 .osu のメタ抽出に失敗: {osuOutputPath}");
+                        }
+                    }
+                    catch (Exception metaEx) when (metaEx is not OperationCanceledException)
+                    {
+                        Debug.WriteLine($"[BeatmapRateGenerator] 警告: 生成 .osu の MD5/メタ抽出例外: {metaEx.Message}");
+                    }
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -577,10 +616,19 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             if (!string.IsNullOrEmpty(oszDir) && !Directory.Exists(oszDir))
                 Directory.CreateDirectory(oszDir);
 
+            var includedOsuEntries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             if (!File.Exists(oszPath))
             {
                 ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
                 File.Move(oszTmpPath, oszPath, overwrite: true);
+
+                // 新規作成: 成功した全ての .osu は収録済み
+                for (var i = 0; i < total; i++)
+                {
+                    if (generatedOsuEntryNames[i] is { } name)
+                        includedOsuEntries.Add(name);
+                }
             }
             else
             {
@@ -602,6 +650,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                                 continue;
 
                             archive.CreateEntryFromFile(absPath, rel, CompressionLevel.Fastest);
+                            includedOsuEntries.Add(rel);
                         }
                     }
 
@@ -614,6 +663,14 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
                     ZipFile.CreateFromDirectory(tempDir, oszTmpPath, CompressionLevel.Fastest, false, Encoding.UTF8);
                     File.Move(oszTmpPath, oszPath, overwrite: true);
+
+                    // フォールバックで新規作成された場合、成功した全ての .osu は収録済み
+                    includedOsuEntries.Clear();
+                    for (var i = 0; i < total; i++)
+                    {
+                        if (generatedOsuEntryNames[i] is { } name)
+                            includedOsuEntries.Add(name);
+                    }
                 }
             }
 
@@ -622,6 +679,8 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             // 成功結果を設定
             for (var i = 0; i < total; i++)
             {
+                var entryName = generatedOsuEntryNames[i];
+                var included = entryName is not null && includedOsuEntries.Contains(entryName);
                 results[i] ??= new RateGenerationResult
                 {
                     Success = true,
@@ -631,6 +690,9 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                     SkippedFileCount = skippedFileCount,
                     SkippedFiles = skippedFiles,
                     SourceBeatmap = beatmapsInGroup[i],
+                    GeneratedOsuEntryName = entryName,
+                    JsonItem = jsonItems[i],
+                    IncludedInOsz = included,
                 };
             }
 

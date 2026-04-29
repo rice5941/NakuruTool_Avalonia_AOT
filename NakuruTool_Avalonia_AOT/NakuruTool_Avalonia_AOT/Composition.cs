@@ -29,6 +29,7 @@ partial class Composition
         .Bind<IOsuFileRateConverter>().As(Singleton).To<OsuFileRateConverter>()
         .Bind<IOsuFileAssetParser>().As(Singleton).To<OsuFileAssetParser>()
         .Bind<IBeatmapRateGenerator>().As(Singleton).To<BeatmapRateGenerator>()
+        .Bind<IRateGenerationCollectionJsonWriter>().As(Singleton).To<RateGenerationCollectionJsonWriter>()
         .Bind<BeatmapGenerationPageViewModel>().As(Singleton).To<BeatmapGenerationPageViewModel>()
 
         // サービスの登録

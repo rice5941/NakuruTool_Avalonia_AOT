@@ -164,6 +164,10 @@
                                          Content="{translate:Translate 'BeatmapGen.Mp3HighQuality'}"
                                          IsChecked="{Binding IsHighQualityMp3}"/>
                         </StackPanel>
+                        <CheckBox Content="{translate:Translate 'BeatmapGen.EmitCollectionJson'}"
+                                  IsChecked="{Binding EmitCollectionJson}"
+                                  IsVisible="{Binding ShowEmitCollectionJsonOption}"
+                                  ToolTip.Tip="{translate:Translate 'BeatmapGen.EmitCollectionJsonTooltip'}"/>
                     </StackPanel>
                 </HeaderedContentControl>
             </StackPanel>

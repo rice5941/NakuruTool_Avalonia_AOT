@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
@@ -11,7 +12,9 @@ using Xunit;
 namespace NakuruTool_Avalonia_AOT.Tests;
 
 /// <summary>
-/// <see cref="OsuFileMetadataReader.TryReadBeatmapSetId"/> の回帰テスト。
+/// <see cref="OsuFileMetadataReader.TryReadBeatmapSetId"/> および
+/// <see cref="OsuFileMetadataReader.TryReadBasicMetadata(string, out OsuFileBasicMetadata)"/>
+/// の回帰テスト。
 /// </summary>
 public class OsuFileMetadataReaderTests : IDisposable
 {
@@ -154,6 +157,182 @@ public class OsuFileMetadataReaderTests : IDisposable
     {
         Assert.False(OsuFileMetadataReader.TryReadBeatmapSetId("", out _));
         Assert.False(OsuFileMetadataReader.TryReadBeatmapSetId(null!, out _));
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_FromPath_ReturnsAllFields()
+    {
+        var path = WriteFile(new[]
+        {
+            "osu file format v14",
+            "[General]",
+            "AudioFilename: audio.mp3",
+            "[Metadata]",
+            "Title:Namae no Nai Kaibutsu",
+            "Artist:EGOIST",
+            "Version:Fallacy",
+            "Creator:ruka",
+            "BeatmapSetID:1063231",
+            "[Difficulty]",
+            "CircleSize:7",
+            "HPDrainRate:7",
+        });
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.True(ok);
+        Assert.Equal("Namae no Nai Kaibutsu", metadata.Title);
+        Assert.Equal("EGOIST", metadata.Artist);
+        Assert.Equal("Fallacy", metadata.Version);
+        Assert.Equal("ruka", metadata.Creator);
+        Assert.Equal(7.0, metadata.CircleSize);
+        Assert.Equal(1063231, metadata.BeatmapSetId);
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_FromStream_ReadsAllFields_AndDoesNotCloseStream()
+    {
+        var bytes = Encoding.UTF8.GetBytes(string.Join('\n', new[]
+        {
+            "[Metadata]",
+            "Title:t",
+            "Artist:a",
+            "Version:v",
+            "Creator:c",
+            "BeatmapSetID:42",
+            "[Difficulty]",
+            "CircleSize:4.2",
+            "",
+        }));
+        using var ms = new MemoryStream(bytes);
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(ms, out var metadata);
+
+        Assert.True(ok);
+        Assert.Equal("t", metadata.Title);
+        Assert.Equal("a", metadata.Artist);
+        Assert.Equal("v", metadata.Version);
+        Assert.Equal("c", metadata.Creator);
+        Assert.Equal(4.2, metadata.CircleSize);
+        Assert.Equal(42, metadata.BeatmapSetId);
+
+        // stream が閉じられていないことを確認
+        Assert.True(ms.CanRead);
+        ms.Position = 0;
+        Assert.Equal(bytes[0], (byte)ms.ReadByte());
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_AcceptsWhitespaceAroundColon()
+    {
+        var path = WriteFile(new[]
+        {
+            "[Metadata]",
+            "Title :  spaced title  ",
+            "Artist  :a",
+            "Version:  v",
+            "Creator :c  ",
+            "BeatmapSetID :  123 ",
+            "[Difficulty]",
+            "CircleSize :  5 ",
+        });
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.True(ok);
+        Assert.Equal("spaced title", metadata.Title);
+        Assert.Equal("a", metadata.Artist);
+        Assert.Equal("v", metadata.Version);
+        Assert.Equal("c", metadata.Creator);
+        Assert.Equal(5.0, metadata.CircleSize);
+        Assert.Equal(123, metadata.BeatmapSetId);
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_IgnoresKeysOutsideTargetSections()
+    {
+        var path = WriteFile(new[]
+        {
+            "[General]",
+            "Title:wrong",
+            "BeatmapSetID:9999",
+            "CircleSize:9",
+            "[Metadata]",
+            "Title:right",
+            "Artist:a",
+            "Version:v",
+            "Creator:c",
+            "[Difficulty]",
+            "CircleSize:3",
+            "[Events]",
+            "BeatmapSetID:8888",
+            "CircleSize:8",
+        });
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.True(ok);
+        Assert.Equal("right", metadata.Title);
+        Assert.Equal(3.0, metadata.CircleSize);
+        Assert.Equal(-1, metadata.BeatmapSetId); // [Metadata] に無いので欠落扱い
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_DefaultsWhenOptionalFieldsMissing()
+    {
+        var path = WriteFile(new[]
+        {
+            "[Metadata]",
+            "Title:t",
+            "Artist:a",
+            "Version:v",
+            "Creator:c",
+            "[Difficulty]",
+            "HPDrainRate:5",
+        });
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.True(ok);
+        Assert.Equal(-1, metadata.BeatmapSetId);
+        Assert.Equal(0.0, metadata.CircleSize);
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_ReturnsFalse_WhenRequiredFieldsMissing()
+    {
+        var path = WriteFile(new[]
+        {
+            "[Metadata]",
+            "Title:t",
+            "Artist:a",
+            // Version / Creator なし
+            "[Difficulty]",
+            "CircleSize:4",
+        });
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.False(ok);
+        Assert.Equal(default, metadata);
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_ReturnsFalse_WhenFileMissing()
+    {
+        var path = Path.Combine(_tempDir, "missing.osu");
+
+        var ok = OsuFileMetadataReader.TryReadBasicMetadata(path, out var metadata);
+
+        Assert.False(ok);
+        Assert.Equal(default, metadata);
+    }
+
+    [Fact]
+    public void TryReadBasicMetadata_ReturnsFalse_WhenPathIsNullOrEmpty()
+    {
+        Assert.False(OsuFileMetadataReader.TryReadBasicMetadata("", out _));
+        Assert.False(OsuFileMetadataReader.TryReadBasicMetadata((string)null!, out _));
     }
 
     [Fact]

@@ -261,6 +261,14 @@
     "Mp3HighQuality": "Kualiti tinggi",
     "ValidationRequired": "Sila masukkan nilai",
     "BeatmapList": "Beatmap List",
+    "EmitCollectionJson": "Hasilkan JSON import koleksi",
+    "EmitCollectionJsonTooltip": "Menjana fail JSON untuk skrin import menggunakan MD5 dan metadata fail .osu yang dijana.",
+    "CollectionJsonEmitted": "JSON koleksi ditulis: {0} ({1} beatmap)",
+    "CollectionJsonFailed": "Gagal menulis JSON koleksi: {0}",
+    "CollectionJsonImportNote": "Import .osz yang dijana ke dalam osu!, muat semula DB, kemudian import JSON ini.",
+    "CollectionJsonSkipped": "{0} beatmap dikecualikan daripada JSON.",
+    "CollectionJsonSkippedDueToCollision": "{0} beatmap dikecualikan daripada JSON kerana perlanggaran nama dengan .osz sedia ada.",
+    "CollectionJsonCancelled": "Penjanaan JSON koleksi dibatalkan. Fail .osz telah dijana dengan jayanya.",
     "BeatmapCount": "{0} Beatmaps"
   }
 }

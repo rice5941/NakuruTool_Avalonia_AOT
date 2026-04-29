@@ -29,4 +29,22 @@ public sealed record RateGenerationResult
 
     /// <summary>元 beatmap の情報（ログ用）</summary>
     public required Beatmap SourceBeatmap { get; init; }
+
+    /// <summary>
+    /// tempDir 上に生成された <c>.osu</c> の <c>.osz</c> 内エントリ名 (相対パス、'/' 区切り)。
+    /// 失敗時や <c>.osu</c> 変換失敗時は <c>null</c>。
+    /// </summary>
+    public string? GeneratedOsuEntryName { get; init; }
+
+    /// <summary>
+    /// tempDir 上の生成 <c>.osu</c> から構築した JSON 1 アイテム。
+    /// メタ抽出に失敗した場合や生成結果が失敗の場合は <c>null</c>。
+    /// </summary>
+    public RateGenerationJsonItem? JsonItem { get; init; }
+
+    /// <summary>
+    /// 生成 <c>.osu</c> が最終 <c>.osz</c> に実際に収録されたか。
+    /// 既存 <c>.osz</c> 更新時に同名 entry が既に存在しスキップされた場合は <c>false</c>。
+    /// </summary>
+    public bool IncludedInOsz { get; init; }
 }

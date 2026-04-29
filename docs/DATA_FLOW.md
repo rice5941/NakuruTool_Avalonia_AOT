@@ -958,3 +958,37 @@ example_beatmap.osz
 | `.mp3` | 3ch以上 | `.ogg` | FFmpeg `libvorbis`（`AudioInputMetadataReader` による事前チャンネル数プローブ結果によるフォールバック） |
 | `.ogg` | 任意 | `.ogg` | FFmpeg `libvorbis` |
 | `.wav` | 任意 | `.wav` | FFmpeg `pcm_s16le` |
+
+### コレクションインポート用 JSON sidecar 出力
+
+一括レート生成時、`.osz` 生成パイプラインの一括完了**後**に、以下のいずれの条件も満たす場合のみサイドカー JSON 出力フローが直列に走る（`.osz` 生成と並行ではなく後続）。`collection.db` は書かない。
+
+- `RateGenerationViewModel.EmitCollectionJson`（既定 true / 単体生成では非表示）が ON
+- 一括生成結果の `RateGenerationBatchResult.SuccessCount > 0`（成功 0 件の場合 writer は呼ばれない）
+
+```mermaid
+flowchart TD
+    G["BeatmapRateGenerator: tempDir に .osu 生成"] --> M["OsuFileMetadataReader.TryReadBasicMetadata()"]
+    M --> H["MD5.HashData(FileStream) で .osu の MD5 を計算"]
+    H --> J["RateGenerationJsonItem を構築し保持"]
+    G --> Z[".osz 生成 / 既存 .osz と ZipArchiveMode.Update でマージ"]
+    Z --> I{"同名 entry が既存で実際に追加されたか"}
+    I -->|Yes| RT["RateGenerationResult.IncludedInOsz = true"]
+    I -->|No| RF["RateGenerationResult.IncludedInOsz = false (collision)"]
+
+    RT --> W["RateGenerationCollectionJsonWriter.WriteBatchAsync()"]
+    RF --> W
+    J --> W
+    W -->|"Success && JsonItem != null && IncludedInOsz && Md5 ユニーク"| INC["CollectionExchangeBeatmap として収録"]
+    W -->|"!Success"| IGN["集計対象外（無視）"]
+    W -->|"Success && (GeneratedOszPath 空 / JsonItem null / Md5 空 or 重複)"| SKP["SkippedBeatmapCount に計上"]
+    W -->|"Success && JsonItem != null && !IncludedInOsz"| COL["CollisionSkippedCount に計上"]
+    INC --> O["imports/rate-generation/{SanitizedCollectionName}_{rateLabelForFile}_{yyyyMMdd_HHmmss}.json"]
+```
+
+#### 取り込み導線
+
+1. ユーザーが osu! 側で生成された `.osz` を Songs に取り込む
+2. アプリで osu! データベースを再読み込みし、各 `.osu` の MD5 を `IDatabaseService` に反映
+3. ImportExport 画面で `imports/rate-generation/` 以下の JSON を `Import` する
+4. 既存 ImportExport フローでは MD5 マッチした譜面が `collection.db` に追加されるため、生成レート譜面をコレクション化できる

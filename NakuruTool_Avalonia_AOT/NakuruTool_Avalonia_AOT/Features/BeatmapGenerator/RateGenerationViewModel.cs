@@ -52,6 +52,19 @@ public partial class RateGenerationViewModel : ViewModelBase
     [ObservableProperty]
     public partial double? OdValue { get; set; } = 5.0;
 
+    /// <summary>
+    /// 一括生成完了後にコレクションインポート用 JSON を出力するか。永続化はしない。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool EmitCollectionJson { get; set; } = true;
+
+    /// <summary>
+    /// コレクションインポート用 JSON 出力チェックボックスを UI に表示するか。
+    /// 一括生成: true (既定)、単体生成オーバーレイ: false。永続化はしない。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool ShowEmitCollectionJsonOption { get; set; } = true;
+
     // --- 入力範囲定義 ---
     public double RateMin { get; }= 0.5;
     public double FixedBpmMin { get; }= 10.0;

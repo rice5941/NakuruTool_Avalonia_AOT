@@ -8,6 +8,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using R3;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ZLinq;
 
@@ -105,26 +106,30 @@ public partial class ExportViewModel : ViewModelBase, IDisposable
 
     private ImportExportBeatmapItem[] BuildPreviewRows(ExportCollectionItem item)
     {
+        // MapList の Collection フィルタと件数が一致するように、
+        // ・DB（osu!.db）に存在しない MD5 は除外
+        // ・コレクション内で重複する MD5 は1件にまとめる
+        // （MapList 側は HashSet ベースで Beatmap を絞り込むため、DB 未所持・重複は反映されない）
+        var seen = new HashSet<string>(item.BeatmapMd5s.Length, StringComparer.OrdinalIgnoreCase);
         return item.BeatmapMd5s
             .AsValueEnumerable()
+            .Where(md5 => !string.IsNullOrEmpty(md5) && seen.Add(md5))
+            .Where(md5 => _databaseService.TryGetBeatmapByMd5(md5, out var b) && b is not null)
             .Select(md5 =>
             {
-                if (_databaseService.TryGetBeatmapByMd5(md5, out var beatmap) && beatmap is not null)
+                _databaseService.TryGetBeatmapByMd5(md5, out var beatmap);
+                return new ImportExportBeatmapItem
                 {
-                    return new ImportExportBeatmapItem
-                    {
-                        BeatmapSetId = beatmap.BeatmapSetId,
-                        KeyCount = beatmap.KeyCount,
-                        Title = beatmap.Title,
-                        TitleUnicode = beatmap.TitleUnicode,
-                        Artist = beatmap.Artist,
-                        ArtistUnicode = beatmap.ArtistUnicode,
-                        Version = beatmap.Version,
-                        Creator = beatmap.Creator,
-                        DownloadState = BeatmapDownloadState.Exists
-                    };
-                }
-                return new ImportExportBeatmapItem();
+                    BeatmapSetId = beatmap!.BeatmapSetId,
+                    KeyCount = beatmap.KeyCount,
+                    Title = beatmap.Title,
+                    TitleUnicode = beatmap.TitleUnicode,
+                    Artist = beatmap.Artist,
+                    ArtistUnicode = beatmap.ArtistUnicode,
+                    Version = beatmap.Version,
+                    Creator = beatmap.Creator,
+                    DownloadState = BeatmapDownloadState.Exists
+                };
             })
             .ToArray();
     }

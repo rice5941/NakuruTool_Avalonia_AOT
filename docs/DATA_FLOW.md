@@ -150,17 +150,21 @@ flowchart LR
 
 ---
 
-## 3. フィルタリングフロー
+## 3. フィルタリング + ソートフロー
 
-ユーザーがフィルタ条件を操作すると、R3リアクティブチェーンを通じて譜面一覧が自動更新される。
+ユーザーがフィルタ条件やソート規則を操作すると、R3 リアクティブチェーンを通じて譜面一覧が自動更新される。`MapListViewModel` と `BeatmapGenerationPageViewModel` は、いずれも「ソース配列を `BeatmapListViewModelBase.SetSourceBeatmaps()` に渡す → 基底でソート → `UpdateShowBeatmaps()` で DataGrid へ反映」という共通パイプラインを使う。
 
 ### 3.1 BeatmapList 表示更新（共通フロー）
 
-`MapListViewModel` / `BeatmapGenerationPageViewModel` の双方は `BeatmapListViewModelBase` を継承し、ソース配列差し替え→ページ数算出→ページ反映の流れを共通化している。
+`MapListViewModel` / `BeatmapGenerationPageViewModel` の双方は `BeatmapListViewModelBase` を継承し、ソース配列差し替え→ソート適用→ページ数算出→ページ反映の流れを共通化している。
 
 ```mermaid
 flowchart TD
-    DERV["派生.SetSourceBeatmaps(arr)"] -->|"_sourceBeatmaps = arr"| FC["基底: FilteredCount = arr.Length"]
+    DERV["派生.SetSourceBeatmaps(arr)"] -->|"_unsortedBeatmaps = arr (snapshot)"| SORT["基底: active rule あり?"]
+    SORT -->|Yes| MC["BeatmapMultiComparer + Array.Sortを適用\n(arr は新規インスタンス)"]
+    SORT -->|No| NOOP["そのまま"]
+    MC -->|"_sourceBeatmaps = arr"| FC["基底: FilteredCount = arr.Length"]
+    NOOP -->|"_sourceBeatmaps = arr"| FC
     FC -->|partial OnFilteredCountChanged| RPC["基底: RecalculatePageCount()<br/>(PageCount 算出のみ・末尾クランプなし)"]
     RPC --> CPCHECK{"CurrentPage != 1 ?"}
     CPCHECK -->|Yes| CPRESET["CurrentPage = 1<br/>(partial OnCurrentPageChanged)"]
@@ -172,18 +176,17 @@ flowchart TD
 
     PSZ["PageSize 変更"] -->|partial OnPageSizeChanged| RPC2["基底: RecalculatePageCount()"]
     RPC2 --> CPCHECK
-    Note1["注: PageSize 変更時は両画面で<br/>CurrentPage = 1 にリセット<br/>(仕様統一)"]
 
-    MOD["SelectedModCategory 変更"] -->|partial| USB
-    SS["SelectedScoreSystemCategory 変更"] -->|partial| USB
-    PU["PreferUnicode 変更<br/>(基底 ctor の R3 購読)"] --> USB
+    SC["SortChanged・SelectedModCategory・\nSelectedScoreSystemCategory・PreferUnicode \nの Merge 購読"] -->|ApplyCurrentSort| AC["_unsortedBeatmaps → _sourceBeatmaps へ再充填\n(Array.Copy + Array.Sort で in-place)"]
+    AC --> USB
 ```
 
 #### 仕様メモ
 
 - `SetSourceBeatmaps(arr)` は入口で必ず `CurrentPage = 1` にリセットされる（既に 1 なら `UpdateShowBeatmaps()` を直接呼ぶ）。フィルタ変更・コレクション変更後に旧ページに留まらないことを保証する。
 - `PageSize` 変更時も両画面で `CurrentPage = 1` にリセットされる（仕様統一。`BeatmapGenerationPageViewModel` 側はかつて旧ページを保持していたが、基底化に伴い `MapListViewModel` 現行挙動に揃えた）。
-- Mod / ScoreSystem 切替（`SelectedModCategory` / `SelectedScoreSystemCategory`）では `UpdateShowBeatmaps()` のみが走り、`PageCount` / `CurrentPage` には触れない。
+- Mod / ScoreSystem 切替（`SelectedModCategory` / `SelectedScoreSystemCategory`）と `PreferUnicode` 変更、および `MapListSortViewModel.SortChanged` はいずれも基底側で `Observable.Merge` され `ApplyCurrentSort()` を起動する。`PageCount` / `CurrentPage` には触れず、`UpdateShowBeatmaps()` だけが走る。
+- `ApplyCurrentSort()` は `_unsortedBeatmaps`（`SetSourceBeatmaps` 時のスナップショット）から `_sourceBeatmaps` へ `Array.Copy` した上で in-place で `Array.Sort` を適用する。`SourceBeatmapsRaw` の配列インスタンスは `SetSourceBeatmaps` 時のみ再確保され、`ApplyCurrentSort` は中身を更新するだけで外部（`AudioPlayerPanelViewModel` のナビゲーションコンテキスト等）が保持する参照を破壊しない。
 - `UpdateShowBeatmaps()` は `AvaloniaList` のインスタンス自体を差し替えず `Clear()` + `Add()` で内容を更新する（DataGrid の差分通知契約を維持）。
 
 ### 3.2 MapList のフィルタチェーン
@@ -446,6 +449,7 @@ sequenceDiagram
 | `ImportViewModel` | `_previewRequestedSubject` | `Subject<ImportExportBeatmapItem[]>` | インポートプレビュー行通知（null時は空配列） |
 | `ImportViewModel` | `_statusMessageSubject` | `Subject<string>` | インポート完了/失敗メッセージ通知 |
 | `ImportViewModel` | `_importCompletedSubject` | `Subject<Unit>` | インポート成功通知（親VMの再初期化トリガー） |
+| `MapListSortViewModel` | `_sortChangedSubject` | `Subject<Unit>` | 3 SortRule の Field/Direction 変更を `Observable.Merge` で一本化したソート規則変更通知 |
 
 ### 6.2 購読チェーン一覧
 
@@ -475,12 +479,16 @@ sequenceDiagram
 | IE-7 | `ExportViewModel.IsProcessing` ＋ `ImportViewModel.IsProcessing`（Merge） | `ImportExportPageViewModel` | いずれかの処理中フラグ変更 | `IsProcessing` 統合（OR）＋ `IsAnyProcessing` を両子VMに逆流 | `AddTo(Disposables)` |
 | IE-8 | `ExportViewModel.SelectedExportCollection` | `ImportExportPageViewModel` | Export選択変更 | 非null時に `ImportViewModel.SelectedImportFile = null`（排他選択） | `AddTo(Disposables)` |
 | IE-9 | `ImportViewModel.SelectedImportFile` | `ImportExportPageViewModel` | Import選択変更 | 非null時に `ExportViewModel.SelectedExportCollection = null`（排他選択） | `AddTo(Disposables)` |
-| UC-1 | `SettingsData.PreferUnicode` | `MapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
+| UC-1 | `SettingsData.PreferUnicode` | `BeatmapListViewModelBase`（`MapListViewModel` / `BeatmapGenerationPageViewModel` 双方の派生で共通） | `PreferUnicode` PropertyChanged | SORT-2 の Merge 経由で `ApplyCurrentSort()`（DataGrid再構築 → `UnicodeDisplayConverter` 再評価） | `AddTo(Disposables)` |
 | UC-2 | `SettingsData.PreferUnicode` | `ImportExportBeatmapListViewModel` | `PreferUnicode` PropertyChanged | `UpdateShowBeatmaps()`（DataGrid再構築 → UnicodeDisplayConverter再評価） | `AddTo(Disposables)` |
 | AP-1 | `AudioPlayerService._playbackCompletedSubject` | `AudioPlayerPanelViewModel` | 再生完了（自然終了） | リピートモードに応じた次トラック処理 | `AddTo(Disposables)` |
 | AP-2 | `AudioPlayerService._stateSubject` | `AudioPlayerPanelViewModel` | 再生状態変更 | `IsPlaying` 更新 + 位置ポーリング開始/停止 | `AddTo(Disposables)` |
 | AP-3 | `MapListViewModel.SelectedBeatmap` | `MapListViewModel` | 譜面選択変更（パネルモード時） | `AudioPlayerPanel.PlayBeatmap()` + ナビゲーションコンテキスト更新 | `AddTo(Disposables)` |
 | AP-4 | `SettingsData.IsAudioPanelMode` | `MapListViewModel` | オーディオパネルモード変更 | 設定保存 + `SetPanelActive()` | partial method |
+| SORT-1 | `MapListSortViewModel._sortChangedSubject` | `BeatmapListViewModelBase`（派生毎に独立） | ソート規則変更 | `ApplyCurrentSort()`で `_unsortedBeatmaps`→`_sourceBeatmaps` に再充填 + in-place `Array.Sort` → `UpdateShowBeatmaps()` | `AddTo(Disposables)` |
+| SORT-2 | `Observable.Merge(SortChanged, SelectedModCategoryChanged, SelectedScoreSystemCategoryChanged, PreferUnicodeChanged)` | `BeatmapListViewModelBase` | ソート関連のいずれかが変わったとき | `ApplyCurrentSort()`（上記を一本で起動） | `AddTo(Disposables)` |
+| SORT-3 | 上記と同等の Merge | `MapListViewModel` | ソート関連のいずれかが変わったとき | `AudioPlayerPanelViewModel.RefreshNavigationContextPreservingCurrent(SourceBeatmapsRaw)` を呼び、再生中曲の next/previous index を MD5 で再解決 | `AddTo(Disposables)` |
+| SORT-4 | `MapFilterViewModel._filterChangedSubject` | `MapListViewModel` | フィルタ条件変更 | `ApplyFilter()`（MapList 固有。フィルタは BeatmapGenerator には存在しないため基底へ上げず「MapList 固有」として維持） | `AddTo(Disposables)` |
 
 ### 6.3 ライフサイクル管理
 
@@ -644,14 +652,17 @@ flowchart TD
     CS["CollectionSelectorViewModel<br/>SelectedCollection変更"] -->|R3 ObserveProperty| RC["RefreshCollectionBeatmaps()"]
     RC -->|MD5マッチング| DB["IDatabaseService<br/>.TryGetBeatmapByMd5()"]
     DB --> RB["_resolvedBeatmaps配列"]
-    RB --> UPC["UpdateBeatmapPageCount()"]
-    RB --> USB["UpdateShowBeatmaps()"]
+    RB -->|SetSourceBeatmaps| BASE["基底: active rule ありなら BeatmapMultiComparer + Array.Sort"]
+    BASE --> UPC["UpdateBeatmapPageCount()"]
+    BASE --> USB["UpdateShowBeatmaps()"]
 
-    MOD["SelectedModCategory変更"] --> USB
-    SS["SelectedScoreSystemCategory変更"] --> USB
+    SORT["MapListSortViewModel.SortChanged"] -->|Merge 購読| AC["基底: ApplyCurrentSort()"]
+    MOD["SelectedModCategory変更"] -->|Merge 購読| AC
+    SS["SelectedScoreSystemCategory変更"] -->|Merge 購読| AC
+    PU["PreferUnicode変更"] -->|Merge 購読| AC
+    AC --> USB
     PAGE["CurrentBeatmapPage変更"] --> USB
     PSIZE["BeatmapPageSize変更"] -->|UpdateBeatmapPageCount| USB
-    PU["PreferUnicode変更"] -->|R3 ObservePropertyAndSubscribe| USB
 
     USB -->|"Span skip/take"| SB["ShowBeatmaps<br/>(AvaloniaList)"]
     USB -->|"beatmap with {<br/>GetBestScore(scoreSystem, mod),<br/>GetBestAccuracy(scoreSystem, mod),<br/>GetGrade(scoreSystem, mod)}"| SB

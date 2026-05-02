@@ -41,6 +41,10 @@ NativeAOT（Ahead-of-Time コンパイル）に対応するため、本プロジ
 - [ ] `dynamic` キーワードを使用していないか
 - [ ] `System.Reflection.Emit` を使用していないか
 
+### 推奨パターン（参考）
+
+- enum → 表示文字列の `IValueConverter` は `switch` 式 + `LanguageService.Instance.GetString(...)` の組み合わせで実装する。`Sorting/Converters/SortFieldNameConverter` がこの形の例（`Enum.GetName` / リフレクションを使わず、追加メタデータも `[Description]` 等に頼らない）。
+
 ---
 
 ## 3. 技術別の対応方法

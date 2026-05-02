@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "คัดลอก URL ดาวน์โหลด",
     "OpenInExplorer": "เปิดโฟลเดอร์ใน Explorer",
-    "GenerateBeatmap": "สร้าง beatmap..."
+    "GenerateBeatmap": "สร้าง beatmap...",
+    "Sort.Open": "เรียงลำดับ",
+    "Sort.Title": "เงื่อนไขการเรียงลำดับ",
+    "Sort.Priority1": "เงื่อนไขที่ 1",
+    "Sort.Priority2": "เงื่อนไขที่ 2",
+    "Sort.Priority3": "เงื่อนไขที่ 3",
+    "Sort.Ascending": "น้อยไปมาก",
+    "Sort.Descending": "มากไปน้อย",
+    "Sort.Reset": "รีเซ็ต",
+    "Sort.Close": "ปิด",
+    "Sort.Field.None": "(ไม่ระบุ)"
   },
   "MapFilter": {
     "Title": "เงื่อนไขการกรอง",

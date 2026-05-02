@@ -76,6 +76,17 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
             nameof(PageCount),
             () => OnPropertyChanged(nameof(FilteredPages)),
             Disposables);
+
+        // ソート/Mod/ScoreSystem/PreferUnicode 変更で SourceBeatmapsRaw が並び替わるため、
+        // AudioPlayer の現在曲 (MD5) を保持したまま index を再同期する。
+        // Skip(1) で起動時の即時発火を抑止 (AudioPlayer 未初期化状態での実行を防ぐ)。
+        Observable.Merge(
+                SortViewModel.SortChanged,
+                this.ObserveProperty(nameof(SelectedModCategory)).Skip(1).Select(_ => Unit.Default),
+                this.ObserveProperty(nameof(SelectedScoreSystemCategory)).Skip(1).Select(_ => Unit.Default),
+                SettingsData.ObserveProperty(nameof(ISettingsData.PreferUnicode)).Skip(1).Select(_ => Unit.Default))
+            .Subscribe(_ => AudioPlayerPanel.RefreshNavigationContextPreservingCurrent(SourceBeatmapsRaw))
+            .AddTo(Disposables);
     }
 
     public void Initialize()

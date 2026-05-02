@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Копировать ссылку для скачивания",
     "OpenInExplorer": "Открыть папку в проводнике",
-    "GenerateBeatmap": "Создать beatmap..."
+    "GenerateBeatmap": "Создать beatmap...",
+    "Sort.Open": "Сортировка",
+    "Sort.Title": "Условия сортировки",
+    "Sort.Priority1": "Условие 1",
+    "Sort.Priority2": "Условие 2",
+    "Sort.Priority3": "Условие 3",
+    "Sort.Ascending": "По возрастанию",
+    "Sort.Descending": "По убыванию",
+    "Sort.Reset": "Сброс",
+    "Sort.Close": "Закрыть",
+    "Sort.Field.None": "(Не указано)"
   },
   "MapFilter": {
     "Title": "Условия фильтра",

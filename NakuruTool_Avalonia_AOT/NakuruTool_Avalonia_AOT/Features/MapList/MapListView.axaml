@@ -176,6 +176,14 @@
 
                     <!-- Mod切替・スコアシステム切替（ヘッダー右端） -->
                     <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- 並べ替えボタン (Separator はボタンと一緒に出し入れ) -->
+                        <Button x:Name="SortButton"
+                                IsVisible="{Binding ShowSortButton, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
+                                Command="{Binding SortCommand, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
+                                ToolTip.Tip="{translate:Translate 'MapList.Sort.Open'}">
+                            <mi:MaterialIcon Kind="SortVariant" Width="18" Height="18"/>
+                        </Button>
+                        <Separator IsVisible="{Binding ShowSortButton, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"/>
                         <!-- スコアシステム選択グループ -->
                         <Border BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2">
                             <StackPanel Orientation="Horizontal" Spacing="6">

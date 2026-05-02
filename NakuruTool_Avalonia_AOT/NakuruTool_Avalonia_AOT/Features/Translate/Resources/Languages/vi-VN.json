@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Sao chép URL tải xuống",
     "OpenInExplorer": "Mở thư mục trong Explorer",
-    "GenerateBeatmap": "Tạo beatmap..."
+    "GenerateBeatmap": "Tạo beatmap...",
+    "Sort.Open": "Sắp xếp",
+    "Sort.Title": "Điều kiện sắp xếp",
+    "Sort.Priority1": "Điều kiện 1",
+    "Sort.Priority2": "Điều kiện 2",
+    "Sort.Priority3": "Điều kiện 3",
+    "Sort.Ascending": "Tăng dần",
+    "Sort.Descending": "Giảm dần",
+    "Sort.Reset": "Đặt lại",
+    "Sort.Close": "Đóng",
+    "Sort.Field.None": "(Chưa chỉ định)"
   },
   "MapFilter": {
     "Title": "Điều kiện lọc",

@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Salin URL Muat Turun",
     "OpenInExplorer": "Buka Folder dalam Explorer",
-    "GenerateBeatmap": "Jana beatmap..."
+    "GenerateBeatmap": "Jana beatmap...",
+    "Sort.Open": "Susun",
+    "Sort.Title": "Syarat susunan",
+    "Sort.Priority1": "Keutamaan 1",
+    "Sort.Priority2": "Keutamaan 2",
+    "Sort.Priority3": "Keutamaan 3",
+    "Sort.Ascending": "Menaik",
+    "Sort.Descending": "Menurun",
+    "Sort.Reset": "Set semula",
+    "Sort.Close": "Tutup",
+    "Sort.Field.None": "(Tidak ditetapkan)"
   },
   "MapFilter": {
     "Title": "Syarat penapis",

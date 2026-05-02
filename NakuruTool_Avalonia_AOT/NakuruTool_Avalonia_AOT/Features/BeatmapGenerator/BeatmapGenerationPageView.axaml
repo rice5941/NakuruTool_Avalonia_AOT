@@ -5,9 +5,45 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
+             xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
+             xmlns:sorting="using:NakuruTool_Avalonia_AOT.Features.MapList.Sorting"
+             xmlns:sortingConv="using:NakuruTool_Avalonia_AOT.Features.MapList.Sorting.Converters"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="600"
              x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.BeatmapGenerationPageView"
              x:DataType="local:BeatmapGenerationPageViewModel">
+
+    <UserControl.Resources>
+        <sortingConv:SortFieldNameConverter x:Key="SortFieldNameConverter"/>
+
+        <DataTemplate x:Key="SortRuleTemplate" DataType="sorting:SortRule">
+            <Grid ColumnDefinitions="80,*,Auto,Auto" ColumnSpacing="8">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding $parent[ContentControl].Tag}"
+                           VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{x:Static sorting:MapListSortViewModel.SortFields}"
+                          SelectedItem="{Binding Field}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="sorting:SortField">
+                            <TextBlock Text="{Binding Converter={StaticResource SortFieldNameConverter}}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <RadioButton Grid.Column="2"
+                             GroupName="{Binding $parent[ContentControl].Name}"
+                             Content="{translate:Translate 'MapList.Sort.Ascending'}"
+                             IsChecked="{Binding Direction,
+                                                  Converter={x:Static converters:EnumToBoolConverter.Instance},
+                                                  ConverterParameter={x:Static sorting:SortDirection.Ascending}}"/>
+                <RadioButton Grid.Column="3"
+                             GroupName="{Binding $parent[ContentControl].Name}"
+                             Content="{translate:Translate 'MapList.Sort.Descending'}"
+                             IsChecked="{Binding Direction,
+                                                  Converter={x:Static converters:EnumToBoolConverter.Instance},
+                                                  ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
 
     <Grid ColumnDefinitions="auto,8,550,8,*" Margin="0,0,0,8">
 
@@ -68,18 +104,68 @@
 
         </DockPanel>
 
-        <!-- Col 4: ビートマップリスト (共通 MapListView) -->
-        <MapList:MapListView Grid.Column="4"
-                             DataContext="{Binding}"
-                             ShowAudioPlayer="False"
-                             ShowTotalCount="False"
-                             ShowFilteredCount="False"
-                             ShowResolvedCount="True"
-                             ShowHistoryColumn="False"
-                             ShowIsPlayedColumn="False"
-                             ScoreSystemGroupName="BeatmapGenScoreSystem"
-                             ModGroupName="BeatmapGenMod"
-                             DataGridRowHeight="80"/>
+        <!-- Col 4: ビートマップリスト (共通 MapListView) + Sort Overlay -->
+        <Panel Grid.Column="4">
+            <MapList:MapListView DataContext="{Binding}"
+                                 ShowSortButton="True"
+                                 SortCommand="{Binding ToggleSortOverlayCommand}"
+                                 ShowAudioPlayer="False"
+                                 ShowTotalCount="False"
+                                 ShowFilteredCount="False"
+                                 ShowResolvedCount="True"
+                                 ShowHistoryColumn="False"
+                                 ShowIsPlayedColumn="False"
+                                 ScoreSystemGroupName="BeatmapGenScoreSystem"
+                                 ModGroupName="BeatmapGenMod"
+                                 DataGridRowHeight="80"/>
+
+            <!-- Sort Overlay (右上に固定表示) -->
+            <Border IsVisible="{Binding IsSortOverlayVisible}"
+                    IsHitTestVisible="{Binding IsSortOverlayVisible}"
+                    Background="#33000000"
+                    ZIndex="10">
+                <Border Theme="{DynamicResource CardBorder}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Width="420"
+                        Margin="0,52,12,0"
+                        Padding="20"
+                        DataContext="{Binding SortViewModel}"
+                        x:DataType="sorting:MapListSortViewModel">
+
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+                        <TextBlock Grid.Row="0"
+                                   Text="{translate:Translate 'MapList.Sort.Title'}"
+                                   FontSize="16" FontWeight="Bold"/>
+
+                        <ContentControl Grid.Row="1"
+                                        x:Name="BgPrimarySortRuleHost"
+                                        Content="{Binding Primary}"
+                                        Tag="{translate:Translate 'MapList.Sort.Priority1'}"
+                                        ContentTemplate="{StaticResource SortRuleTemplate}"/>
+                        <ContentControl Grid.Row="2"
+                                        x:Name="BgSecondarySortRuleHost"
+                                        Content="{Binding Secondary}"
+                                        Tag="{translate:Translate 'MapList.Sort.Priority2'}"
+                                        ContentTemplate="{StaticResource SortRuleTemplate}"/>
+                        <ContentControl Grid.Row="3"
+                                        x:Name="BgTertiarySortRuleHost"
+                                        Content="{Binding Tertiary}"
+                                        Tag="{translate:Translate 'MapList.Sort.Priority3'}"
+                                        ContentTemplate="{StaticResource SortRuleTemplate}"/>
+
+                        <StackPanel Grid.Row="4"
+                                    Orientation="Horizontal" Spacing="8"
+                                    HorizontalAlignment="Right">
+                            <Button Content="{translate:Translate 'MapList.Sort.Reset'}"
+                                    Command="{Binding ResetCommand}"/>
+                            <Button Content="{translate:Translate 'MapList.Sort.Close'}"
+                                    Command="{Binding $parent[local:BeatmapGenerationPageView].((local:BeatmapGenerationPageViewModel)DataContext).CloseSortOverlayCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Border>
+        </Panel>
 
         <!-- 単体beatmap生成オーバーレイ (共通 UserControl) -->
         <local:SingleBeatmapGenerationOverlayView

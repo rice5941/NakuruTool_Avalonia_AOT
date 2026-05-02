@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -39,6 +40,12 @@ public partial class MapListView : UserControl
 
     public static readonly StyledProperty<double> DataGridRowHeightProperty =
         AvaloniaProperty.Register<MapListView, double>(nameof(DataGridRowHeight), defaultValue: 100d);
+
+    public static readonly StyledProperty<bool> ShowSortButtonProperty =
+        AvaloniaProperty.Register<MapListView, bool>(nameof(ShowSortButton), defaultValue: false);
+
+    public static readonly StyledProperty<ICommand?> SortCommandProperty =
+        AvaloniaProperty.Register<MapListView, ICommand?>(nameof(SortCommand), defaultValue: null);
 
     public bool ShowAudioPlayer
     {
@@ -92,6 +99,18 @@ public partial class MapListView : UserControl
     {
         get => GetValue(DataGridRowHeightProperty);
         set => SetValue(DataGridRowHeightProperty, value);
+    }
+
+    public bool ShowSortButton
+    {
+        get => GetValue(ShowSortButtonProperty);
+        set => SetValue(ShowSortButtonProperty, value);
+    }
+
+    public ICommand? SortCommand
+    {
+        get => GetValue(SortCommandProperty);
+        set => SetValue(SortCommandProperty, value);
     }
 
     private Beatmap? _rightClickTarget;

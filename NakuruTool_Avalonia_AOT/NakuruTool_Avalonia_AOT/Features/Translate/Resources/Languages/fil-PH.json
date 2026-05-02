@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Kopyahin ang Download URL",
     "OpenInExplorer": "Buksan ang Folder sa Explorer",
-    "GenerateBeatmap": "Gumawa ng beatmap..."
+    "GenerateBeatmap": "Gumawa ng beatmap...",
+    "Sort.Open": "Pagsunud-sunurin",
+    "Sort.Title": "Pamantayan ng pag-uuri",
+    "Sort.Priority1": "Priyoridad 1",
+    "Sort.Priority2": "Priyoridad 2",
+    "Sort.Priority3": "Priyoridad 3",
+    "Sort.Ascending": "Pataas",
+    "Sort.Descending": "Pababa",
+    "Sort.Reset": "I-reset",
+    "Sort.Close": "Isara",
+    "Sort.Field.None": "(Hindi tinukoy)"
   },
   "MapFilter": {
     "Title": "Mga kondisyon ng filter",

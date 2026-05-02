@@ -97,6 +97,9 @@
 | `IsGenerating` | `bool` | 生成中フラグ |
 | `IsLargeCollectionConfirmVisible` | `bool` | 大量件数確認オーバーレイの表示制御 |
 | `LargeCollectionConfirmMessage` | `string` | 確認メッセージ（フィルタ後件数を含む動的テキスト） |
+| `IsSortOverlayVisible` | `bool` | ソート設定オーバーレイの表示制御 |
+| `ToggleSortOverlayCommand` | `IRelayCommand` | ソートオーバーレイの表示切替（`MapListView` の `ShowSortButton` から発火） |
+| `CloseSortOverlayCommand` | `IRelayCommand` | ソートオーバーレイのクローズ。Preset エディタ開閉・大量件数 confirm 表示時・単体生成 overlay 表示時に内部で自動呼び出し（排他制御） |
 
 #### 主要挙動
 
@@ -117,7 +120,7 @@
 | ファイル | 種別 | 概要 |
 |---------|------|------|
 | `MapListViewModel.cs` | ViewModel | フィルタ済み譜面一覧の保持・オーディオ連携・ナビゲーションを担う。`BeatmapListViewModelBase`（Shared）を継承し、ページング / ContextMenu / Mod・ScoreSystem 切替 / `PreferUnicode` 監視は基底側で集約される。`IMapListViewModel`（`IBeatmapListViewModel` 継承）を実装し、`MapListView` を BeatmapGenerator と共有する |
-| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義。共通 BeatmapList View として再利用され、表示要素は `StyledProperty`（`ShowAudioPlayer` / `ShowTotalCount` / `ShowFilteredCount` / `ShowResolvedCount` / `ShowHistoryColumn` / `ShowIsPlayedColumn` / `ScoreSystemGroupName` / `ModGroupName` / `DataGridRowHeight`）で切替する。コンテキストメニュー（Copy/Open/Generate）は両画面共通で常に有効 |
+| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義。共通 BeatmapList View として再利用され、表示要素は `StyledProperty`（`ShowAudioPlayer` / `ShowTotalCount` / `ShowFilteredCount` / `ShowResolvedCount` / `ShowHistoryColumn` / `ShowIsPlayedColumn` / `ScoreSystemGroupName` / `ModGroupName` / `DataGridRowHeight` / `ShowSortButton` / `SortCommand`）で切替する。`ShowSortButton=true` 時にソートトグル用ボタンを表示し、`SortCommand` をクリック時に発火する。コンテキストメニュー（Copy/Open/Generate）は両画面共通で常に有効 |
 | `MapListView.axaml.cs` | CodeBehind | 上記 `StyledProperty` の定義、DataGrid右クリック時のコンテキストメニュー表示制御（行ヒットテスト）、`IBeatmapListViewModel` 経由での Command 配線 |
 
 #### 固有責務（基底に集約済みの共通責務は除く）
@@ -346,7 +349,6 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 ---
 
 ### 2.6 PresetEditorViewModel（プリセット編集）
-
 #### 構成ファイル
 
 | ファイル | 種別 |
@@ -406,6 +408,39 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 |-------|---------|----------|
 | `EditingConditions.ObserveCollectionChanged()` | 条件の追加/削除 | `AddConditionCommand` / `SavePresetCommand` のCanExecute更新 |
 | `_presetService.Presets.ObserveCollectionChanged()` | プリセットリスト変更 | `BatchGenerateCollectionsCommand` のCanExecute更新 |
+
+#### Sort 連携
+
+- `MapListPageViewModel` は派生 `BeatmapListViewModelBase` 上の `SortViewModel` を経由してソート状態を保持・公開する。`PresetEditorViewModel` 自身はソートを保持しない（編集中プリセットには SortRule を含めない）
+- プリセット編集オーバーレイの開閉は `IsSortOverlayVisible` と排他制御される（後述）
+
+---
+
+### 2.7 Sorting（ソート機能）
+
+`Features/MapList/Sorting/` 配下に、`MapListView` 上のソート UI とソートコンパレータを提供する型群を集約する。実際の「ソート適用」は Shared の [BeatmapListViewModelBase](#beatmaplistviewmodelbase) が担う（`MapListSortViewModel` は表示・入力・通知のみ担当）。
+
+#### 構成ファイル
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `Sorting/SortField.cs` | enum | ソート対象フィールド。`None` + 17 値（`Title` / `Artist` / `Version` / `Creator` / `KeyCount` / `BPM` / `OD` / `HP` / `DrainTimeSeconds` / `Difficulty` / `LongNoteRate` / `Status` / `BestScore` / `BestAccuracy` / `PlayCount` / `LastPlayed` / `LastModifiedTime`） |
+| `Sorting/SortDirection.cs` | enum | `Ascending` / `Descending` |
+| `Sorting/SortRule.cs` | `ObservableObject` | 1 スロット分のソート規則。`Field` / `Direction` を `[ObservableProperty]` で公開 |
+| `Sorting/BeatmapMultiComparer.cs` | `IComparer<Beatmap>` | NativeAOT 安全な switch 式ベースで `SortRule` 順に比較。`Field == None` のスロットはスキップ。`null` は方向に拘わらず末尾固定。Mod / ScoreSystem / `PreferUnicode` をコンストラクタで受け取り、`Beatmap.GetBestScore` / `GetBestAccuracy` 等や Title / Artist の Unicode/ASCII 選択を反映 |
+| `Sorting/MapListSortViewModel.cs` | `ViewModelBase` | 3 スロット固定の `SortRules`（`AvaloniaList<SortRule>`）を保持。`SortChanged` (`Observable<Unit>`) を公開し、`Reset` コマンドで全スロットを `Field=None` に戻す。`GetActiveRules()` で `Field != None` の規則のみ返す |
+| `Sorting/Converters/SortFieldNameConverter.cs` | `IValueConverter` | `SortField` → 翻訳済み表示名。`MapFilter.Target.*` キーを流用し、`None` のみ `MapList.Sort.Field.None` を使用。NativeAOT 安全な switch 式 + `LanguageService.Instance.GetString(...)` で実装 |
+
+#### `MapListSortViewModel` の公開境界
+
+| メンバ | 型 | 概要 |
+|-------|---|------|
+| `SortRules` | `AvaloniaList<SortRule>` | 3 スロット固定。コンストラクタで 3 個 `new` したあと追加/削除しない |
+| `SortChanged` | `Observable<Unit>` | 3 SortRule の `Field`/`Direction` を `Observable.Merge` で一本化し、`_sortChangedSubject` で再発信したストリーム |
+| `ResetCommand` | `IRelayCommand` | 全 SortRule を `Field=None`/`Direction=Ascending` に戻す |
+| `GetActiveRules()` | `IReadOnlyList<SortRule>` | `Field != None` の規則のみを順番を保って返す |
+
+> `BeatmapListViewModelBase` は「派生ごとに個別の `MapListSortViewModel`」を保持するため、MapList と BeatmapGenerator は型は共有しつつインスタンスは独立している。
 
 ---
 
@@ -1024,6 +1059,7 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 | Mod / ScoreSystem 切替 | `SelectedModCategory` / `SelectedScoreSystemCategory` の変更で `UpdateShowBeatmaps()` を再実行し、表示用 score（`Beatmap.GetBestScore` 等）を再投影 |
 | ContextMenu | `_contextMenuBeatmap` の保持、`SetClipboardWriter` / `TryPrepareContextMenu` / `ClearContextMenuBeatmap` / `SelectBeatmapForContextMenu`（`virtual`）と `CopyDownloadUrlCommand` / `OpenInExplorerCommand` / `GenerateBeatmapCommand` を提供 |
 | `PreferUnicode` 監視 | ctor で `ISettingsData.PreferUnicode` を R3 で購読し、変更時に `UpdateShowBeatmaps()` を呼び DataGrid 行を再構築（`UnicodeDisplayConverter` 再評価） |
+| ソート | `internal MapListSortViewModel SortViewModel { get; }` を派生ごとに個別保持。`SetSourceBeatmaps(Beatmap[])` 内で `GetActiveRules()` が 1 件以上あれば `BeatmapMultiComparer` をコンストラクトして `Array.Sort` を適用（この経路だけ配列インスタンスは新規確保）。さらに ctor で `Observable.Merge(SortChanged, SelectedModCategoryChanged, SelectedScoreSystemCategoryChanged, PreferUnicodeChanged)` を購読し、`ApplyCurrentSort()` を呼ぶ |
 
 #### Template Method フック（派生での override 用）
 
@@ -1037,6 +1073,7 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 
 - `PageSize` 変更時は両派生で `CurrentPage = 1` にリセットされる（仕様統一）。
 - `RecalculatePageCount()` は `PageCount` の算出のみで末尾クランプは行わない（呼び出し経路で必ず `CurrentPage = 1` がセットされるため、二重発火を避ける）。
+- `ApplyCurrentSort()` は `_unsortedBeatmaps`（ソート適用前のスナップショット）から `_sourceBeatmaps` へ `Array.Copy` で再充填した上で `Array.Sort` を in-place で適用する。配列インスタンス自体は差し替えず、外部が保持している参照（例: `AudioPlayerPanelViewModel` のナビゲーションコンテキスト）を破壊しない。配列インスタンスの再確保は `SetSourceBeatmaps()` 時のみ。
 - 派生固有 leaf 状態（例: `IsGenerating`）は派生で `[ObservableProperty]` を継続使用してよい（継承境界を越えないため安全）。
 - `SelectedBeatmap` の変更フックは順序要件（`PropertyChanged` 発火後に AudioPlayer を起動）を保つため partial メソッドへ寄せず、派生側で R3 `ObserveProperty` 購読のまま維持する。
 
@@ -1567,7 +1604,8 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - コレクション内 MD5 を `IDatabaseService.TryGetBeatmapByMd5()` で解決し、得られた `Beatmap[]` を基底 `SetSourceBeatmaps()` に渡す（ページ数再計算と `CurrentPage = 1` リセットは基底で連鎖）
 - `FilteredCount` を R3 で購読し、`BatchGenerateCommand.NotifyCanExecuteChanged()` を呼ぶ（`BatchGenerate.CanExecute` は `FilteredCount > 0` を含む）
 - 単体生成 state（`SingleGenerationViewModel` / `IsSingleGenerationOverlayVisible`）と `CloseSingleGenerationCommand` を保持し、ContextMenu の `OnGenerateBeatmap` override から `ShowSingleGeneration(beatmap)` を直接呼ぶ。`ShowSingleGeneration` は旧 VM を `Dispose` してから新 VM を `new` し、`Dispose` でも `SingleGenerationViewModel?.Dispose()` を呼ぶ
-- 派生固有 leaf 状態（`IsGenerating` / `GenerationProgressValue` / `GenerationStatusMessage` / `SelectedGenerationTabIndex` / `SingleGenerationViewModel` / `IsSingleGenerationOverlayVisible`）は派生で `[ObservableProperty]` を継続使用（継承境界を越えないため安全）
+- 派生固有 leaf 状態（`IsGenerating` / `GenerationProgressValue` / `GenerationStatusMessage` / `SelectedGenerationTabIndex` / `SingleGenerationViewModel` / `IsSingleGenerationOverlayVisible` / `IsSortOverlayVisible`）は派生で `[ObservableProperty]` を継続使用（継承境界を越えないため安全）
+- ソートオーバーレイ state （`IsSortOverlayVisible` / `ToggleSortOverlayCommand` / `CloseSortOverlayCommand`）を保持し、`BeatmapGenerationPageView.axaml` の `MapListView` 利用箇所は `ShowSortButton="True"` / `SortCommand="{Binding ToggleSortOverlayCommand}"` を設定する。`BatchGenerateAsync` 開始時・単体生成 overlay 表示時には `CloseSortOverlay` を呼び自動で閉じる。`MapListSortViewModel` のインスタンスは MapList 側とは独立（基底 `BeatmapListViewModelBase` で個別保持）
 
 #### DataGrid列構成（共通 `MapListView` 側）
 

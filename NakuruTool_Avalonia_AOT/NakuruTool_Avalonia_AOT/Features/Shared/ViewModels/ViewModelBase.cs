@@ -1,10 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using R3;
 
 namespace NakuruTool_Avalonia_AOT.Features.Shared.ViewModels
 {
-    public class ViewModelBase : ObservableObject
+    public class ViewModelBase : ObservableObject, IDisposable
     {
         public LanguageService LangServiceInstance { get; } = LanguageService.Instance;
 

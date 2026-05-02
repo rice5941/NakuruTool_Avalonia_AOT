@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "ダウンロードURLをコピー",
     "OpenInExplorer": "フォルダをエクスプローラーで開く",
-    "GenerateBeatmap": "beatmap生成..."
+    "GenerateBeatmap": "beatmap生成...",
+    "Sort.Open": "並べ替え",
+    "Sort.Title": "並べ替え条件",
+    "Sort.Priority1": "第1条件",
+    "Sort.Priority2": "第2条件",
+    "Sort.Priority3": "第3条件",
+    "Sort.Ascending": "昇順",
+    "Sort.Descending": "降順",
+    "Sort.Reset": "リセット",
+    "Sort.Close": "閉じる",
+    "Sort.Field.None": "(未指定)"
   },
   "MapFilter": {
     "Title": "フィルタ条件",

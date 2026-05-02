@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Salin URL Unduhan",
     "OpenInExplorer": "Buka Folder di Explorer",
-    "GenerateBeatmap": "Buat beatmap..."
+    "GenerateBeatmap": "Buat beatmap...",
+    "Sort.Open": "Urutkan",
+    "Sort.Title": "Kondisi pengurutan",
+    "Sort.Priority1": "Prioritas 1",
+    "Sort.Priority2": "Prioritas 2",
+    "Sort.Priority3": "Prioritas 3",
+    "Sort.Ascending": "Naik",
+    "Sort.Descending": "Turun",
+    "Sort.Reset": "Atur ulang",
+    "Sort.Close": "Tutup",
+    "Sort.Field.None": "(Tidak ditentukan)"
   },
   "MapFilter": {
     "Title": "Kondisi filter",

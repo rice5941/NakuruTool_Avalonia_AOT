@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.MapList.Sorting;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared;
@@ -22,6 +23,8 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     private readonly ISettingsService _settingsService;
     private readonly AvaloniaList<Beatmap> _showBeatmapsList = new();
     private Beatmap[] _sourceBeatmaps = Array.Empty<Beatmap>();
+    /// <summary>SetSourceBeatmaps で受け取った未ソートの基準配列。ApplyCurrentSort はここからコピーして再ソートする。</summary>
+    private Beatmap[] _unsortedBeatmaps = Array.Empty<Beatmap>();
     private Func<string, Task>? _clipboardWriter;
     private Beatmap? _contextMenuBeatmap;
 
@@ -54,15 +57,25 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     public IAvaloniaReadOnlyList<int> PageSizes { get; } = new AvaloniaList<int> { 10, 20, 50, 100 };
 
+    /// <summary>ソート設定 ViewModel。Dispose は基底の <c>Disposables</c> 経由で連鎖する。</summary>
+    internal MapListSortViewModel SortViewModel { get; }
+
     protected BeatmapListViewModelBase(ISettingsService settingsService)
     {
+        SortViewModel = new MapListSortViewModel();
+        Disposables.Add(SortViewModel);
+
         _settingsService = settingsService;
         ShowBeatmaps = _showBeatmapsList;
 
         _settingsService.SettingsData.ObservePropertyAndSubscribe(
             nameof(ISettingsData.PreferUnicode),
-            UpdateShowBeatmaps,
+            ApplyCurrentSort,
             Disposables);
+
+        SortViewModel.SortChanged
+            .Subscribe(_ => ApplyCurrentSort())
+            .AddTo(Disposables);
     }
 
     /// <summary>派生から参照可能な現在のソース配列。</summary>
@@ -74,10 +87,14 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     /// <summary>
     /// 派生で生成したベース譜面配列を差し替える。
     /// FilteredCount を更新し、CurrentPage を 1 にリセット (既に 1 なら再投影のみ実行)。
+    /// 配列長が変わるタイミングでのみ <c>_sourceBeatmaps</c> を再確保する。
     /// </summary>
     protected void SetSourceBeatmaps(Beatmap[] source)
     {
-        _sourceBeatmaps = source ?? Array.Empty<Beatmap>();
+        _unsortedBeatmaps = source ?? Array.Empty<Beatmap>();
+        _sourceBeatmaps = new Beatmap[_unsortedBeatmaps.Length];
+        RefillAndSortInPlace();
+
         FilteredCount = _sourceBeatmaps.Length;
         if (CurrentPage != 1)
         {
@@ -87,6 +104,44 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         {
             UpdateShowBeatmaps();
         }
+    }
+
+    /// <summary>
+    /// 現在のソート条件で _sourceBeatmaps の中身を再構築し、表示を更新する。
+    /// 配列インスタンスは維持し、外部 (AudioPlayer 等) が保持している参照の整合性を保つ。
+    /// </summary>
+    protected void ApplyCurrentSort()
+    {
+        // 万一長さがずれている場合のフォールバック (理論上 _unsortedBeatmaps と _sourceBeatmaps は同長)
+        if (_sourceBeatmaps.Length != _unsortedBeatmaps.Length)
+        {
+            _sourceBeatmaps = new Beatmap[_unsortedBeatmaps.Length];
+        }
+        RefillAndSortInPlace();
+        UpdateShowBeatmaps();
+    }
+
+    /// <summary>
+    /// _sourceBeatmaps の中身を _unsortedBeatmaps からコピーし直し、active rule があれば in-place ソートする。
+    /// 配列インスタンス自体は維持するため、外部 (AudioPlayer 等) が保持している参照の整合性を保つ。
+    /// 長さが一致しない場合のみ呼び出し側で再確保すること。
+    /// </summary>
+    private void RefillAndSortInPlace()
+    {
+        Array.Copy(_unsortedBeatmaps, _sourceBeatmaps, _unsortedBeatmaps.Length);
+
+        var activeRules = SortViewModel.GetActiveRules();
+        if (activeRules.Length == 0)
+        {
+            return;
+        }
+
+        var comparer = new BeatmapMultiComparer(
+            activeRules,
+            SettingsData.PreferUnicode,
+            SelectedScoreSystemCategory,
+            SelectedModCategory);
+        Array.Sort(_sourceBeatmaps, comparer);
     }
 
     /// <summary>
@@ -134,9 +189,9 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     // ---- partial メソッド (基底内に閉じる) ----
 
-    partial void OnSelectedModCategoryChanged(ModCategory value) => UpdateShowBeatmaps();
+    partial void OnSelectedModCategoryChanged(ModCategory value) => ApplyCurrentSort();
 
-    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value) => UpdateShowBeatmaps();
+    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value) => ApplyCurrentSort();
 
     partial void OnCurrentPageChanged(int value)
     {

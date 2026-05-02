@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "Copiar URL de download",
     "OpenInExplorer": "Abrir pasta no Explorer",
-    "GenerateBeatmap": "Gerar beatmap..."
+    "GenerateBeatmap": "Gerar beatmap...",
+    "Sort.Open": "Ordenar",
+    "Sort.Title": "Ordenar por",
+    "Sort.Priority1": "Prioridade 1",
+    "Sort.Priority2": "Prioridade 2",
+    "Sort.Priority3": "Prioridade 3",
+    "Sort.Ascending": "Crescente",
+    "Sort.Descending": "Decrescente",
+    "Sort.Reset": "Redefinir",
+    "Sort.Close": "Fechar",
+    "Sort.Field.None": "(Não especificado)"
   },
   "MapFilter": {
     "Title": "Condições de filtro",

@@ -63,9 +63,16 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     public partial bool IsSingleGenerationOverlayVisible { get; set; } = false;
 
+    [ObservableProperty]
+    public partial bool IsSortOverlayVisible { get; set; } = false;
+
     partial void OnIsLargeCollectionConfirmVisibleChanged(bool value)
     {
         AddToCollectionCommand.NotifyCanExecuteChanged();
+        if (value)
+        {
+            IsSortOverlayVisible = false;
+        }
     }
 
     private readonly IGenerateCollectionService _generateCollectionService;
@@ -130,6 +137,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
 
     public void ShowSingleGeneration(Beatmap beatmap)
     {
+        IsSortOverlayVisible = false;
         SingleGenerationViewModel?.Dispose();
         SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator, _settingsService);
         IsSingleGenerationOverlayVisible = true;
@@ -146,8 +154,15 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void TogglePresetEditor()
     {
+        IsSortOverlayVisible = false;
         IsPresetEditorVisible = !IsPresetEditorVisible;
     }
+
+    [RelayCommand]
+    private void ToggleSortOverlay() => IsSortOverlayVisible = !IsSortOverlayVisible;
+
+    [RelayCommand]
+    private void CloseSortOverlay() => IsSortOverlayVisible = false;
 
     partial void OnIsPresetEditorVisibleChanged(bool value)
     {

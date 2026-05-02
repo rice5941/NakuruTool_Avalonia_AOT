@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "다운로드 URL 복사",
     "OpenInExplorer": "폴더를 탐색기에서 열기",
-    "GenerateBeatmap": "비트맵 생성..."
+    "GenerateBeatmap": "비트맵 생성...",
+    "Sort.Open": "정렬",
+    "Sort.Title": "정렬 조건",
+    "Sort.Priority1": "1순위",
+    "Sort.Priority2": "2순위",
+    "Sort.Priority3": "3순위",
+    "Sort.Ascending": "오름차순",
+    "Sort.Descending": "내림차순",
+    "Sort.Reset": "초기화",
+    "Sort.Close": "닫기",
+    "Sort.Field.None": "(미지정)"
   },
   "MapFilter": {
     "Title": "필터 조건",

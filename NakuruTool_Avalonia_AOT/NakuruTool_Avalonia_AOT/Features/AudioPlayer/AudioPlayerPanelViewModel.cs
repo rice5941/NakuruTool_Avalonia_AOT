@@ -194,6 +194,37 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         _lastBgOsuFileName = null; // フィルタ変更時は背景キャッシュもリセット
     }
 
+    /// <summary>
+    /// ソート変更などで filteredBeatmaps の中身が並び替わったあと、
+    /// 現在再生中の Beatmap (MD5 一致) に基づいて index を再解決する。
+    /// 一致する beatmap が見つからない場合は -1 を設定する。
+    /// </summary>
+    public void RefreshNavigationContextPreservingCurrent(Beatmap[] filteredBeatmaps)
+    {
+        _filteredBeatmaps = filteredBeatmaps;
+        _shuffleHistory.Clear();
+        _shuffleIndex = -1;
+        _playedIndices.Clear();
+
+        if (_currentBeatmap is null)
+        {
+            _currentTrackIndex = -1;
+            return;
+        }
+
+        var md5 = _currentBeatmap.MD5Hash;
+        var newIndex = -1;
+        for (var i = 0; i < filteredBeatmaps.Length; i++)
+        {
+            if (filteredBeatmaps[i].MD5Hash == md5)
+            {
+                newIndex = i;
+                break;
+            }
+        }
+        _currentTrackIndex = newIndex;
+    }
+
     // ---- コールバック設定 ----
 
     /// <summary>MapListViewModel がコンストラクタで設定するページ遷移コールバック。</summary>

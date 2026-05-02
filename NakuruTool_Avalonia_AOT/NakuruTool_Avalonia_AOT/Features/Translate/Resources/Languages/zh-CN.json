@@ -65,7 +65,17 @@
     "ScoreSystem.ScoreV2": "v2",
     "CopyDownloadUrl": "复制下载链接",
     "OpenInExplorer": "在资源管理器中打开文件夹",
-    "GenerateBeatmap": "生成谱面..."
+    "GenerateBeatmap": "生成谱面...",
+    "Sort.Open": "排序",
+    "Sort.Title": "排序条件",
+    "Sort.Priority1": "条件1",
+    "Sort.Priority2": "条件2",
+    "Sort.Priority3": "条件3",
+    "Sort.Ascending": "升序",
+    "Sort.Descending": "降序",
+    "Sort.Reset": "重置",
+    "Sort.Close": "关闭",
+    "Sort.Field.None": "(未指定)"
   },
   "MapFilter": {
     "Title": "筛选条件",

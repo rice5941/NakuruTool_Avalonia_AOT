@@ -44,6 +44,15 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     [ObservableProperty]
     public partial bool IsSingleGenerationOverlayVisible { get; set; } = false;
 
+    [ObservableProperty]
+    public partial bool IsSortOverlayVisible { get; set; } = false;
+
+    [RelayCommand]
+    private void ToggleSortOverlay() => IsSortOverlayVisible = !IsSortOverlayVisible;
+
+    [RelayCommand]
+    private void CloseSortOverlay() => IsSortOverlayVisible = false;
+
     public BeatmapGenerationPageViewModel(
         IDatabaseService databaseService,
         IBeatmapRateGenerator beatmapRateGenerator,
@@ -94,6 +103,8 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
     [RelayCommand(CanExecute = nameof(CanBatchGenerate))]
     private async Task BatchGenerateAsync()
     {
+        IsSortOverlayVisible = false;
+
         var collection = CollectionSelector.SelectedCollection;
         if (collection is null) return;
 
@@ -220,6 +231,8 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
 
     public void ShowSingleGeneration(Beatmap beatmap)
     {
+        IsSortOverlayVisible = false;
+
         // 旧 VM を Dispose してから新規生成 (stale 参照防止)
         SingleGenerationViewModel?.Dispose();
         SingleGenerationViewModel = new SingleBeatmapGenerationViewModel(beatmap, _beatmapRateGenerator, _settingsService);

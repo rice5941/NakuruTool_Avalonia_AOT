@@ -33,7 +33,6 @@
                                 <NumericUpDown Value="{Binding Rate}"
                                                Margin=" 24,0,0,0"
                                                Increment="0.05"
-                                               FormatString="0.00"
                                                IsEnabled="{Binding !IsFixedBpmMode}"
                                                Width="120"
                                                HorizontalAlignment="Left"/>
@@ -85,7 +84,7 @@
                                                     IsVisible="{Binding FixedBpmHasError, Converter={StaticResource InverseBooleanConverter}}">
                                             <TextBlock Text="{translate:Translate 'BeatmapGen.CalculatedRate'}"
                                                        FontSize="12" Opacity="0.8"/>
-                                            <TextBlock Text="{Binding CalculatedRate, StringFormat={}{0:0.00}}"
+                                            <TextBlock Text="{Binding CalculatedRate, StringFormat={}{0:0.000}}"
                                                        FontSize="12" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </ContentControl>

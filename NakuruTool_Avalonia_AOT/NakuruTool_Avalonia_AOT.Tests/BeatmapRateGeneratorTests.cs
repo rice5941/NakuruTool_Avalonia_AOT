@@ -68,6 +68,29 @@ public class BeatmapRateGeneratorTests
     {
         Assert.False(BeatmapRateGenerator.IsDefaultHitsoundFile(fileName));
     }
+
+    [Theory]
+    [InlineData(2.0, "2.000")]
+    [InlineData(1.25, "1.250")]
+    [InlineData(1.0, "1.000")]
+    [InlineData(1.234, "1.234")]
+    [InlineData(0.5, "0.500")]
+    public void FormatRate_AlwaysProduces3DecimalDigits(double rate, string expected)
+    {
+        Assert.Equal(expected, BeatmapRateGenerator.FormatRate(rate));
+    }
+
+    [Theory]
+    [InlineData(2.0, "audio_2.000x_dt.mp3")]
+    [InlineData(1.25, "audio_1.250x_dt.mp3")]
+    [InlineData(1.0, "audio_1.000x_dt.mp3")]
+    [InlineData(1.234, "audio_1.234x_dt.mp3")]
+    public void BuildAudioFileName_RateIsAlwaysFormattedWith3Decimals(double rate, string expected)
+    {
+        var result = BeatmapRateGenerator.BuildAudioFileName("audio.mp3", rate, changePitch: false);
+
+        Assert.Equal(expected, result);
+    }
 }
 
 /// <summary>

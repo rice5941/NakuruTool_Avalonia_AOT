@@ -844,14 +844,8 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
     private static string ToFileSystemRelativePath(string canonicalPath)
         => canonicalPath.Replace('/', Path.DirectorySeparatorChar);
 
-    private static string FormatRate(double rate)
-    {
-        if (Math.Abs(rate % 1.0) < 0.001)
-            return ((int)rate).ToString(CultureInfo.InvariantCulture);
-
-        var formatted = rate.ToString("0.##", CultureInfo.InvariantCulture);
-        return formatted;
-    }
+    internal static string FormatRate(double rate)
+        => rate.ToString("0.000", CultureInfo.InvariantCulture);
 
     private static IProgress<RateGenerationProgress>? CreateGroupProgress(
         IProgress<RateGenerationProgress>? batchProgress,

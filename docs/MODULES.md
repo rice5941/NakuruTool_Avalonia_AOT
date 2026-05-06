@@ -1584,6 +1584,16 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - `.osu` 側（`OsuFileRateConverter`）は indented storyboard command 行を素通しし、`Animation` の frameDelay も変更しない（osu! は埋め込み storyboard を inline に保持するためレート差を直接適用しない）。
 - `.osb`（外部ストーリーボード）はレート変換せず、`BeatmapRateGenerator` の非音声アセットコピー経路で `File.Copy` により raw コピーされて `.osz` に同梱される。
 
+### レート倍率の入力制限・出力書式
+
+- **入力制限**: `RateGenerationViewModel.Rate` は小数第3位までを許容し、第4位以降の桁が含まれる場合は `RateHasError = true` となり生成ボタンが無効化される。判定は `HasMoreThan3DecimalDigits(double)` ヘルパーが `Math.Round(value, 3, MidpointRounding.AwayFromZero)` との差分を `Math.Max(Math.Abs(value), 1.0) * 1e-9` の許容誤差で比較する（NativeAOT 安全・カルチャ非依存）。下限は `RateMin = 0.5`、上限は設けない。
+- **計算済みレート**: 固定 BPM モード時の `CalculatedRate` も `Math.Round(.., 3, AwayFromZero)` で 3 桁丸め。
+- **出力書式（常に `0.000` 固定）**:
+  - オーディオファイル名（`BeatmapRateGenerator.BuildAudioFileName`）: `{name}_{rate:0.000}x_{dt|nc}{ext}` 例 `audio_1.250x_dt.mp3` / `audio_2.000x_dt.mp3`
+  - Difficulty 名（`BeatmapRateGenerator.FormatRate`）: 整数判定分岐は持たず常に `rate.ToString("0.000", CultureInfo.InvariantCulture)`。例 `[Hard 1.250x (190bpm) DT]`
+  - `.osu` の `Version:` フォールバック書式（`OsuFileRateConverter`、`NewDifficultyName` 未指定時）: `Version:{original} x{rate:0.000}` 例 `Version:v x1.250`
+- `FormatRate` はテストプロジェクトから検証するため `internal` 公開（`InternalsVisibleTo` 経由）。
+
 ### 依存モジュール
 
 - **OsuDatabase** — `IDatabaseService`（コレクション・譜面データの参照）

@@ -175,7 +175,7 @@ public sealed class OsuFileRateConverter : IOsuFileRateConverter
                 return $"Version:{options.NewDifficultyName}";
 
             var originalVersion = line["Version:".Length..];
-            return $"Version:{originalVersion} x{options.Rate.ToString("0.##", CultureInfo.InvariantCulture)}";
+            return $"Version:{originalVersion} x{options.Rate.ToString("0.000", CultureInfo.InvariantCulture)}";
         }
 
         if (line.StartsWith("BeatmapID:", StringComparison.Ordinal))

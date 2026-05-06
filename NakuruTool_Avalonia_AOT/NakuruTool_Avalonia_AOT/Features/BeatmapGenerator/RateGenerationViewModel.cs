@@ -74,7 +74,7 @@ public partial class RateGenerationViewModel : ViewModelBase
     public double OdMax { get; }= 10.0;
 
     // --- バリデーション ---
-    public bool RateHasError => !IsFixedBpmMode && (!Rate.HasValue || Rate < RateMin);
+    public bool RateHasError => !IsFixedBpmMode && (!Rate.HasValue || Rate < RateMin || HasMoreThan3DecimalDigits(Rate.Value));
     public bool FixedBpmHasError => IsFixedBpmMode && (!FixedBpm.HasValue || FixedBpm < FixedBpmMin);
     public bool HpHasError => IsHpOverrideEnabled && (!HpValue.HasValue || HpValue < HpMin || HpValue > HpMax);
     public bool OdHasError => IsOdOverrideEnabled && (!OdValue.HasValue || OdValue < OdMin || OdValue > OdMax);
@@ -99,10 +99,18 @@ public partial class RateGenerationViewModel : ViewModelBase
         Mp3VbrQuality = IsHighQualityMp3 ? 0 : 4,
     };
 
+    private static bool HasMoreThan3DecimalDigits(double value)
+    {
+        var rounded = Math.Round(value, 3, MidpointRounding.AwayFromZero);
+        // double の二進誤差を吸収するため、値のスケールに応じた許容誤差で比較する
+        var tolerance = Math.Max(Math.Abs(value), 1.0) * 1e-9;
+        return Math.Abs(value - rounded) > tolerance;
+    }
+
     private void UpdateCalculatedRate()
     {
         CalculatedRate = SourceBpm > 0 && FixedBpm.HasValue
-            ? Math.Round(FixedBpm.Value / SourceBpm, 2) : null;
+            ? Math.Round(FixedBpm.Value / SourceBpm, 3, MidpointRounding.AwayFromZero) : null;
     }
 
     private void UpdateCalculatedBpm()

@@ -223,6 +223,18 @@ public class OsuFileRateConverterTests : IDisposable
         Assert.Contains("NakuruTool", tagsLine);
     }
 
+    [Theory]
+    [InlineData("1.25", "Version:v x1.250")]
+    [InlineData("2.0", "Version:v x2.000")]
+    [InlineData("1.234", "Version:v x1.234")]
+    public void Metadata_Version_FallbackUses3DecimalRate(string rateString, string expectedLine)
+    {
+        var rate = decimal.Parse(rateString, System.Globalization.CultureInfo.InvariantCulture);
+        var output = Convert(rate: rate);
+        var versionLine = output.First(l => l.StartsWith("Version:", StringComparison.Ordinal));
+        Assert.Equal(expectedLine, versionLine);
+    }
+
     // ---- [TimingPoints] ----
 
     [Fact]

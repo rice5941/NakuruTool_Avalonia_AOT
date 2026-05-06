@@ -11,7 +11,7 @@ internal sealed partial class SortRule : ObservableObject
     public partial SortField Field { get; set; } = SortField.None;
 
     [ObservableProperty]
-    public partial SortDirection Direction { get; set; } = SortDirection.Ascending;
+    public partial SortDirection Direction { get; set; } = SortDirection.Descending;
 
     public bool IsActive => Field != SortField.None;
 }

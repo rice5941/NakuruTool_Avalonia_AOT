@@ -72,7 +72,7 @@ internal sealed partial class MapListSortViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 全スロットを <see cref="SortField.None"/> / <see cref="SortDirection.Ascending"/> に戻し、
+    /// 全スロットを <see cref="SortField.None"/> / <see cref="SortDirection.Descending"/> に戻し、
     /// SortChanged を 1 回だけ発火する。
     /// </summary>
     [RelayCommand]
@@ -82,11 +82,11 @@ internal sealed partial class MapListSortViewModel : ViewModelBase
         try
         {
             Primary.Field = SortField.None;
-            Primary.Direction = SortDirection.Ascending;
+            Primary.Direction = SortDirection.Descending;
             Secondary.Field = SortField.None;
-            Secondary.Direction = SortDirection.Ascending;
+            Secondary.Direction = SortDirection.Descending;
             Tertiary.Field = SortField.None;
-            Tertiary.Direction = SortDirection.Ascending;
+            Tertiary.Direction = SortDirection.Descending;
         }
         finally
         {

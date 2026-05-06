@@ -36,10 +36,12 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <RadioButton Grid.Column="2"
+                             VerticalAlignment="Center"
                              GroupName="{Binding $parent[ContentControl].Name}"
                              Content="{translate:Translate 'MapList.Sort.Ascending'}"
                              IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Ascending}}"/>
                 <RadioButton Grid.Column="3"
+                             VerticalAlignment="Center"
                              GroupName="{Binding $parent[ContentControl].Name}"
                              Content="{translate:Translate 'MapList.Sort.Descending'}"
                              IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>

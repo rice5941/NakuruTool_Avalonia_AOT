@@ -314,7 +314,7 @@
                     </DataGridTemplateColumn>
                 
                     <!-- LN率 -->
-                    <DataGridTemplateColumn Width="95">
+                    <DataGridTemplateColumn Width="105">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="{translate:Translate 'MapList.LongNoteRate'}" 
                                        HorizontalAlignment="Center"/>

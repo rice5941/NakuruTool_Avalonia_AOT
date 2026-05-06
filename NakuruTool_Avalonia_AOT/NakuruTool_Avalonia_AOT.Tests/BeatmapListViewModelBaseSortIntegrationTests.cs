@@ -49,10 +49,10 @@ public class BeatmapListViewModelBaseSortIntegrationTests
 
         vm.SetTestSource(CreateBeatmaps());
 
-        // ソート発動: Title 昇順
+        // ソート発動: Title 降順
         vm.SortViewModel.Primary.Field = SortField.Title;
         var sortedTitles = vm.ShowBeatmaps.Select(b => b.Title).ToArray();
-        Assert.Equal(new[] { "Alpha", "Bravo", "Charlie", "Delta", "Echo" }, sortedTitles);
+        Assert.Equal(new[] { "Echo", "Delta", "Charlie", "Bravo", "Alpha" }, sortedTitles);
 
         // Reset で元順序に戻る
         vm.SortViewModel.ResetCommand.Execute(null);
@@ -108,8 +108,8 @@ public class BeatmapListViewModelBaseSortIntegrationTests
         vm.SortViewModel.Primary.Field = SortField.Title;
 
         Assert.Same(capturedRef, vm.GetRawForTest());
-        Assert.Equal("Alpha", capturedRef[0].Title);
-        Assert.Equal(new[] { "Alpha", "Bravo", "Charlie", "Delta", "Echo" },
+        Assert.Equal("Echo", capturedRef[0].Title);
+        Assert.Equal(new[] {"Echo", "Delta", "Charlie", "Bravo", "Alpha" },
             capturedRef.Select(b => b.Title).ToArray());
 
         // Reset で元順序に戻る
@@ -240,16 +240,16 @@ public class BeatmapListViewModelBaseSortIntegrationTests
         Assert.Equal(new[] { "Beatmap0", "Beatmap1", "Beatmap2", "Beatmap3", "Beatmap4" },
             vm.ShowBeatmaps.Select(b => b.MD5Hash).ToArray());
 
-        // ソースを差し替えずに SortRule を変更 → 再ソート (Title 昇順)
+        // ソースを差し替えずに SortRule を変更 → 再ソート (Title 降順)
         vm.SortViewModel.Primary.Field = SortField.Title;
 
-        Assert.Equal(new[] { "Alpha", "Bravo", "Charlie", "Delta", "Echo" },
+        Assert.Equal(new[] { "Echo", "Delta", "Charlie", "Bravo", "Alpha" },
             vm.ShowBeatmaps.Select(b => b.Title).ToArray());
 
-        // 方向反転 → 同じソース上で再ソート (Title 降順)
-        vm.SortViewModel.Primary.Direction = SortDirection.Descending;
-
-        Assert.Equal(new[] { "Echo", "Delta", "Charlie", "Bravo", "Alpha" },
+        // 方向反転 → 同じソース上で再ソート (Title 昇順)
+        vm.SortViewModel.Primary.Direction = SortDirection.Ascending;
+        
+        Assert.Equal(new[] { "Alpha", "Bravo", "Charlie", "Delta", "Echo" },
             vm.ShowBeatmaps.Select(b => b.Title).ToArray());
     }
 

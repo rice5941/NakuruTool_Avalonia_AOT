@@ -41,7 +41,7 @@ public class MapListSortViewModelTests
         var (vm, getCount, sub) = CreateVm();
         try
         {
-            vm.Primary.Direction = SortDirection.Descending;
+            vm.Primary.Direction = SortDirection.Ascending;
 
             Assert.Equal(1, getCount());
         }
@@ -71,24 +71,24 @@ public class MapListSortViewModelTests
     }
 
     [Fact]
-    public void Reset_RestoresAllRulesToNoneAscending()
+    public void Reset_RestoresAllRulesToNoneDescending()
     {
         var vm = new MapListSortViewModel();
         vm.Primary.Field = SortField.Title;
-        vm.Primary.Direction = SortDirection.Descending;
+        vm.Primary.Direction = SortDirection.Ascending;
         vm.Secondary.Field = SortField.Artist;
-        vm.Secondary.Direction = SortDirection.Descending;
+        vm.Secondary.Direction = SortDirection.Ascending;
         vm.Tertiary.Field = SortField.BPM;
-        vm.Tertiary.Direction = SortDirection.Descending;
+        vm.Tertiary.Direction = SortDirection.Ascending;
 
         vm.ResetCommand.Execute(null);
 
         Assert.Equal(SortField.None, vm.Primary.Field);
-        Assert.Equal(SortDirection.Ascending, vm.Primary.Direction);
+        Assert.Equal(SortDirection.Descending, vm.Primary.Direction);
         Assert.Equal(SortField.None, vm.Secondary.Field);
-        Assert.Equal(SortDirection.Ascending, vm.Secondary.Direction);
+        Assert.Equal(SortDirection.Descending, vm.Secondary.Direction);
         Assert.Equal(SortField.None, vm.Tertiary.Field);
-        Assert.Equal(SortDirection.Ascending, vm.Tertiary.Direction);
+        Assert.Equal(SortDirection.Descending, vm.Tertiary.Direction);
 
         vm.Dispose();
     }

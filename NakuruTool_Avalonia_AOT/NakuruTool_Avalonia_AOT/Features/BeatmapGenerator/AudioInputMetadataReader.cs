@@ -120,27 +120,34 @@ internal static class AudioInputMetadataReader
 
     private static AudioInputMetadata ReadMp3(Stream stream)
     {
-        // ID3v2 タグの検出とスキップ
+        // ID3v2 タグの検出とスキップ（短いストリームでも EOF 例外にしない）
+        long start = stream.Position;
         Span<byte> id3 = stackalloc byte[10];
-        ReadExact(stream, id3);
-        long frameSearchStart;
-        if (id3[0] == (byte)'I' && id3[1] == (byte)'D' && id3[2] == (byte)'3')
+        int id3Read = stream.Read(id3);
+        if (id3Read >= 3 && id3[0] == (byte)'I' && id3[1] == (byte)'D' && id3[2] == (byte)'3')
         {
-            // syncsafe 28-bit
-            int tagSize = ((id3[6] & 0x7F) << 21)
-                        | ((id3[7] & 0x7F) << 14)
-                        | ((id3[8] & 0x7F) << 7)
-                        | (id3[9] & 0x7F);
-            bool hasFooter = (id3[5] & 0x10) != 0;
-            long skip = tagSize + (hasFooter ? 10 : 0);
-            SeekForward(stream, skip);
-            frameSearchStart = 10 + skip;
+            bool hasFullHeader = id3Read == 10;
+            bool isSyncSafe = hasFullHeader && (id3[6] & 0x80) == 0 && (id3[7] & 0x80) == 0 && (id3[8] & 0x80) == 0 && (id3[9] & 0x80) == 0;
+            if (isSyncSafe)
+            {
+                // syncsafe 28-bit
+                int tagSize = (id3[6] << 21)
+                            | (id3[7] << 14)
+                            | (id3[8] << 7)
+                            | id3[9];
+                bool hasFooter = (id3[5] & 0x10) != 0;
+                long skip = tagSize + (hasFooter ? 10 : 0);
+                SeekForward(stream, skip);
+            }
+            else
+            {
+                // 断定できない ID3 断片は通常スキャンに委ねる
+                stream.Position = start;
+            }
         }
         else
         {
-            // ID3 では無かったので巻き戻す
-            stream.Seek(-id3.Length, SeekOrigin.Current);
-            frameSearchStart = 0;
+            stream.Position = start;
         }
 
         // ここから最大 64KB 前方スキャン。
@@ -197,7 +204,6 @@ internal static class AudioInputMetadataReader
             return new AudioInputMetadata(channels, sampleRate);
         }
 
-        _ = frameSearchStart; // 使わないが将来的な診断用
         throw new InvalidDataException("MP3: MPEG audio frame header not found.");
     }
 

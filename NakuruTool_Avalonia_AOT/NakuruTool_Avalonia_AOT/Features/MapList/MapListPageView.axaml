@@ -21,11 +21,12 @@
         <sortingConv:SortFieldNameConverter x:Key="SortFieldNameConverter"/>
 
         <DataTemplate x:Key="SortRuleTemplate" DataType="sorting:SortRule">
-            <Grid ColumnDefinitions="80,*,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8">
                 <TextBlock Grid.Column="0"
                            Text="{Binding $parent[ContentControl].Tag}"
                            VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1"
+                          Width="200"
                           ItemsSource="{x:Static sorting:MapListSortViewModel.SortFields}"
                           SelectedItem="{Binding Field}">
                     <ComboBox.ItemTemplate>
@@ -37,15 +38,11 @@
                 <RadioButton Grid.Column="2"
                              GroupName="{Binding $parent[ContentControl].Name}"
                              Content="{translate:Translate 'MapList.Sort.Ascending'}"
-                             IsChecked="{Binding Direction,
-                                                  Converter={x:Static converters:EnumToBoolConverter.Instance},
-                                                  ConverterParameter={x:Static sorting:SortDirection.Ascending}}"/>
+                             IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Ascending}}"/>
                 <RadioButton Grid.Column="3"
                              GroupName="{Binding $parent[ContentControl].Name}"
                              Content="{translate:Translate 'MapList.Sort.Descending'}"
-                             IsChecked="{Binding Direction,
-                                                  Converter={x:Static converters:EnumToBoolConverter.Instance},
-                                                  ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>
+                             IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
@@ -116,13 +113,12 @@
                 <!-- Sort Overlay (右上に固定表示) -->
                 <Border IsVisible="{Binding IsSortOverlayVisible}"
                         IsHitTestVisible="{Binding IsSortOverlayVisible}"
-                        Background="#33000000"
+                        Background="#80000000"
                         ZIndex="10">
                     <Border Theme="{DynamicResource CardBorder}"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
-                            Width="420"
-                            Margin="0,52,12,0"
+                            Margin="0,52,0,0"
                             Padding="20"
                             DataContext="{Binding ListViewModel.SortViewModel}"
                             x:DataType="sorting:MapListSortViewModel">

@@ -122,7 +122,7 @@
             <!-- Sort Overlay (右上に固定表示) -->
             <Border IsVisible="{Binding IsSortOverlayVisible}"
                     IsHitTestVisible="{Binding IsSortOverlayVisible}"
-                    Background="#33000000"
+                    Background="#80000000"
                     ZIndex="10">
                 <Border Theme="{DynamicResource CardBorder}"
                         HorizontalAlignment="Right"

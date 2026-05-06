@@ -93,11 +93,11 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     private Beatmap[] _filteredBeatmaps = Array.Empty<Beatmap>();
     private int _currentTrackIndex;
 
-    private readonly List<int> _shuffleHistory = new();
+    private readonly List<string> _shuffleHistoryMd5Hashes = new();
     private int _shuffleIndex = -1;
 
-    /// <summary>ランダム再生で既に再生された曲のインデックス。重複防止用。</summary>
-    private readonly HashSet<int> _playedIndices = new();
+    /// <summary>ランダム再生で既に再生された曲のMD5。重複防止用。</summary>
+    private readonly HashSet<string> _playedMd5Hashes = new(StringComparer.Ordinal);
 
     /// <summary>GetNextShuffleIndex 内で候補を収集する再利用バッファ。毎回のアロケーションを回避する。</summary>
     private readonly List<int> _shuffleCandidates = new();
@@ -145,6 +145,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     {
         _currentBeatmap = beatmap;
         _currentTrackIndex = trackIndex;
+        RegisterPlayedBeatmap(beatmap);
 
         // 曲情報更新 (PreferUnicode 判定)
         var preferUnicode = _settingsService.SettingsData.PreferUnicode;
@@ -188,9 +189,9 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     {
         _filteredBeatmaps = filteredBeatmaps;
         _currentTrackIndex = currentIndex;
-        _shuffleHistory.Clear();
+        _shuffleHistoryMd5Hashes.Clear();
         _shuffleIndex = -1;
-        _playedIndices.Clear();
+        _playedMd5Hashes.Clear();
         _lastBgOsuFileName = null; // フィルタ変更時は背景キャッシュもリセット
     }
 
@@ -202,9 +203,6 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     public void RefreshNavigationContextPreservingCurrent(Beatmap[] filteredBeatmaps)
     {
         _filteredBeatmaps = filteredBeatmaps;
-        _shuffleHistory.Clear();
-        _shuffleIndex = -1;
-        _playedIndices.Clear();
 
         if (_currentBeatmap is null)
         {
@@ -212,17 +210,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
             return;
         }
 
-        var md5 = _currentBeatmap.MD5Hash;
-        var newIndex = -1;
-        for (var i = 0; i < filteredBeatmaps.Length; i++)
-        {
-            if (filteredBeatmaps[i].MD5Hash == md5)
-            {
-                newIndex = i;
-                break;
-            }
-        }
-        _currentTrackIndex = newIndex;
+        _currentTrackIndex = FindBeatmapIndexByMd5(_currentBeatmap.MD5Hash);
     }
 
     // ---- コールバック設定 ----
@@ -244,6 +232,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         if (_audioPlayerService.CurrentState == AudioPlayerState.Stopped && _currentBeatmap != null)
         {
             // 停止中の場合は現在の曲を先頭から再生する
+            RegisterPlayedBeatmap(_currentBeatmap);
             AudioPlayer.PlayBeatmapAudio(_currentBeatmap);
             var dur = _audioPlayerService.GetDuration();
             Duration = dur;
@@ -348,9 +337,30 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     private void ToggleShuffle()
     {
         IsShuffleEnabled = !IsShuffleEnabled;
-        _shuffleHistory.Clear();
+        _shuffleHistoryMd5Hashes.Clear();
         _shuffleIndex = -1;
-        _playedIndices.Clear();
+        _playedMd5Hashes.Clear();
+        RegisterPlayedBeatmap(_currentBeatmap);
+    }
+
+    private void RegisterPlayedBeatmap(Beatmap? beatmap)
+    {
+        if (beatmap is null) return;
+        if (string.IsNullOrEmpty(beatmap.MD5Hash)) return;
+        _playedMd5Hashes.Add(beatmap.MD5Hash);
+    }
+
+    private int FindBeatmapIndexByMd5(string? md5Hash)
+    {
+        if (string.IsNullOrEmpty(md5Hash)) return -1;
+
+        for (var i = 0; i < _filteredBeatmaps.Length; i++)
+        {
+            if (_filteredBeatmaps[i].MD5Hash == md5Hash)
+                return i;
+        }
+
+        return -1;
     }
 
     /// <summary>シークバードラッグ完了時に現在位置をサービスに反映する。</summary>
@@ -447,13 +457,17 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
             case RepeatMode.One:
                 // 同じ曲を最初から再生（Rust側でSinkが再構築されるためSeek(0)は不要）
                 if (_currentBeatmap != null)
+                {
+                    RegisterPlayedBeatmap(_currentBeatmap);
                     AudioPlayer.PlayBeatmapAudio(_currentBeatmap);
+                }
                 break;
 
             case RepeatMode.All:
             case RepeatMode.None:
             default:
                 // RepeatMode.All: NextTrack 内で末尾到達時に index=0 に循環
+                RegisterPlayedBeatmap(_currentBeatmap);
                 // RepeatMode.None: NextTrack 内で末尾到達時に return して停止維持
                 NextTrack();
                 break;
@@ -465,16 +479,17 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     private int GetNextShuffleIndex()
     {
         // 履歴内で戻った後に再度進む場合: 履歴を再利用
-        if (_shuffleIndex < _shuffleHistory.Count - 1)
+        if (_shuffleIndex < _shuffleHistoryMd5Hashes.Count - 1)
         {
             _shuffleIndex++;
-            return _shuffleHistory[_shuffleIndex];
+            var historyIndex = FindBeatmapIndexByMd5(_shuffleHistoryMd5Hashes[_shuffleIndex]);
+            return historyIndex >= 0 ? historyIndex : _currentTrackIndex;
         }
 
-        // 現在曲を再生済みとしてマーク
-        _playedIndices.Add(_currentTrackIndex);
+        // 再生済み登録は PlayBeatmap 側で行う。ここでは保険として現在曲を再登録しておく。
+        RegisterPlayedBeatmap(_currentBeatmap);
 
-        // AudioFilenameが空でなく、まだ再生されていないインデックスを候補として収集（再利用バッファ）
+        // AudioFilenameが空でなく、まだ再生されていない曲を候補として収集（再利用バッファ）
         _shuffleCandidates.Clear();
         CollectCandidates(_shuffleCandidates);
 
@@ -483,10 +498,16 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         {
             if (RepeatMode == RepeatMode.All)
             {
-                // 全リピート時: 再生済みフラグをリセットして再収集
-                _playedIndices.Clear();
-                _playedIndices.Add(_currentTrackIndex);
-                CollectCandidates(_shuffleCandidates);
+                // 全リピート時: 一周したら履歴/再生済みを初期化して新しい周回を開始
+                // 直後の1回だけは現在曲連続を避けるため候補から除外し、候補ゼロ時のみ許容する。
+                _shuffleHistoryMd5Hashes.Clear();
+                _shuffleIndex = -1;
+                _playedMd5Hashes.Clear();
+                CollectCandidates(_shuffleCandidates, _currentBeatmap?.MD5Hash);
+                if (_shuffleCandidates.Count == 0)
+                {
+                    CollectCandidates(_shuffleCandidates);
+                }
             }
 
             // それでも候補がなければ現在のインデックスを返す
@@ -496,22 +517,30 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
 
         // 候補からランダムに選択
         int next = _shuffleCandidates[Random.Shared.Next(_shuffleCandidates.Count)];
+        var nextBeatmap = _filteredBeatmaps[next];
+        RegisterPlayedBeatmap(nextBeatmap);
 
-        _shuffleHistory.Add(next);
-        _shuffleIndex = _shuffleHistory.Count - 1;
+        if (!string.IsNullOrEmpty(nextBeatmap.MD5Hash))
+        {
+            _shuffleHistoryMd5Hashes.Add(nextBeatmap.MD5Hash);
+            _shuffleIndex = _shuffleHistoryMd5Hashes.Count - 1;
+        }
         return next;
     }
 
     /// <summary>
     /// AudioFilename が空でなく、まだ再生されていないインデックスを <paramref name="result"/> に追加する。
+    /// <paramref name="excludedMd5Hash"/> が指定された場合は一致するMD5を候補から除外する。
     /// 呼び出し前に result.Clear() 済みであること。
     /// </summary>
-    private void CollectCandidates(List<int> result)
+    private void CollectCandidates(List<int> result, string? excludedMd5Hash = null)
     {
         for (int i = 0; i < _filteredBeatmaps.Length; i++)
         {
-            if (_playedIndices.Contains(i)) continue;
-            if (!IsPlayableBeatmap(_filteredBeatmaps[i])) continue;
+            var beatmap = _filteredBeatmaps[i];
+            if (!string.IsNullOrEmpty(beatmap.MD5Hash) && _playedMd5Hashes.Contains(beatmap.MD5Hash)) continue;
+            if (!string.IsNullOrEmpty(excludedMd5Hash) && beatmap.MD5Hash == excludedMd5Hash) continue;
+            if (!IsPlayableBeatmap(beatmap)) continue;
             result.Add(i);
         }
     }
@@ -532,7 +561,8 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         if (_shuffleIndex > 0)
         {
             _shuffleIndex--;
-            return _shuffleHistory[_shuffleIndex];
+            var historyIndex = FindBeatmapIndexByMd5(_shuffleHistoryMd5Hashes[_shuffleIndex]);
+            return historyIndex >= 0 ? historyIndex : _currentTrackIndex;
         }
         // 履歴先頭では現在曲を維持
         return _currentTrackIndex;

@@ -147,7 +147,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
         }
 
         progress?.Report(new RateGenerationProgress(
-            wasCancelled ? "Cancelled" : "Completed",
+            wasCancelled ? "BeatmapGen.Cancelled" : "BeatmapGen.Completed",
             allResults.Count,
             totalBeatmapCount,
             100));
@@ -212,7 +212,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        progress?.Report(new RateGenerationProgress("解析中...", 0, total, 0));
+        progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.Analyzing", 0, total, 0));
 
         var beatmapFolder = ResolveBeatmapFolder(folderName);
 
@@ -323,7 +323,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
             sampleNameMap[normalizedForCheck] = renamedPath;
         }
 
-        progress?.Report(new RateGenerationProgress("パス解決完了", 0, total, 5));
+        progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.PathResolved", 0, total, 5));
 
         // === 2. 一時ディレクトリ作成 ===
         var tempDir = Path.Combine(Path.GetTempPath(), $"NakuruTool_osz_{Guid.NewGuid():N}");
@@ -355,7 +355,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                     ? 5 + (audioEntryIndex * 25 / audioEntryCount)
                     : 5;
                 progress?.Report(new RateGenerationProgress(
-                    $"オーディオ変換中: {originalAudio}", 0, total, audioPercent));
+                    "BeatmapGen.Progress.AudioConverting", 0, total, audioPercent, [originalAudio]));
 
                 var audioResult = await _audioRateChanger.ChangeRateAsync(
                     inputAudioPath, outputAudioPath, audioRate, options.ChangePitch,
@@ -391,7 +391,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 audioEntryIndex++;
             }
 
-            progress?.Report(new RateGenerationProgress("オーディオ変換完了", 0, total, 30));
+            progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.AudioDone", 0, total, 30));
 
             // === 4. サンプル音声のレート変換 ===
             var convertedSampleCount = 0;
@@ -438,7 +438,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                     ? 30 + (sampleIndex * 35 / sampleTotal)
                     : 30;
                 progress?.Report(new RateGenerationProgress(
-                    $"サンプル音声変換中: {sampleFile}", 0, total, samplePercent));
+                    "BeatmapGen.Progress.SampleConverting", 0, total, samplePercent, [sampleFile]));
 
                 try
                 {
@@ -476,7 +476,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 sampleIndex++;
             }
 
-            progress?.Report(new RateGenerationProgress("サンプル音声変換完了", 0, total, 65));
+            progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.SampleDone", 0, total, 65));
 
             // === 4.5 osuで参照されていないがフォルダ内に存在するデフォルトヒットサウンドをコピー ===
             // osuエンジンはデフォルトヒットサウンドを.osuファイルで参照せずとも同フォルダの同名ファイルを使用するため
@@ -520,7 +520,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 File.Copy(srcPath, destPath, overwrite: true);
             }
 
-            progress?.Report(new RateGenerationProgress("ファイルコピー完了", 0, total, 75));
+            progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.FileCopyDone", 0, total, 75));
 
             // === 6. 各.osu変換 → tempDir に出力 ===
             for (var i = 0; i < total; i++)
@@ -604,10 +604,10 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
 
                 var osuPercent = total > 0 ? 75 + ((i + 1) * 10 / total) : 85;
                 progress?.Report(new RateGenerationProgress(
-                    $".osu変換中: [{i + 1}/{total}]", i + 1, total, osuPercent));
+                    "BeatmapGen.Progress.OsuConverting", i + 1, total, osuPercent, [$"{i + 1}", $"{total}"]));
             }
 
-            progress?.Report(new RateGenerationProgress("ZIP化中...", total, total, 85));
+            progress?.Report(new RateGenerationProgress("BeatmapGen.Progress.ZipCreating", total, total, 85));
 
             // === 7. .osz作成（原子的置換） ===
             cancellationToken.ThrowIfCancellationRequested();
@@ -674,7 +674,7 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 }
             }
 
-            progress?.Report(new RateGenerationProgress("完了", total, total, 100));
+            progress?.Report(new RateGenerationProgress("BeatmapGen.Completed", total, total, 100));
 
             // 成功結果を設定
             for (var i = 0; i < total; i++)
@@ -863,10 +863,12 @@ public sealed class BeatmapRateGenerator : IBeatmapRateGenerator
                 : (processedCount * 100 + item.ProgressPercent) / totalBeatmapCount;
 
             batchProgress.Report(new RateGenerationProgress(
-                $"[{folderName}] {item.Message}",
+                item.MessageKey,
                 processedCount + item.CurrentIndex,
                 totalBeatmapCount,
-                mappedPercent));
+                mappedPercent,
+                item.MessageArgs,
+                $"[{folderName}]"));
         });
     }
 

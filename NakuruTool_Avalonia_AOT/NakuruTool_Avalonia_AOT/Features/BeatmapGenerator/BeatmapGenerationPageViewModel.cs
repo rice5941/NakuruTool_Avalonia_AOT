@@ -124,7 +124,12 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
             {
                 if (generationDone) return;
                 GenerationProgressValue = p.ProgressPercent;
-                GenerationStatusMessage = p.Message;
+                var translated = lang.GetString(p.MessageKey);
+                if (p.MessageArgs is { Length: > 0 })
+                    translated = string.Format(translated, (object[])p.MessageArgs);
+                if (p.MessagePrefix is not null)
+                    translated = $"{p.MessagePrefix} {translated}";
+                GenerationStatusMessage = translated;
             });
 
             // 内部に同期 I/O・ZIP 圧縮・.osu パース等が多数含まれるため、

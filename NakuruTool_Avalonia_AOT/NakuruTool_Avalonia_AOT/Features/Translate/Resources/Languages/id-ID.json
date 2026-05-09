@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "Impor .osz yang dihasilkan ke osu!, muat ulang DB, lalu impor JSON ini.",
     "CollectionJsonSkipped": "{0} beatmap dikecualikan dari JSON.",
     "CollectionJsonCancelled": "Pembuatan JSON koleksi dibatalkan. Berkas .osz telah berhasil dibuat.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "Menganalisis...",
+      "PathResolved": "Resolusi jalur selesai",
+      "AudioConverting": "Mengonversi audio: {0}",
+      "AudioDone": "Konversi audio selesai",
+      "SampleConverting": "Mengonversi audio sampel: {0}",
+      "SampleDone": "Konversi audio sampel selesai",
+      "FileCopyDone": "Penyalinan file selesai",
+      "OsuConverting": "Mengonversi .osu: [{0}/{1}]",
+      "ZipCreating": "Membuat ZIP..."
+    }
   }
 }

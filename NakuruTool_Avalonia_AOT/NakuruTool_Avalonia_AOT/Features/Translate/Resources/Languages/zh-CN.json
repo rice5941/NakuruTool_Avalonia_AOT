@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "请先在 osu! 中导入生成的 .osz 并重新加载数据库，然后再导入此 JSON。",
     "CollectionJsonSkipped": "有 {0} 个谱面未包含在 JSON 中。",
     "CollectionJsonCancelled": "收藏夹 JSON 输出已取消。.osz 文件已成功生成。",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "正在解析...",
+      "PathResolved": "路径解析完成",
+      "AudioConverting": "正在转换音频: {0}",
+      "AudioDone": "音频转换完成",
+      "SampleConverting": "正在转换音效: {0}",
+      "SampleDone": "音效转换完成",
+      "FileCopyDone": "文件复制完成",
+      "OsuConverting": "正在转换.osu: [{0}/{1}]",
+      "ZipCreating": "正在创建ZIP..."
+    }
   }
 }

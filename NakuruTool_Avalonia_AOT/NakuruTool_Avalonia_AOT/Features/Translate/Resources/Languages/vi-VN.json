@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "Hãy nhập tệp .osz đã tạo vào osu!, nạp lại DB, sau đó nhập tệp JSON này.",
     "CollectionJsonSkipped": "{0} beatmap đã bị loại khỏi JSON.",
     "CollectionJsonCancelled": "Đã hủy xuất JSON bộ sưu tập. Các tệp .osz đã được tạo thành công.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "Đang phân tích...",
+      "PathResolved": "Phân giải đường dẫn xong",
+      "AudioConverting": "Đang chuyển đổi âm thanh: {0}",
+      "AudioDone": "Chuyển đổi âm thanh xong",
+      "SampleConverting": "Đang chuyển đổi âm thanh mẫu: {0}",
+      "SampleDone": "Chuyển đổi âm thanh mẫu xong",
+      "FileCopyDone": "Sao chép tệp xong",
+      "OsuConverting": "Đang chuyển đổi .osu: [{0}/{1}]",
+      "ZipCreating": "Đang tạo ZIP..."
+    }
   }
 }

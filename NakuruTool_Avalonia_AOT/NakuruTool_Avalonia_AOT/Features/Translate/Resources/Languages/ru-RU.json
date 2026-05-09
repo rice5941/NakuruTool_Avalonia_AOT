@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "Импортируйте созданный .osz в osu!, перезагрузите базу данных, затем импортируйте этот JSON.",
     "CollectionJsonSkipped": "{0} карт(ы) исключено из JSON.",
     "CollectionJsonCancelled": "Создание JSON коллекции отменено. Файлы .osz успешно сгенерированы.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "Анализ...",
+      "PathResolved": "Разрешение путей завершено",
+      "AudioConverting": "Конвертация аудио: {0}",
+      "AudioDone": "Конвертация аудио завершена",
+      "SampleConverting": "Конвертация сэмплов: {0}",
+      "SampleDone": "Конвертация сэмплов завершена",
+      "FileCopyDone": "Копирование файлов завершено",
+      "OsuConverting": "Конвертация .osu: [{0}/{1}]",
+      "ZipCreating": "Создание ZIP..."
+    }
   }
 }

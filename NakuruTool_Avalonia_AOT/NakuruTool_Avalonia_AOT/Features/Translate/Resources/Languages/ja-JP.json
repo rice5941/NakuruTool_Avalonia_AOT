@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "osu!で生成済み .osz を取り込み、DBを再読み込みしてからインポートしてください。",
     "CollectionJsonSkipped": "JSON対象外の譜面が {0} 件あります。",
     "CollectionJsonCancelled": "コレクションJSONの出力がキャンセルされました。.osz の生成は完了しています。",
-    "BeatmapCount": "{0}件"
+    "BeatmapCount": "{0}件",
+    "Progress": {
+      "Analyzing": "解析中...",
+      "PathResolved": "パス解決完了",
+      "AudioConverting": "オーディオ変換中: {0}",
+      "AudioDone": "オーディオ変換完了",
+      "SampleConverting": "サンプル音声変換中: {0}",
+      "SampleDone": "サンプル音声変換完了",
+      "FileCopyDone": "ファイルコピー完了",
+      "OsuConverting": ".osu変換中: [{0}/{1}]",
+      "ZipCreating": "ZIP化中..."
+    }
   }
 }

@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "I-import ang nabuong .osz sa osu!, i-reload ang DB, pagkatapos ay i-import ang JSON na ito.",
     "CollectionJsonSkipped": "{0} beatmap ang hindi isinama sa JSON.",
     "CollectionJsonCancelled": "Nakansela ang paggawa ng collection JSON. Matagumpay na nabuo ang mga .osz file.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "Nag-aanalisa...",
+      "PathResolved": "Natapos ang pagtukoy ng path",
+      "AudioConverting": "Kino-convert ang audio: {0}",
+      "AudioDone": "Natapos ang pag-convert ng audio",
+      "SampleConverting": "Kino-convert ang sample audio: {0}",
+      "SampleDone": "Natapos ang pag-convert ng sample audio",
+      "FileCopyDone": "Natapos ang pagkopya ng file",
+      "OsuConverting": "Kino-convert ang .osu: [{0}/{1}]",
+      "ZipCreating": "Gumagawa ng ZIP..."
+    }
   }
 }

@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "นำเข้าไฟล์ .osz ที่สร้างใน osu! แล้วโหลดฐานข้อมูลใหม่ก่อนนำเข้า JSON นี้",
     "CollectionJsonSkipped": "มีบีตแมป {0} รายการที่ไม่ถูกรวมใน JSON",
     "CollectionJsonCancelled": "การส่งออก JSON คอลเลกชันถูกยกเลิก ไฟล์ .osz ถูกสร้างเรียบร้อยแล้ว",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "กำลังวิเคราะห์...",
+      "PathResolved": "ตรวจสอบเส้นทางสำเร็จ",
+      "AudioConverting": "กำลังแปลงเสียง: {0}",
+      "AudioDone": "แปลงเสียงสำเร็จ",
+      "SampleConverting": "กำลังแปลงเสียงตัวอย่าง: {0}",
+      "SampleDone": "แปลงเสียงตัวอย่างสำเร็จ",
+      "FileCopyDone": "คัดลอกไฟล์สำเร็จ",
+      "OsuConverting": "กำลังแปลง .osu: [{0}/{1}]",
+      "ZipCreating": "กำลังสร้าง ZIP..."
+    }
   }
 }

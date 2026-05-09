@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "Import the generated .osz in osu!, then reload the DB before importing this JSON.",
     "CollectionJsonSkipped": "{0} beatmap(s) excluded from JSON.",
     "CollectionJsonCancelled": "Collection JSON output was cancelled. The .osz files were generated successfully.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "Analyzing...",
+      "PathResolved": "Path resolution complete",
+      "AudioConverting": "Converting audio: {0}",
+      "AudioDone": "Audio conversion complete",
+      "SampleConverting": "Converting sample audio: {0}",
+      "SampleDone": "Sample audio conversion complete",
+      "FileCopyDone": "File copy complete",
+      "OsuConverting": "Converting .osu: [{0}/{1}]",
+      "ZipCreating": "Creating ZIP..."
+    }
   }
 }

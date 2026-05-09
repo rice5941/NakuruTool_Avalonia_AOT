@@ -278,6 +278,17 @@
     "CollectionJsonImportNote": "osu!에서 생성된 .osz를 가져온 뒤 DB를 다시 불러온 후 이 JSON을 가져오세요.",
     "CollectionJsonSkipped": "{0}개의 비트맵이 JSON에서 제외되었습니다.",
     "CollectionJsonCancelled": "컬렉션 JSON 출력이 취소되었습니다. .osz 파일은 정상적으로 생성되었습니다.",
-    "BeatmapCount": "{0} Beatmaps"
+    "BeatmapCount": "{0} Beatmaps",
+    "Progress": {
+      "Analyzing": "분석 중...",
+      "PathResolved": "경로 확인 완료",
+      "AudioConverting": "오디오 변환 중: {0}",
+      "AudioDone": "오디오 변환 완료",
+      "SampleConverting": "샘플 오디오 변환 중: {0}",
+      "SampleDone": "샘플 오디오 변환 완료",
+      "FileCopyDone": "파일 복사 완료",
+      "OsuConverting": ".osu 변환 중: [{0}/{1}]",
+      "ZipCreating": "ZIP 생성 중..."
+    }
   }
 }

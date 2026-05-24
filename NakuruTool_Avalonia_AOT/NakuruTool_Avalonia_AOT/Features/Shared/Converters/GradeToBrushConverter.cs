@@ -1,51 +1,49 @@
-using Avalonia.Data.Converters;
+ï»¿using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Globalization;
 
-namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters
+namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters;
+/// <summary>
+/// ã‚°ãƒ¬ãƒ¼ãƒ‰æ–‡å­—åˆ—ã«åŸºã¥ã„ã¦è‰²ã‚’è¿”ã™ã‚³ãƒ³ãƒãƒ¼ã‚¿ãƒ¼
+/// S: ã‚ªãƒ¬ãƒ³ã‚¸, A: ç·‘, B: é’, C: ãƒ”ãƒ³ã‚¯, D: éŠ…
+/// </summary>
+public class GradeToBrushConverter : IValueConverter
 {
-    /// <summary>
-    /// ƒOƒŒ[ƒh•¶š—ñ‚ÉŠî‚Ã‚¢‚ÄF‚ğ•Ô‚·ƒRƒ“ƒo[ƒ^[
-    /// S: ƒIƒŒƒ“ƒW, A: —Î, B: Â, C: ƒsƒ“ƒN, D: “º
-    /// </summary>
-    public class GradeToBrushConverter : IValueConverter
+    private static readonly SolidColorBrush SGradeBrush = new(Color.FromRgb(255, 140, 0));     // ã‚ªãƒ¬ãƒ³ã‚¸ (DarkOrange)
+    private static readonly SolidColorBrush AGradeBrush = new(Color.FromRgb(34, 139, 34));     // ç·‘ (ForestGreen)
+    private static readonly SolidColorBrush BGradeBrush = new(Color.FromRgb(30, 144, 255));    // é’ (DodgerBlue)
+    private static readonly SolidColorBrush CGradeBrush = new(Color.FromRgb(219, 112, 147));   // ãƒ”ãƒ³ã‚¯ (PaleVioletRed)
+    private static readonly SolidColorBrush DGradeBrush = new(Color.FromRgb(205, 127, 50));    // éŠ… (Peru)
+    private static readonly SolidColorBrush DefaultBrush = new(Color.FromRgb(128, 128, 128));  // ã‚°ãƒ¬ãƒ¼
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        private static readonly SolidColorBrush SGradeBrush = new(Color.FromRgb(255, 140, 0));     // ƒIƒŒƒ“ƒW (DarkOrange)
-        private static readonly SolidColorBrush AGradeBrush = new(Color.FromRgb(34, 139, 34));     // —Î (ForestGreen)
-        private static readonly SolidColorBrush BGradeBrush = new(Color.FromRgb(30, 144, 255));    // Â (DodgerBlue)
-        private static readonly SolidColorBrush CGradeBrush = new(Color.FromRgb(219, 112, 147));   // ƒsƒ“ƒN (PaleVioletRed)
-        private static readonly SolidColorBrush DGradeBrush = new(Color.FromRgb(205, 127, 50));    // “º (Peru)
-        private static readonly SolidColorBrush DefaultBrush = new(Color.FromRgb(128, 128, 128));  // ƒOƒŒ[
-
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        if (value is string grade && !string.IsNullOrEmpty(grade) && grade != "-")
         {
-            if (value is string grade && !string.IsNullOrEmpty(grade) && grade != "-")
+            // SS+, SS, S+, S ã‚’ S ã¨ã—ã¦æ‰±ã†
+            if (grade.Contains("S", StringComparison.OrdinalIgnoreCase))
             {
-                // SS+, SS, S+, S ‚ğ S ‚Æ‚µ‚Äˆµ‚¤
-                if (grade.Contains("S", StringComparison.OrdinalIgnoreCase))
-                {
-                    return SGradeBrush;
-                }
-                
-                // ƒOƒŒ[ƒh‚ÌÅ‰‚Ì•¶š‚Å”»’è
-                var firstChar = grade[0];
-                return firstChar switch
-                {
-                    'A' or 'a' => AGradeBrush,
-                    'B' or 'b' => BGradeBrush,
-                    'C' or 'c' => CGradeBrush,
-                    'D' or 'd' => DGradeBrush,
-                    _ => DefaultBrush
-                };
+                return SGradeBrush;
             }
-
-            return DefaultBrush;
+            
+            // ã‚°ãƒ¬ãƒ¼ãƒ‰ã®æœ€åˆã®æ–‡å­—ã§åˆ¤å®š
+            var firstChar = grade[0];
+            return firstChar switch
+            {
+                'A' or 'a' => AGradeBrush,
+                'B' or 'b' => BGradeBrush,
+                'C' or 'c' => CGradeBrush,
+                'D' or 'd' => DGradeBrush,
+                _ => DefaultBrush
+            };
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        return DefaultBrush;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

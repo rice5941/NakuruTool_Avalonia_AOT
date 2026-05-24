@@ -1,32 +1,30 @@
-using Avalonia.Data.Converters;
+ï»¿using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
-namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters
+namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters;
+/// <summary>
+/// 0ã®å€¤ã‚’"-"ã«å¤‰æ›ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ã‚¿ãƒ¼
+/// </summary>
+public class ZeroToStringConverter : IValueConverter
 {
-    /// <summary>
-    /// 0‚Ì’l‚ğ"-"‚É•ÏŠ·‚·‚éƒRƒ“ƒo[ƒ^[
-    /// </summary>
-    public class ZeroToStringConverter : IValueConverter
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        if (value is int intValue && intValue == 0)
         {
-            if (value is int intValue && intValue == 0)
-            {
-                return "-";
-            }
-
-            if (value is double doubleValue && doubleValue == 0.0)
-            {
-                return "-";
-            }
-
-            return value;
+            return "-";
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        if (value is double doubleValue && doubleValue == 0.0)
         {
-            throw new NotImplementedException();
+            return "-";
         }
+
+        return value;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

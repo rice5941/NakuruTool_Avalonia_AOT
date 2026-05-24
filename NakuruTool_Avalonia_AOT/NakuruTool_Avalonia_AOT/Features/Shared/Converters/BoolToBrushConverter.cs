@@ -1,31 +1,29 @@
-using Avalonia.Data.Converters;
+ï»¿using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Globalization;
 
-namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters
+namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters;
+/// <summary>
+/// Booleanå€¤ã«åŸºã¥ã„ã¦è‰²ã‚’è¿”ã™ã‚³ãƒ³ãƒãƒ¼ã‚¿ãƒ¼
+/// </summary>
+public class BoolToBrushConverter : IValueConverter
 {
-    /// <summary>
-    /// Boolean’l‚ÉŠî‚Ã‚¢‚ÄF‚ğ•Ô‚·ƒRƒ“ƒo[ƒ^[
-    /// </summary>
-    public class BoolToBrushConverter : IValueConverter
+    public IBrush? TrueBrush { get; set; }
+    public IBrush? FalseBrush { get; set; }
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public IBrush? TrueBrush { get; set; }
-        public IBrush? FalseBrush { get; set; }
-
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        if (value is bool boolValue)
         {
-            if (value is bool boolValue)
-            {
-                return boolValue ? TrueBrush : FalseBrush;
-            }
-
-            return FalseBrush;
+            return boolValue ? TrueBrush : FalseBrush;
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        return FalseBrush;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

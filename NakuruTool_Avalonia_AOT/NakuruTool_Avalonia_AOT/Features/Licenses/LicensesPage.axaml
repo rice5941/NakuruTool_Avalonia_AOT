@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+ï»¿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:Licenses="using:NakuruTool_Avalonia_AOT.Features.Licenses"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -24,7 +24,7 @@
                                 Padding="16" 
                                 Margin="0,8">
                             <StackPanel Spacing="8">
-                                <!-- ƒpƒbƒP[ƒW–¼‚Æƒo[ƒWƒ‡ƒ“ -->
+                                <!-- ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸åã¨ãƒãƒ¼ã‚¸ãƒ§ãƒ³ -->
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <mi:MaterialIcon Kind="Package" 
                                                      Width="24" Height="24"
@@ -37,7 +37,7 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
 
-                                <!-- ƒ‰ƒCƒZƒ“ƒXŽí•Ê -->
+                                <!-- ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ç¨®åˆ¥ -->
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <mi:MaterialIcon Kind="License" 
                                                      Width="20" Height="20"
@@ -66,7 +66,7 @@
                                                PointerPressed="OnUrlClicked"/>
                                 </StackPanel>
 
-                                <!-- ’˜ìŒ  -->
+                                <!-- è‘—ä½œæ¨© -->
                                 <StackPanel Orientation="Horizontal" Spacing="8"
                                             IsVisible="{Binding Copyright, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                     <mi:MaterialIcon Kind="Copyright" 
@@ -79,7 +79,7 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
 
-                                <!-- ‘S•¶•\Ž¦ƒ{ƒ^ƒ“ -->
+                                <!-- å…¨æ–‡è¡¨ç¤ºãƒœã‚¿ãƒ³ -->
                                 <Button IsVisible="{Binding LicenseText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                         HorizontalAlignment="Left"
                                         Tag="{Binding}"

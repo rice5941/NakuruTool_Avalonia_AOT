@@ -1,27 +1,25 @@
-using Avalonia.Data.Converters;
+ï»¿using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
-namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters
+namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters;
+/// <summary>
+/// ç©ºæ–‡å­—åˆ—ã‚’"-"ã«å¤‰æ›ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ã‚¿ãƒ¼
+/// </summary>
+public class EmptyStringConverter : IValueConverter
 {
-    /// <summary>
-    /// ‹ó•¶š—ñ‚ğ"-"‚É•ÏŠ·‚·‚éƒRƒ“ƒo[ƒ^[
-    /// </summary>
-    public class EmptyStringConverter : IValueConverter
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        if (value is string str && string.IsNullOrEmpty(str))
         {
-            if (value is string str && string.IsNullOrEmpty(str))
-            {
-                return "-";
-            }
-
-            return value;
+            return "-";
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        return value;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

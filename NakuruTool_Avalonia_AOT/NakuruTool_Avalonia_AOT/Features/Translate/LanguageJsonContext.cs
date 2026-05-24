@@ -1,17 +1,16 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NakuruTool_Avalonia_AOT.Translate
+namespace NakuruTool_Avalonia_AOT.Translate;
+
+/// <summary>
+/// NativeAOTå¯¾å¿œã®ãŸã‚ã®JSON Source Generatorã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ
+/// </summary>
+[JsonSourceGenerationOptions(
+    WriteIndented = true,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(Dictionary<string, JsonElement>))]
+public partial class LanguageJsonContext : JsonSerializerContext
 {
-    /// <summary>
-    /// NativeAOT‘Î‰‚Ì‚½‚ß‚ÌJSON Source GeneratorƒRƒ“ƒeƒLƒXƒg
-    /// </summary>
-    [JsonSourceGenerationOptions(
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-    [JsonSerializable(typeof(Dictionary<string, JsonElement>))]
-    public partial class LanguageJsonContext : JsonSerializerContext
-    {
-    }
 }

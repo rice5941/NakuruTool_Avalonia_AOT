@@ -1,4 +1,4 @@
-d# NakuruTool ユーザーガイド
+# NakuruTool ユーザーガイド
 
 このガイドは、NakuruTool を初めて使う方向けの基本操作ガイドです。
 ## アプリでできること

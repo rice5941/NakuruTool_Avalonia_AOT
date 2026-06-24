@@ -5,88 +5,90 @@ using Avalonia.Markup.Xaml;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 
-namespace NakuruTool_Avalonia_AOT;
-public partial class App : Application
+namespace NakuruTool_Avalonia_AOT
 {
-    public override void Initialize()
+    public partial class App : Application
     {
-        AvaloniaXamlLoader.Load(this);
+        public override void Initialize()
+        {
+            AvaloniaXamlLoader.Load(this);
 #if DEBUG
-        this.AttachDeveloperTools();
+            this.AttachDeveloperTools();
 #endif
 
-        var languageService = LanguageService.Instance;
-        ApplyLanguageCulture(languageService.CurrentLanguage);
-
-        languageService.LanguageChanged += (_, _) =>
-        {
+            var languageService = LanguageService.Instance;
             ApplyLanguageCulture(languageService.CurrentLanguage);
-        };
-    }
 
-    /// <summary>
-    /// 言語変更に応じてアプリ全体のカルチャを更新する
-    /// </summary>
-    private static void ApplyLanguageCulture(string languageCode)
-    {
-        var normalizedLanguageCode = LanguageService.Instance.NormalizeLanguageCode(languageCode);
-        CultureInfo culture;
-
-        try
-        {
-            culture = CultureInfo.GetCultureInfo(normalizedLanguageCode);
-        }
-        catch (CultureNotFoundException)
-        {
-            culture = CultureInfo.GetCultureInfo(LanguageService.DefaultLanguageCode);
-        }
-
-        CultureInfo.CurrentCulture = culture;
-        CultureInfo.CurrentUICulture = culture;
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
-
-        if (Current is App app)
-        {
-            app.UpdateSemiThemeLocale(culture);
-        }
-    }
-
-    /// <summary>
-    /// SemiTheme の Locale を更新する
-    /// </summary>
-    private void UpdateSemiThemeLocale(CultureInfo culture)
-    {
-        if (Styles.Count > 0)
-        {
-            foreach (var style in Styles)
+            languageService.LanguageChanged += (_, _) =>
             {
-                if (style is Semi.Avalonia.SemiTheme semiTheme)
+                ApplyLanguageCulture(languageService.CurrentLanguage);
+            };
+        }
+
+        /// <summary>
+        /// 言語変更に応じてアプリ全体のカルチャを更新する
+        /// </summary>
+        private static void ApplyLanguageCulture(string languageCode)
+        {
+            var normalizedLanguageCode = LanguageService.Instance.NormalizeLanguageCode(languageCode);
+            CultureInfo culture;
+
+            try
+            {
+                culture = CultureInfo.GetCultureInfo(normalizedLanguageCode);
+            }
+            catch (CultureNotFoundException)
+            {
+                culture = CultureInfo.GetCultureInfo(LanguageService.DefaultLanguageCode);
+            }
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+            if (Current is App app)
+            {
+                app.UpdateSemiThemeLocale(culture);
+            }
+        }
+
+        /// <summary>
+        /// SemiTheme の Locale を更新する
+        /// </summary>
+        private void UpdateSemiThemeLocale(CultureInfo culture)
+        {
+            if (Styles.Count > 0)
+            {
+                foreach (var style in Styles)
                 {
-                    semiTheme.Locale = culture;
-                    break;
+                    if (style is Semi.Avalonia.SemiTheme semiTheme)
+                    {
+                        semiTheme.Locale = culture;
+                        break;
+                    }
                 }
             }
         }
-    }
 
-    public override void OnFrameworkInitializationCompleted()
-    {
-        var composition = new Composition();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        public override void OnFrameworkInitializationCompleted()
         {
-            desktop.MainWindow = composition.MainWindow;
-        }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            _ = singleViewPlatform;
-        }
+            var composition = new Composition();
 
-        // 設定からテーマを復元
-        var isDarkTheme = SettingsService.Current?.IsDarkTheme ?? true;
-        RequestedThemeVariant = isDarkTheme ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = composition.MainWindow;
+            }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+            {
+                _ = singleViewPlatform;
+            }
 
-        base.OnFrameworkInitializationCompleted();
+            // 設定からテーマを復元
+            var isDarkTheme = SettingsService.Current?.IsDarkTheme ?? true;
+            RequestedThemeVariant = isDarkTheme ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
+
+            base.OnFrameworkInitializationCompleted();
+        }
     }
 }

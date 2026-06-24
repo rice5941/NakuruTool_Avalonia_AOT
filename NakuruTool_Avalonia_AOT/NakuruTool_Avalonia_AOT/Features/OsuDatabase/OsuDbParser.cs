@@ -243,7 +243,7 @@ public sealed class OsuDbParser : IDisposable
             if (pos + 4 > bufferLength) { pos = startPos; return false; }
             int timingPointCount = BitConverter.ToInt32(buffer.Slice(pos, 4));
             pos += 4;
-            if (timingPointCount < 0 || timingPointCount > 100000) { pos = startPos; return false; }
+            if (timingPointCount < 0 || timingPointCount > 1000000) { pos = startPos; return false; }
             int timingPointBytes = timingPointCount * 17;
             if (pos + timingPointBytes > bufferLength) { pos = startPos; return false; }
             pos += timingPointBytes;

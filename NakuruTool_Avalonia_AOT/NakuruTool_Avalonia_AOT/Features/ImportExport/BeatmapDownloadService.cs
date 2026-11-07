@@ -15,7 +15,7 @@ namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 
 public sealed class BeatmapDownloadService : IBeatmapDownloadService
 {
-    private const int BaseIntervalMs = 2000;
+    private const int BaseIntervalMs = 5000;
     private const string TempExtension = ".download";
 
     private static readonly HttpClient s_httpClient;
@@ -214,7 +214,7 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
                 {
                     retryDelayMs = 60_000; // ヘッダーなしのフォールバック
                 }
-                await Task.Delay((int)Math.Min(retryDelayMs, 120_000), ct).ConfigureAwait(false); // 最大2分に制限
+                await Task.Delay((int)retryDelayMs, ct).ConfigureAwait(false); // 最大2分に制限
                 throw new HttpRequestException($"レート制限に達しました。{retryDelayMs}ms 待機後に再試行してください。");
             }
 

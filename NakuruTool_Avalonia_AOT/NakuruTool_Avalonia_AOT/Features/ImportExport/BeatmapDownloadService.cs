@@ -13,173 +13,117 @@ using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.ImportExport;
 
+/// <summary>
+/// 譜面ダウンロードのキュー管理と、行 (<see cref="ImportExportBeatmapItem"/>) の状態更新を行う。
+/// ダウンロードは 1 件ずつ順番に実行し、各ダウンロードの開始は前回の開始から
+/// <see cref="DownloadInterval"/> 以上空ける。
+/// </summary>
 public sealed class BeatmapDownloadService : IBeatmapDownloadService
 {
-    private const int BaseIntervalMs = 5000;
-    private const string TempExtension = ".download";
+    public static readonly TimeSpan DownloadInterval = TimeSpan.FromSeconds(5);
 
-    private static readonly HttpClient s_httpClient;
+    private const string ProjectUrl = "https://github.com/rice5941/NakuruTool_Avalonia_AOT";
 
-    static BeatmapDownloadService()
-    {
-        var handler = new SocketsHttpHandler
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-            AutomaticDecompression = DecompressionMethods.All,
-        };
-        s_httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(5) };
-        s_httpClient.DefaultRequestHeaders.Add("User-Agent", "NakuruTool/1.0");
-    }
+    private static readonly HttpClient s_httpClient = CreateHttpClient();
 
     private readonly ISettingsService _settingsService;
-    private readonly ConcurrentDictionary<int, byte> _inFlightSetIds = new();
+    private readonly OszDownloader _downloader;
+
+    /// <summary>キュー投入済み・ダウンロード中の beatmapset ID (同一セットの二重投入防止)。</summary>
+    private readonly ConcurrentDictionary<int, byte> _pendingSetIds = new();
 
     private IReadOnlyList<ImportExportBeatmapItem>? _lastAllItems;
+    private QueueWorker _worker;
     private bool _disposed;
 
-    private CancellationTokenSource _workerCts;
-    private Channel<DownloadRequest> _downloadChannel;
-    private Task _processingTask;
-
-    private readonly record struct DownloadRequest(ImportExportBeatmapItem Item, IReadOnlyList<ImportExportBeatmapItem> AllItems);
+    private readonly record struct DownloadRequest(int BeatmapSetId, IReadOnlyList<ImportExportBeatmapItem> AllItems);
 
     public BeatmapDownloadService(ISettingsService settingsService)
     {
         _settingsService = settingsService;
-        _workerCts = new CancellationTokenSource();
-        _downloadChannel = Channel.CreateUnbounded<DownloadRequest>(new UnboundedChannelOptions { SingleReader = true });
-        _processingTask = ProcessDownloadQueueAsync(_workerCts.Token);
+        // ゲートはキャンセル後も使い回し、キャンセル直後の再ダウンロードでも間隔を守る
+        _downloader = new OszDownloader(s_httpClient, new DownloadIntervalGate(DownloadInterval));
+        _worker = new QueueWorker(ProcessAsync);
     }
 
+    /// <summary>UI スレッドから呼び出す。</summary>
     public void EnqueueDownload(ImportExportBeatmapItem item, IReadOnlyList<ImportExportBeatmapItem> allItems)
     {
         if (!item.CanDownload) return;
-        if (!_inFlightSetIds.TryAdd(item.BeatmapSetId, 0)) return;
 
-        item.DownloadState = BeatmapDownloadState.Queued;
-
-        foreach (var other in allItems)
-        {
-            if (other != item && other.BeatmapSetId == item.BeatmapSetId && other.CanDownload)
-                other.DownloadState = BeatmapDownloadState.Queued;
-        }
+        var setId = item.BeatmapSetId;
+        if (!_pendingSetIds.TryAdd(setId, 0)) return;
 
         _lastAllItems = allItems;
 
-        if (!_downloadChannel.Writer.TryWrite(new DownloadRequest(item, allItems)))
+        if (_worker.TryEnqueue(new DownloadRequest(setId, allItems)))
         {
-            // Channel が閉じられている場合、状態を元に戻す
-            foreach (var other in allItems)
+            foreach (var row in RowsOf(allItems, setId))
             {
-                if (other.BeatmapSetId == item.BeatmapSetId
-                    && other.DownloadState == BeatmapDownloadState.Queued)
-                {
-                    other.DownloadState = BeatmapDownloadState.NotExists;
-                }
+                if (row.CanDownload)
+                    row.DownloadState = BeatmapDownloadState.Queued;
             }
-            _inFlightSetIds.TryRemove(item.BeatmapSetId, out _);
+        }
+        else
+        {
+            _pendingSetIds.TryRemove(setId, out _);
         }
     }
 
     public async Task CancelAllAsync()
     {
-        _workerCts.Cancel();
-        _downloadChannel.Writer.TryComplete();
-
-        try
-        {
-            await _processingTask.ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) { }
+        await _worker.StopAsync().ConfigureAwait(false);
+        _pendingSetIds.Clear();
 
         if (_lastAllItems is { } items)
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                foreach (var item in items)
+                foreach (var row in items)
                 {
-                    if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
+                    if (row.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
                     {
-                        item.DownloadState = BeatmapDownloadState.NotExists;
-                        item.ErrorMessage = null;
+                        row.DownloadState = BeatmapDownloadState.NotExists;
+                        row.ErrorMessage = null;
                     }
                 }
             });
         }
-        _inFlightSetIds.Clear();
-        _workerCts.Dispose();
-        _workerCts = new CancellationTokenSource();
-        _downloadChannel = Channel.CreateUnbounded<DownloadRequest>(new UnboundedChannelOptions { SingleReader = true });
-        _processingTask = ProcessDownloadQueueAsync(_workerCts.Token);
+
+        if (!_disposed)
+            _worker = new QueueWorker(ProcessAsync);
     }
 
-    private async Task ProcessDownloadQueueAsync(CancellationToken ct)
+    /// <summary>キューから取り出した 1 件を処理する (ワーカースレッド)。</summary>
+    private async Task ProcessAsync(DownloadRequest request, CancellationToken ct)
     {
+        var (setId, allItems) = request;
         try
         {
-            await foreach (var request in _downloadChannel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
-            {
-                var item = request.Item;
-                var allItems = request.AllItems;
+            await SetStateAsync(allItems, setId, BeatmapDownloadState.Downloading).ConfigureAwait(false);
 
-                try
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        item.DownloadState = BeatmapDownloadState.Downloading;
-                        foreach (var other in allItems)
-                        {
-                            if (other != item && other.BeatmapSetId == item.BeatmapSetId)
-                                other.DownloadState = BeatmapDownloadState.Downloading;
-                        }
-                    });
+            var songsFolder = GetSongsFolder();
+            var url = BeatmapMirrors.GetDownloadUrl(_settingsService.SettingsData.BeatmapMirrorUrl, setId);
+            await _downloader.DownloadAsync(url, songsFolder, setId, ct).ConfigureAwait(false);
 
-                    await DownloadBeatmapAsync(item, ct).ConfigureAwait(false);
-
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        foreach (var other in allItems)
-                        {
-                            if (other.BeatmapSetId == item.BeatmapSetId)
-                                other.DownloadState = BeatmapDownloadState.Downloaded;
-                        }
-                    });
-                }
-                catch (OperationCanceledException)
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        item.DownloadState = BeatmapDownloadState.NotExists;
-                    });
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        foreach (var other in allItems)
-                        {
-                            if (other.BeatmapSetId == item.BeatmapSetId)
-                            {
-                                other.DownloadState = BeatmapDownloadState.Error;
-                                other.ErrorMessage = ex.Message;
-                            }
-                        }
-                    });
-                }
-                finally
-                {
-                    _inFlightSetIds.TryRemove(item.BeatmapSetId, out _);
-                }
-
-                if (!ct.IsCancellationRequested)
-                    await ApplyRateLimitDelayAsync(ct).ConfigureAwait(false);
-            }
+            await SetStateAsync(allItems, setId, BeatmapDownloadState.Downloaded).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // 行の状態は CancelAllAsync で元に戻す
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await SetStateAsync(allItems, setId, BeatmapDownloadState.Error, ex.Message).ConfigureAwait(false);
+        }
+        finally
+        {
+            _pendingSetIds.TryRemove(setId, out _);
+        }
     }
 
-    private async Task DownloadBeatmapAsync(ImportExportBeatmapItem item, CancellationToken ct)
+    private string GetSongsFolder()
     {
         var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
         if (string.IsNullOrEmpty(osuFolderPath))
@@ -187,102 +131,95 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
 
         var songsFolder = Path.Combine(osuFolderPath, "Songs");
         Directory.CreateDirectory(songsFolder);
+        return songsFolder;
+    }
 
-        var mirrorUrl = _settingsService.SettingsData.BeatmapMirrorUrl;
-        if (string.IsNullOrEmpty(mirrorUrl))
-            mirrorUrl = "https://catboy.best/d/";
-        var url = $"{mirrorUrl}{item.BeatmapSetId}";
-        string? tempPath = null;
-
-        try
+    /// <summary>同じ beatmapset に属する全行 (難易度違い) の状態を UI スレッドで更新する。</summary>
+    private static Task SetStateAsync(
+        IReadOnlyList<ImportExportBeatmapItem> allItems, int setId, BeatmapDownloadState state, string? errorMessage = null)
+    {
+        return Dispatcher.UIThread.InvokeAsync(() =>
         {
-            using var response = await s_httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            foreach (var row in RowsOf(allItems, setId))
             {
-                // RetryAfterの解析: Delta（秒数指定）またはDate（日時指定）に対応
-                double retryDelayMs;
-                if (response.Headers.RetryAfter?.Delta is { } delta)
-                {
-                    retryDelayMs = delta.TotalMilliseconds;
-                }
-                else if (response.Headers.RetryAfter?.Date is { } date)
-                {
-                    retryDelayMs = Math.Max((date - DateTimeOffset.UtcNow).TotalMilliseconds, 0);
-                }
-                else
-                {
-                    retryDelayMs = 60_000; // ヘッダーなしのフォールバック
-                }
-                await Task.Delay((int)retryDelayMs, ct).ConfigureAwait(false); // 最大2分に制限
-                throw new HttpRequestException($"レート制限に達しました。{retryDelayMs}ms 待機後に再試行してください。");
+                row.DownloadState = state;
+                row.ErrorMessage = errorMessage;
             }
+        }).GetTask();
+    }
 
-            response.EnsureSuccessStatusCode();
-
-            var fileName = GetFileNameFromContentDisposition(response, item.BeatmapSetId);
-            var finalPath = Path.Combine(songsFolder, fileName);
-            tempPath = finalPath + TempExtension;
-
-            await using var responseStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-
-            await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
-            {
-                await responseStream.CopyToAsync(fileStream, 81920, ct).ConfigureAwait(false);
-            } // ← ここで fileStream は確実にディスポーズ済み
-
-            File.Move(tempPath, finalPath, overwrite: true); // 安全に移動可能
-        }
-        catch
+    private static IEnumerable<ImportExportBeatmapItem> RowsOf(IReadOnlyList<ImportExportBeatmapItem> allItems, int setId)
+    {
+        foreach (var row in allItems)
         {
-            if (tempPath != null && File.Exists(tempPath))
-            {
-                try { File.Delete(tempPath); } catch { }
-            }
-            throw;
+            if (row.BeatmapSetId == setId)
+                yield return row;
         }
     }
 
-    private static string GetFileNameFromContentDisposition(HttpResponseMessage response, int beatmapSetId)
+    private static HttpClient CreateHttpClient()
     {
-        var cd = response.Content.Headers.ContentDisposition;
-        var raw = cd?.FileNameStar ?? cd?.FileName;
-        if (!string.IsNullOrWhiteSpace(raw))
+        var handler = new SocketsHttpHandler
         {
-            var name = raw.Trim('"');
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var chars = name.ToCharArray();
-            for (var i = 0; i < chars.Length; i++)
-            {
-                foreach (var c in invalidChars)
-                {
-                    if (chars[i] == c)
-                    {
-                        chars[i] = '_';
-                        break;
-                    }
-                }
-            }
-            var sanitized = new string(chars);
-            if (sanitized.EndsWith(".osz", StringComparison.OrdinalIgnoreCase))
-                return sanitized;
-        }
-        return $"{beatmapSetId}.osz";
-    }
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            AutomaticDecompression = DecompressionMethods.All,
+        };
+        var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(5) };
 
-    private static async Task ApplyRateLimitDelayAsync(CancellationToken ct)
-    {
-        await Task.Delay(BaseIntervalMs, ct);
+        // hinai は "tool-name/version (+repo-or-contact-url)" 形式の User-Agent を求めている
+        var version = typeof(BeatmapDownloadService).Assembly.GetName().Version;
+        var versionText = version is null ? "unknown" : $"{version.Major}.{version.Minor}.{version.Build}";
+        client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", $"NakuruTool/{versionText} (+{ProjectUrl})");
+        return client;
     }
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        // ワーカーの完了は待たない (UI スレッドからのデッドロック防止)
+        _worker.Stop();
+    }
 
-        _workerCts.Cancel();
-        _downloadChannel.Writer.TryComplete();
-        // ワーカータスクの完了を待たない（UIスレッドからのデッドロック防止）
-        _workerCts.Dispose();
+    /// <summary>
+    /// 単一リーダーのキューと、それを順番に処理するバックグラウンドタスク。
+    /// キャンセル時は丸ごと破棄して作り直す。
+    /// </summary>
+    private sealed class QueueWorker
+    {
+        private readonly Channel<DownloadRequest> _channel =
+            Channel.CreateUnbounded<DownloadRequest>(new UnboundedChannelOptions { SingleReader = true });
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Task _task;
+
+        public QueueWorker(Func<DownloadRequest, CancellationToken, Task> process)
+        {
+            _task = Task.Run(() => RunAsync(process, _cts.Token));
+        }
+
+        public bool TryEnqueue(DownloadRequest request) => _channel.Writer.TryWrite(request);
+
+        private async Task RunAsync(Func<DownloadRequest, CancellationToken, Task> process, CancellationToken ct)
+        {
+            try
+            {
+                await foreach (var request in _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+                    await process(request, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        }
+
+        public void Stop()
+        {
+            _channel.Writer.TryComplete();
+            _cts.Cancel();
+        }
+
+        public async Task StopAsync()
+        {
+            Stop();
+            await _task.ConfigureAwait(false);
+            _cts.Dispose();
+        }
     }
 }

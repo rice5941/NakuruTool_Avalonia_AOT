@@ -32,11 +32,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
 {
     public IAvaloniaReadOnlyList<string> LanguageKeys { get; } = new AvaloniaList<string>(LanguageService.Instance.AvailableLanguages);
 
-    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(
-    [
-        "https://catboy.best/d/",
-        "https://api.nerinyan.moe/d/",
-    ]);
+    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(BeatmapMirrors.All);
 
     public string AppVersion { get; } =
         typeof(SettingsViewModel).Assembly.GetName().Version is { } v
@@ -131,7 +127,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         SelectedFolderPath = settingsData.OsuFolderPath;
         AutoPlayOnSelect = settingsData.AutoPlayOnSelect;
         PreferUnicode = settingsData.PreferUnicode;
-        SelectedMirrorUrl = settingsData.BeatmapMirrorUrl;
+        SelectedMirrorUrl = BeatmapMirrors.Normalize(settingsData.BeatmapMirrorUrl);
         AutoBatchGenerateOnStartup = settingsData.AutoBatchGenerateOnStartup;
 
         UpdateOsuPathErrorMessage();

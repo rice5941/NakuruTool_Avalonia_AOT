@@ -518,8 +518,8 @@ public class MockSettingsViewModel : ISettingsViewModel
     public bool HasOsuPathError { get; set; } = false;
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
-    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(["https://catboy.best/d/", "https://api.nerinyan.moe/d/"]);
-    public string SelectedMirrorUrl { get; set; } = "https://catboy.best/d/";
+    public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(["https://mirror.hinamizawa.ai/api/v1/hinai/d/", "https://api.nerinyan.moe/d/"]);
+    public string SelectedMirrorUrl { get; set; } = "https://mirror.hinamizawa.ai/api/v1/hinai/d/";
     public bool AutoBatchGenerateOnStartup { get; set; } = false;
     public string AppVersion { get; } = "1.0.0";
 
@@ -787,7 +787,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public bool AutoPlayOnSelect { get; set; } = true;
     public bool PreferUnicode { get; set; } = false;
     public bool IsDarkTheme { get; set; } = true;
-    public string BeatmapMirrorUrl { get; set; } = "https://catboy.best/d/";
+    public string BeatmapMirrorUrl { get; set; } = "https://mirror.hinamizawa.ai/api/v1/hinai/d/";
     public bool AutoBatchGenerateOnStartup { get; set; } = false;
 }
 

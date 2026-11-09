@@ -1222,7 +1222,7 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `Models/ImportFileItem.cs` | モデル | インポートリスト行モデル（ファイルパス、パース済みデータ） |
 | `Models/ImportExportBeatmapItem.cs` | モデル | Beatmap表示行モデル（プレビューペイン用） |
 | `IBeatmapDownloadService.cs` | インターフェース | ダウンロードサービスの契約定義 |
-| `BeatmapDownloadService.cs` | サービス | nerinyan.moe APIを使用した非同期ダウンロード実装 |
+| `BeatmapDownloadService.cs` | サービス | ダウンロードキュー管理と行の状態更新 (OszDownloader / DownloadIntervalGate を利用、既定ミラーは hinai) |
 | `Models/BeatmapDownloadState.cs` | モデル | ダウンロード状態enum（6段階） |
 
 ### 依存モジュール
@@ -1469,7 +1469,7 @@ ImportExportモジュールは **親仲介パターン** を採用する。MapLi
 
 #### 責務
 
-- nerinyan.moe APIから未所持の beatmapset を `.osz` 形式でダウンロード
+- ミラー (既定: hinai) から未所持の beatmapset を `.osz` 形式でダウンロード
 - `System.Threading.Channels` による非同期キュー処理
 - `ConcurrentDictionary` によるBeatmapSetIdごとの重複排除
 - 一括ダウンロード・キャンセル機能

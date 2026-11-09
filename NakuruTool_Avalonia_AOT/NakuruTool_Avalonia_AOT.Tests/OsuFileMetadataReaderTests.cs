@@ -354,7 +354,7 @@ public class OsuFileMetadataReaderTests : IDisposable
         var settings = new SettingsData
         {
             OsuFolderPath = _tempDir,
-            BeatmapMirrorUrl = "https://example.invalid/d/"
+            BeatmapMirrorUrl = BeatmapMirrors.Nerinyan
         };
         var viewModel = new TestBeatmapListViewModel(new StubSettingsService(settings));
 
@@ -372,7 +372,7 @@ public class OsuFileMetadataReaderTests : IDisposable
 
         await viewModel.CopyDownloadUrlCommand.ExecuteAsync(null);
 
-        Assert.Equal("https://example.invalid/d/1063231", copied);
+        Assert.Equal("https://api.nerinyan.moe/d/1063231", copied);
     }
 
     private static Beatmap CreateBeatmap(string folderName, string osuFileName) => new()

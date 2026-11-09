@@ -24,7 +24,7 @@ public partial class SettingsData : ObservableObject, ISettingsData
     private bool _autoPlayOnSelect = true;
     private bool _preferUnicode = false;
     private bool _isDarkTheme = true;
-    private string _beatmapMirrorUrl = "https://catboy.best/d/";
+    private string _beatmapMirrorUrl = BeatmapMirrors.Default;
     private bool _autoBatchGenerateOnStartup = false;
 
     public string OsuFolderPath

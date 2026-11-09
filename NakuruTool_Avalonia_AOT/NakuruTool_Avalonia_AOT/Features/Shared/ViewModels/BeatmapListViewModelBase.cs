@@ -239,11 +239,7 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         if (_contextMenuBeatmap is null || _clipboardWriter is null)
             return;
 
-        var mirrorUrl = _settingsService.SettingsData.BeatmapMirrorUrl;
-        if (string.IsNullOrEmpty(mirrorUrl))
-            mirrorUrl = "https://catboy.best/d/";
-
-        var url = $"{mirrorUrl}{_contextMenuBeatmap.BeatmapSetId}";
+        var url = BeatmapMirrors.GetDownloadUrl(_settingsService.SettingsData.BeatmapMirrorUrl, _contextMenuBeatmap.BeatmapSetId);
         await _clipboardWriter(url);
     }
 

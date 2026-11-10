@@ -25,7 +25,6 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     private Beatmap[] _sourceBeatmaps = Array.Empty<Beatmap>();
     /// <summary>SetSourceBeatmaps で受け取った未ソートの基準配列。ApplyCurrentSort はここからコピーして再ソートする。</summary>
     private Beatmap[] _unsortedBeatmaps = Array.Empty<Beatmap>();
-    private Func<string, Task>? _clipboardWriter;
     private Beatmap? _contextMenuBeatmap;
 
     [ObservableProperty]
@@ -233,18 +232,17 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     // ---- ContextMenu コマンド ----
 
-    [RelayCommand(CanExecute = nameof(CanCopyDownloadUrl))]
-    private async Task CopyDownloadUrlAsync()
+    [RelayCommand(CanExecute = nameof(CanOpenOfficialPage))]
+    private void OpenOfficialPage()
     {
-        if (_contextMenuBeatmap is null || _clipboardWriter is null)
-            return;
-
-        var url = BeatmapMirrors.GetDownloadUrl(_settingsService.SettingsData.BeatmapMirrorUrl, _contextMenuBeatmap.BeatmapSetId);
-        await _clipboardWriter(url);
+        if (_contextMenuBeatmap is { BeatmapSetId: > 0 } target)
+        {
+            OnOpenOfficialPage(target.BeatmapSetId);
+        }
     }
 
-    private bool CanCopyDownloadUrl() =>
-        _contextMenuBeatmap is { BeatmapSetId: > 0 } && _clipboardWriter is not null;
+    private bool CanOpenOfficialPage() =>
+        _contextMenuBeatmap is { BeatmapSetId: > 0 };
 
     [RelayCommand(CanExecute = nameof(CanOpenInExplorer))]
     private void OpenInExplorer()
@@ -283,6 +281,12 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     // ---- protected virtual フック ----
 
+    /// <summary>公式 beatmapset ページを開く。既定は既定のブラウザで開く (テストで差し替え可能)。</summary>
+    protected virtual void OnOpenOfficialPage(int beatmapSetId)
+    {
+        OsuWebPageLauncher.OpenBeatmapSetPage(beatmapSetId);
+    }
+
     /// <summary>譜面生成リクエストの派生差分。既定は No-op。</summary>
     protected virtual void OnGenerateBeatmap(Beatmap target)
     {
@@ -292,12 +296,6 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     protected virtual bool CanGenerateBeatmapFromContextMenu => false;
 
     // ---- public API (IBeatmapListViewModel) ----
-
-    public void SetClipboardWriter(Func<string, Task>? writer)
-    {
-        _clipboardWriter = writer;
-        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
-    }
 
     public virtual void SelectBeatmapForContextMenu(Beatmap beatmap)
     {
@@ -322,7 +320,7 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
             _contextMenuBeatmap = TryFillBeatmapSetIdFromOsuFile(beatmap);
         }
 
-        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
+        OpenOfficialPageCommand.NotifyCanExecuteChanged();
         OpenInExplorerCommand.NotifyCanExecuteChanged();
         GenerateBeatmapCommand.NotifyCanExecuteChanged();
         return _contextMenuBeatmap is not null;
@@ -357,14 +355,14 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     public void ClearContextMenuBeatmap()
     {
         _contextMenuBeatmap = null;
-        CopyDownloadUrlCommand.NotifyCanExecuteChanged();
+        OpenOfficialPageCommand.NotifyCanExecuteChanged();
         OpenInExplorerCommand.NotifyCanExecuteChanged();
         GenerateBeatmapCommand.NotifyCanExecuteChanged();
     }
 
-    // ---- IBeatmapListViewModel 明示実装ブリッジ (IAsyncRelayCommand → IRelayCommand) ----
+    // ---- IBeatmapListViewModel 明示実装ブリッジ ----
 
-    IRelayCommand IBeatmapListViewModel.CopyDownloadUrlCommand => CopyDownloadUrlCommand;
+    IRelayCommand IBeatmapListViewModel.OpenOfficialPageCommand => OpenOfficialPageCommand;
     IRelayCommand IBeatmapListViewModel.OpenInExplorerCommand => OpenInExplorerCommand;
     IRelayCommand IBeatmapListViewModel.GenerateBeatmapCommand => GenerateBeatmapCommand;
 }

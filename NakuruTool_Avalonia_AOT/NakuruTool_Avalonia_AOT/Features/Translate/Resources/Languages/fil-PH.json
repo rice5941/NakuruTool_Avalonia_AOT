@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "Score System",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "Kopyahin ang Download URL",
     "OpenInExplorer": "Buksan ang Folder sa Explorer",
+    "OpenOfficialPage": "Buksan ang opisyal na pahina ng map",
     "GenerateBeatmap": "Gumawa ng beatmap...",
     "Sort.Open": "Pagsunud-sunurin",
     "Sort.Title": "Pamantayan ng pag-uuri",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "Export",
     "Import": "Import",
+    "OpenOfficialPage": "Buksan ang opisyal na pahina ng map",
     "SelectAll": "Piliin lahat",
     "ClearAll": "Alisin lahat ng pagpili",
     "ExportButton": "Isagawa ang export",

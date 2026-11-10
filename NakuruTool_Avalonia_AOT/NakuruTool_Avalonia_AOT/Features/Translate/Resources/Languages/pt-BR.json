@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "Sistema de pontuação",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "Copiar URL de download",
     "OpenInExplorer": "Abrir pasta no Explorer",
+    "OpenOfficialPage": "Abrir página oficial do mapa",
     "GenerateBeatmap": "Gerar beatmap...",
     "Sort.Open": "Ordenar",
     "Sort.Title": "Ordenar por",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "Exportar",
     "Import": "Importar",
+    "OpenOfficialPage": "Abrir página oficial do mapa",
     "SelectAll": "Selecionar tudo",
     "ClearAll": "Limpar seleção",
     "ExportButton": "Executar exportação",

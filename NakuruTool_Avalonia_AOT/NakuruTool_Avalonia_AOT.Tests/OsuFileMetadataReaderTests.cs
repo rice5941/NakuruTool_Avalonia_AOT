@@ -336,7 +336,7 @@ public class OsuFileMetadataReaderTests : IDisposable
     }
 
     [Fact]
-    public async Task TryPrepareContextMenu_ResolvesMissingBeatmapSetId_FromOsuFileAndCopiesUrl()
+    public void TryPrepareContextMenu_ResolvesMissingBeatmapSetId_FromOsuFileAndOpensOfficialPage()
     {
         var folderName = "1063231 EGOIST - Namae no Nai Kaibutsu";
         var osuFileName = "EGOIST - Namae no Nai Kaibutsu (ruka) [Fallacy].osu";
@@ -358,21 +358,16 @@ public class OsuFileMetadataReaderTests : IDisposable
         };
         var viewModel = new TestBeatmapListViewModel(new StubSettingsService(settings));
 
-        string? copied = null;
-        viewModel.SetClipboardWriter(value =>
-        {
-            copied = value;
-            return Task.CompletedTask;
-        });
-
         var beatmap = CreateBeatmap(folderName, osuFileName) with { BeatmapSetId = 0 };
 
         Assert.True(viewModel.TryPrepareContextMenu(beatmap));
-        Assert.True(viewModel.CopyDownloadUrlCommand.CanExecute(null));
+        Assert.True(viewModel.OpenOfficialPageCommand.CanExecute(null));
 
-        await viewModel.CopyDownloadUrlCommand.ExecuteAsync(null);
+        viewModel.OpenOfficialPageCommand.Execute(null);
 
-        Assert.Equal("https://api.nerinyan.moe/d/1063231", copied);
+        Assert.Equal(1063231, viewModel.OpenedBeatmapSetId);
+        Assert.Equal("https://osu.ppy.sh/beatmapsets/1063231",
+            OsuWebPageLauncher.GetBeatmapSetUrl(viewModel.OpenedBeatmapSetId!.Value));
     }
 
     private static Beatmap CreateBeatmap(string folderName, string osuFileName) => new()
@@ -392,6 +387,9 @@ public class OsuFileMetadataReaderTests : IDisposable
     private sealed class TestBeatmapListViewModel(ISettingsService settingsService)
         : BeatmapListViewModelBase(settingsService)
     {
+        public int? OpenedBeatmapSetId { get; private set; }
+
+        protected override void OnOpenOfficialPage(int beatmapSetId) => OpenedBeatmapSetId = beatmapSetId;
     }
 
     private sealed class StubSettingsService(ISettingsData settingsData) : ISettingsService

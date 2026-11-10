@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "Hệ thống điểm",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "Sao chép URL tải xuống",
     "OpenInExplorer": "Mở thư mục trong Explorer",
+    "OpenOfficialPage": "Mở trang map chính thức",
     "GenerateBeatmap": "Tạo beatmap...",
     "Sort.Open": "Sắp xếp",
     "Sort.Title": "Điều kiện sắp xếp",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "Xuất",
     "Import": "Nhập",
+    "OpenOfficialPage": "Mở trang map chính thức",
     "SelectAll": "Chọn tất cả",
     "ClearAll": "Bỏ chọn tất cả",
     "ExportButton": "Thực hiện xuất",

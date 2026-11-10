@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "分数系统",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "复制下载链接",
     "OpenInExplorer": "在资源管理器中打开文件夹",
+    "OpenOfficialPage": "打开官方谱面页面",
     "GenerateBeatmap": "生成谱面...",
     "Sort.Open": "排序",
     "Sort.Title": "排序条件",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "导出",
     "Import": "导入",
+    "OpenOfficialPage": "打开官方谱面页面",
     "SelectAll": "全选",
     "ClearAll": "取消全选",
     "ExportButton": "导出",

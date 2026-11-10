@@ -15,6 +15,11 @@
         <converters:DownloadStateVisibilityConverter x:Key="DownloadStateVisibilityConverter"/>
         <converters:DownloadStateCanDownloadConverter x:Key="DownloadStateCanDownloadConverter"/>
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
+
+        <!-- mapセル右クリック時のメニュー -->
+        <ContextMenu x:Key="MapCellMenu">
+            <MenuItem Header="{translate:Translate 'ImportExport.OpenOfficialPage'}"/>
+        </ContextMenu>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -236,7 +241,8 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="models:ImportExportBeatmapItem">
-                            <StackPanel Spacing="1" Margin="4,0" VerticalAlignment="Center">
+                            <StackPanel Spacing="1" Margin="4,0" VerticalAlignment="Center"
+                                        Classes="map-cell" Background="Transparent">
                                 <!-- 1行目: タイトル + バージョン -->
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <TextBlock Text="{Binding ., Converter={StaticResource UnicodeDisplayConverter}, ConverterParameter=Title}"

@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "점수 시스템",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "다운로드 URL 복사",
     "OpenInExplorer": "폴더를 탐색기에서 열기",
+    "OpenOfficialPage": "공식 맵 페이지 열기",
     "GenerateBeatmap": "비트맵 생성...",
     "Sort.Open": "정렬",
     "Sort.Title": "정렬 조건",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "내보내기",
     "Import": "가져오기",
+    "OpenOfficialPage": "공식 맵 페이지 열기",
     "SelectAll": "모두 선택",
     "ClearAll": "모두 해제",
     "ExportButton": "내보내기 실행",

@@ -244,8 +244,8 @@
                 <DataGrid.ContextMenu>
                     <ContextMenu Opening="OnContextMenuOpening"
                                  Closing="OnContextMenuClosing">
-                        <MenuItem x:Name="CopyMenuItem"
-                                  Header="{translate:Translate 'MapList.CopyDownloadUrl'}"/>
+                        <MenuItem x:Name="OpenOfficialPageMenuItem"
+                                  Header="{translate:Translate 'MapList.OpenOfficialPage'}"/>
                         <Separator/>
                         <MenuItem x:Name="OpenMenuItem"
                                   Header="{translate:Translate 'MapList.OpenInExplorer'}"/>

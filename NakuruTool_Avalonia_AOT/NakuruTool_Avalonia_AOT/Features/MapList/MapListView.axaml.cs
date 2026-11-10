@@ -179,21 +179,15 @@ public partial class MapListView : UserControl
     {
         base.OnDataContextChanged(e);
 
-        if (_boundViewModel is not null)
-        {
-            _boundViewModel.SetClipboardWriter(null);
-            _boundViewModel.ClearContextMenuBeatmap();
-        }
+        _boundViewModel?.ClearContextMenuBeatmap();
 
         ClearViewModelBindings();
 
         _boundViewModel = DataContext as IBeatmapListViewModel;
         if (_boundViewModel is not null)
         {
-            _boundViewModel.SetClipboardWriter(CopyToClipboardAsync);
-
-            if (CopyMenuItem is not null)
-                CopyMenuItem.Command = _boundViewModel.CopyDownloadUrlCommand;
+            if (OpenOfficialPageMenuItem is not null)
+                OpenOfficialPageMenuItem.Command = _boundViewModel.OpenOfficialPageCommand;
             if (OpenMenuItem is not null)
                 OpenMenuItem.Command = _boundViewModel.OpenInExplorerCommand;
             if (GenerateMenuItem is not null)
@@ -211,7 +205,6 @@ public partial class MapListView : UserControl
     {
         base.OnDetachedFromVisualTree(e);
 
-        _boundViewModel?.SetClipboardWriter(null);
         _boundViewModel?.ClearContextMenuBeatmap();
 
         ClearViewModelBindings();
@@ -224,8 +217,8 @@ public partial class MapListView : UserControl
     {
         if (AudioPlayerHost is not null)
             AudioPlayerHost.DataContext = null;
-        if (CopyMenuItem is not null)
-            CopyMenuItem.Command = null;
+        if (OpenOfficialPageMenuItem is not null)
+            OpenOfficialPageMenuItem.Command = null;
         if (OpenMenuItem is not null)
             OpenMenuItem.Command = null;
         if (GenerateMenuItem is not null)
@@ -262,14 +255,5 @@ public partial class MapListView : UserControl
     private void OnContextMenuClosing(object? sender, CancelEventArgs e)
     {
         _boundViewModel?.ClearContextMenuBeatmap();
-    }
-
-    private async Task CopyToClipboardAsync(string text)
-    {
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (clipboard is not null)
-        {
-            await clipboard.SetTextAsync(text);
-        }
     }
 }

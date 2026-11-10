@@ -640,11 +640,10 @@ public class MockMapListViewModel : ObservableObject, IMapListViewModel
     public IRelayCommand NextPageCommand { get; }
 
     // ---- ContextMenu 共通契約 (No-op 実装) ----
-    public IRelayCommand CopyDownloadUrlCommand { get; } = new RelayCommand(() => { }, () => false);
+    public IRelayCommand OpenOfficialPageCommand { get; } = new RelayCommand(() => { }, () => false);
     public IRelayCommand OpenInExplorerCommand { get; } = new RelayCommand(() => { }, () => false);
     public IRelayCommand GenerateBeatmapCommand { get; } = new RelayCommand(() => { }, () => false);
 
-    public void SetClipboardWriter(Func<string, Task>? writer) { }
     public void SelectBeatmapForContextMenu(Beatmap beatmap) { }
     public bool TryPrepareContextMenu(Beatmap beatmap) => false;
     public void ClearContextMenuBeatmap() { }

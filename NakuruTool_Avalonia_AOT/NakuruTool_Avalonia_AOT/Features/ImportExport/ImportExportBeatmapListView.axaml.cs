@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
+using NakuruTool_Avalonia_AOT.Features.Shared;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using R3;
 using System;
@@ -14,7 +16,17 @@ public partial class ImportExportBeatmapListView : UserControl
     public ImportExportBeatmapListView()
     {
         InitializeComponent();
-        _existsColumn = this.FindControl<DataGrid>("BeatmapGrid")?.Columns[^1];
+        var grid = this.FindControl<DataGrid>("BeatmapGrid");
+        _existsColumn = grid?.Columns[^1];
+
+        if (grid is not null &&
+            Resources.TryGetValue("MapCellMenu", out var menu) && menu is ContextMenu mapCellMenu)
+        {
+            _ = new MapCellOfficialPageMenu(
+                grid,
+                mapCellMenu,
+                item => (item as ImportExportBeatmapItem)?.BeatmapSetId ?? 0);
+        }
     }
 
     protected override void OnDataContextChanged(EventArgs e)

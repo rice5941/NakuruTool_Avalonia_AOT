@@ -30,16 +30,14 @@ public interface IBeatmapListViewModel : INotifyPropertyChanged
     ModCategory SelectedModCategory { get; set; }
     ScoreSystemCategory SelectedScoreSystemCategory { get; set; }
 
-    // ---- ContextMenu (Copy / Open / Generate) 共通契約 ----
-    /// <summary>選択譜面のダウンロード URL をクリップボードへコピーするコマンド。</summary>
-    IRelayCommand CopyDownloadUrlCommand { get; }
+    // ---- ContextMenu (OfficialPage / Open / Generate) 共通契約 ----
+    /// <summary>選択譜面の公式 beatmapset ページを既定のブラウザで開くコマンド。</summary>
+    IRelayCommand OpenOfficialPageCommand { get; }
     /// <summary>選択譜面のフォルダをエクスプローラで開くコマンド。</summary>
     IRelayCommand OpenInExplorerCommand { get; }
     /// <summary>選択譜面を生成するコマンド（生成ページ側では No-op の場合あり）。</summary>
     IRelayCommand GenerateBeatmapCommand { get; }
 
-    /// <summary>クリップボード書き込みデリゲートを差し替える（View から注入）。</summary>
-    void SetClipboardWriter(Func<string, Task>? writer);
     /// <summary>右クリック対象の譜面を選択状態にする。</summary>
     void SelectBeatmapForContextMenu(Beatmap beatmap);
     /// <summary>ContextMenu 表示前のターゲット確定。表示可否を返す。</summary>

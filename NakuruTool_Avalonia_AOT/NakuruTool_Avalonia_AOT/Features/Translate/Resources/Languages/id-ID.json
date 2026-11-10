@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "Sistem skor",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "Salin URL Unduhan",
     "OpenInExplorer": "Buka Folder di Explorer",
+    "OpenOfficialPage": "Buka halaman map resmi",
     "GenerateBeatmap": "Buat beatmap...",
     "Sort.Open": "Urutkan",
     "Sort.Title": "Kondisi pengurutan",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "Ekspor",
     "Import": "Impor",
+    "OpenOfficialPage": "Buka halaman map resmi",
     "SelectAll": "Pilih semua",
     "ClearAll": "Batalkan semua pilihan",
     "ExportButton": "Jalankan ekspor",

@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "Система подсчета очков",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "Копировать ссылку для скачивания",
     "OpenInExplorer": "Открыть папку в проводнике",
+    "OpenOfficialPage": "Открыть официальную страницу карты",
     "GenerateBeatmap": "Создать beatmap...",
     "Sort.Open": "Сортировка",
     "Sort.Title": "Условия сортировки",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "Экспорт",
     "Import": "Импорт",
+    "OpenOfficialPage": "Открыть официальную страницу карты",
     "SelectAll": "Выбрать все",
     "ClearAll": "Снять выделение",
     "ExportButton": "Выполнить экспорт",

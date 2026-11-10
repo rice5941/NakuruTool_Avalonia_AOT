@@ -63,8 +63,8 @@
     "ScoreSystemSwitcher": "スコアシステム",
     "ScoreSystem.Default": "v1(default)",
     "ScoreSystem.ScoreV2": "v2",
-    "CopyDownloadUrl": "ダウンロードURLをコピー",
     "OpenInExplorer": "フォルダをエクスプローラーで開く",
+    "OpenOfficialPage": "公式mapページを表示",
     "GenerateBeatmap": "beatmap生成...",
     "Sort.Open": "並べ替え",
     "Sort.Title": "並べ替え条件",
@@ -177,6 +177,7 @@
   "ImportExport": {
     "Export": "エクスポート",
     "Import": "インポート",
+    "OpenOfficialPage": "公式mapページを表示",
     "SelectAll": "すべて選択",
     "ClearAll": "すべて解除",
     "ExportButton": "エクスポート実行",

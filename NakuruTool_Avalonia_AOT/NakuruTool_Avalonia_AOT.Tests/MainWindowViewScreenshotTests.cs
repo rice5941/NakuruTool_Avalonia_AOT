@@ -833,6 +833,8 @@ public class MockAudioPlayerService : IAudioPlayerService
 /// </summary>
 public class NullBeatmapDownloadService : IBeatmapDownloadService
 {
+    public DownloadActivity CurrentActivity => DownloadActivity.Idle;
+    public event EventHandler<DownloadActivity>? ActivityChanged { add { } remove { } }
     public void EnqueueDownload(ImportExportBeatmapItem item, IReadOnlyList<ImportExportBeatmapItem> allItems) { }
     public Task CancelAllAsync() => Task.CompletedTask;
     public void Dispose() { }

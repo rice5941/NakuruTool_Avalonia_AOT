@@ -23,7 +23,8 @@ internal sealed class DownloadIntervalGate
     }
 
     /// <summary>開始してよいタイミングまで待機し、開始時刻を記録する。</summary>
-    public async Task WaitForTurnAsync(CancellationToken ct)
+    /// <param name="onWaiting">実際に待機が発生する場合に、待機時間を渡して呼ばれる。</param>
+    public async Task WaitForTurnAsync(Action<TimeSpan>? onWaiting, CancellationToken ct)
     {
         await _lock.WaitAsync(ct).ConfigureAwait(false);
         try
@@ -32,7 +33,10 @@ internal sealed class DownloadIntervalGate
             {
                 var remaining = _interval - _timeProvider.GetElapsedTime(last);
                 if (remaining > TimeSpan.Zero)
+                {
+                    onWaiting?.Invoke(remaining);
                     await Task.Delay(remaining, _timeProvider, ct).ConfigureAwait(false);
+                }
             }
             _lastStartTimestamp = _timeProvider.GetTimestamp();
         }

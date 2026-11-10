@@ -7,7 +7,7 @@ using System.Globalization;
 namespace NakuruTool_Avalonia_AOT.Features.Shared.Converters;
 /// <summary>
 /// BeatmapDownloadState を IsVisible (bool) に変換するコンバーター。
-/// ConverterParameter: "Exists", "NotExists", "Queued", "Downloading", "Downloaded", "Error"
+/// ConverterParameter: "Exists", "NotExists", "Queued", "Waiting", "Downloading", "Downloaded", "Error"
 /// </summary>
 public class DownloadStateVisibilityConverter : IValueConverter
 {

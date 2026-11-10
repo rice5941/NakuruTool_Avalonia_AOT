@@ -34,4 +34,14 @@ public static class BeatmapMirrors
 
     public static string GetDownloadUrl(string? mirrorUrl, int beatmapSetId)
         => $"{Normalize(mirrorUrl)}{beatmapSetId}";
+
+    /// <summary>
+    /// ミラーが 503 (配信できるミラーが無い) を返したときに、直接ダウンロード URL を問い合わせる URL。
+    /// hinai の JSON エンドポイント <c>/d/{id}</c> はレート制限の対象外で、
+    /// <c>{"success":true,"download_url":"..."}</c> を返す。代替経路が無いミラーでは null。
+    /// </summary>
+    public static string? GetFallbackResolveUrl(string? mirrorUrl, int beatmapSetId)
+        => Normalize(mirrorUrl) == Hinai ? $"{HinaiResolveBase}{beatmapSetId}" : null;
+
+    private const string HinaiResolveBase = "https://mirror.hinamizawa.ai/d/";
 }

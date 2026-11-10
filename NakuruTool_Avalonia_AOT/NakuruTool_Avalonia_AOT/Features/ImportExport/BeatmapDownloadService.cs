@@ -36,6 +36,12 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
     private QueueWorker _worker;
     private bool _disposed;
 
+    /// <inheritdoc />
+    public DownloadActivity CurrentActivity { get; private set; } = DownloadActivity.Idle;
+
+    /// <inheritdoc />
+    public event EventHandler<DownloadActivity>? ActivityChanged;
+
     private readonly record struct DownloadRequest(int BeatmapSetId, IReadOnlyList<ImportExportBeatmapItem> AllItems);
 
     public BeatmapDownloadService(ISettingsService settingsService)
@@ -81,14 +87,16 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
             {
                 foreach (var row in items)
                 {
-                    if (row.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
+                    if (row.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Waiting or BeatmapDownloadState.Downloading)
                     {
                         row.DownloadState = BeatmapDownloadState.NotExists;
-                        row.ErrorMessage = null;
+                        row.Error = null;
                     }
                 }
             });
         }
+
+        await Dispatcher.UIThread.InvokeAsync(() => PublishActivity(DownloadActivity.Idle));
 
         if (!_disposed)
             _worker = new QueueWorker(ProcessAsync);
@@ -100,13 +108,26 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
         var (setId, allItems) = request;
         try
         {
-            await SetStateAsync(allItems, setId, BeatmapDownloadState.Downloading).ConfigureAwait(false);
+            if (GetSongsFolder() is not { } songsFolder)
+            {
+                await SetStateAsync(allItems, setId, BeatmapDownloadState.Error, DownloadError.OsuFolderNotSet).ConfigureAwait(false);
+                return;
+            }
 
-            var songsFolder = GetSongsFolder();
-            var url = BeatmapMirrors.GetDownloadUrl(_settingsService.SettingsData.BeatmapMirrorUrl, setId);
-            await _downloader.DownloadAsync(url, songsFolder, setId, ct).ConfigureAwait(false);
+            var mirrorUrl = _settingsService.SettingsData.BeatmapMirrorUrl;
+            string? fallbackUrl = null;
+            await _downloader.DownloadAsync(
+                BeatmapMirrors.GetDownloadUrl(mirrorUrl, setId),
+                BeatmapMirrors.GetFallbackResolveUrl(mirrorUrl, setId),
+                songsFolder, setId,
+                progress =>
+                {
+                    fallbackUrl = progress.FallbackUrl ?? fallbackUrl;
+                    ReportProgress(allItems, setId, progress);
+                },
+                ct).ConfigureAwait(false);
 
-            await SetStateAsync(allItems, setId, BeatmapDownloadState.Downloaded).ConfigureAwait(false);
+            await SetStateAsync(allItems, setId, BeatmapDownloadState.Downloaded, fallbackUrl: fallbackUrl).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -115,19 +136,59 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
         }
         catch (Exception ex)
         {
-            await SetStateAsync(allItems, setId, BeatmapDownloadState.Error, ex.Message).ConfigureAwait(false);
+            await SetStateAsync(allItems, setId, BeatmapDownloadState.Error, DownloadError.FromException(ex)).ConfigureAwait(false);
         }
         finally
         {
             _pendingSetIds.TryRemove(setId, out _);
+            if (_pendingSetIds.IsEmpty)
+                Dispatcher.UIThread.Post(() => PublishActivity(DownloadActivity.Idle));
         }
     }
 
-    private string GetSongsFolder()
+    /// <summary>
+    /// ダウンローダーからの進行状況を、行の状態と <see cref="CurrentActivity"/> に反映する。
+    /// ワーカースレッドから呼ばれるため UI スレッドへ投げる (投入順に実行される)。
+    /// </summary>
+    private void ReportProgress(IReadOnlyList<ImportExportBeatmapItem> allItems, int setId, OszDownloadProgress progress)
+    {
+        var activity = new DownloadActivity(
+            progress.Phase,
+            setId,
+            progress.Delay > TimeSpan.Zero ? DateTimeOffset.Now + progress.Delay : null,
+            progress.StatusCode,
+            progress.Attempt,
+            OszDownloader.MaxAttempts,
+            progress.FallbackUrl);
+
+        var rowState = progress.Phase == DownloadPhase.Downloading
+            ? BeatmapDownloadState.Downloading
+            : BeatmapDownloadState.Waiting;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var row in RowsOf(allItems, setId))
+            {
+                row.DownloadState = rowState;
+                row.Error = null;
+            }
+            PublishActivity(activity);
+        });
+    }
+
+    /// <summary>UI スレッドで呼び出す。</summary>
+    private void PublishActivity(DownloadActivity activity)
+    {
+        CurrentActivity = activity;
+        ActivityChanged?.Invoke(this, activity);
+    }
+
+    /// <summary>保存先の Songs フォルダ。osu! フォルダが未設定なら null。</summary>
+    private string? GetSongsFolder()
     {
         var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
         if (string.IsNullOrEmpty(osuFolderPath))
-            throw new InvalidOperationException("osu! フォルダパスが設定されていません。");
+            return null;
 
         var songsFolder = Path.Combine(osuFolderPath, "Songs");
         Directory.CreateDirectory(songsFolder);
@@ -136,14 +197,15 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
 
     /// <summary>同じ beatmapset に属する全行 (難易度違い) の状態を UI スレッドで更新する。</summary>
     private static Task SetStateAsync(
-        IReadOnlyList<ImportExportBeatmapItem> allItems, int setId, BeatmapDownloadState state, string? errorMessage = null)
+        IReadOnlyList<ImportExportBeatmapItem> allItems, int setId, BeatmapDownloadState state, DownloadError? error = null, string? fallbackUrl = null)
     {
         return Dispatcher.UIThread.InvokeAsync(() =>
         {
             foreach (var row in RowsOf(allItems, setId))
             {
                 row.DownloadState = state;
-                row.ErrorMessage = errorMessage;
+                row.Error = error;
+                row.FallbackUrl = fallbackUrl;
             }
         }).GetTask();
     }

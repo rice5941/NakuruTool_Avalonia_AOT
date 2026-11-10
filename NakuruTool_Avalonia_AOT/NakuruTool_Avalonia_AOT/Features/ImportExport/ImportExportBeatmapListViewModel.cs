@@ -1,4 +1,5 @@
 using Avalonia.Collections;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
@@ -7,6 +8,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using ZLinq;
 
@@ -40,6 +42,24 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     [ObservableProperty]
     public partial bool ShowOnlyMissing { get; set; } = false;
 
+    // ---- ダウンロード状況 (何を待っているか) ----
+
+    /// <summary>ダウンロード状況の説明文。Idle のときは空。</summary>
+    [ObservableProperty]
+    public partial string DownloadStatusText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool HasDownloadStatus { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsStatusDownloading { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsStatusWaitingInterval { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsStatusWaitingRetry { get; set; }
+
     [ObservableProperty]
     public partial int CurrentPage { get; set; } = 1;
 
@@ -55,15 +75,26 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     private ImportExportBeatmapItem[] _filteredRows = Array.Empty<ImportExportBeatmapItem>();
     private readonly AvaloniaList<ImportExportBeatmapItem> _showBeatmapsList = new();
     private readonly IBeatmapDownloadService _downloadService;
+    private readonly ISettingsService _settingsService;
     private readonly SerialDisposable _itemSubscriptions = new();
+
+    /// <summary>待機中の残り秒数を更新するためのタイマー。</summary>
+    private readonly DispatcherTimer _countdownTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+    private DownloadActivity _activity = DownloadActivity.Idle;
 
     private bool _disposed;
 
     public ImportExportBeatmapListViewModel(ISettingsService settingsService, IBeatmapDownloadService downloadService)
     {
         _downloadService = downloadService;
+        _settingsService = settingsService;
         ShowBeatmaps = _showBeatmapsList;
         _itemSubscriptions.AddTo(Disposables);
+
+        _countdownTimer.Tick += OnCountdownTick;
+        _downloadService.ActivityChanged += OnDownloadActivityChanged;
+        LangServiceInstance.LanguageChanged += OnLanguageChanged;
+        OnDownloadActivityChanged(this, _downloadService.CurrentActivity);
 
         // Unicode表示設定の変更時にリスト表示を更新
         settingsService.SettingsData.ObservePropertyAndSubscribe(
@@ -106,7 +137,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     {
         foreach (var item in _allPreviewRows)
         {
-            if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Downloading)
+            if (item.DownloadState is BeatmapDownloadState.Queued or BeatmapDownloadState.Waiting or BeatmapDownloadState.Downloading)
                 return true;
         }
         return false;
@@ -119,6 +150,115 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         DownloadAllMissingCommand.NotifyCanExecuteChanged();
         CancelDownloadsCommand.NotifyCanExecuteChanged();
     }
+
+    private void OnDownloadActivityChanged(object? sender, DownloadActivity activity)
+    {
+        ClearRowWaitInfo(_activity.BeatmapSetId);
+        _activity = activity;
+
+        if (activity.ResumeAt is null)
+            _countdownTimer.Stop();
+        else
+            _countdownTimer.Start();
+
+        UpdateDownloadStatus();
+    }
+
+    private void OnCountdownTick(object? sender, EventArgs e) => UpdateDownloadStatus();
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        UpdateDownloadStatus();
+        foreach (var row in _allPreviewRows)
+            row.RefreshLocalizedText();
+    }
+
+    /// <summary>現在の <see cref="DownloadActivity"/> から、ステータス欄と対象行の表示を作り直す。</summary>
+    private void UpdateDownloadStatus()
+    {
+        var activity = _activity;
+        var phase = activity.Phase;
+
+        IsStatusDownloading = phase == DownloadPhase.Downloading;
+        IsStatusWaitingInterval = phase == DownloadPhase.WaitingInterval;
+        IsStatusWaitingRetry = phase is DownloadPhase.WaitingRetry or DownloadPhase.WaitingRetryAfter;
+        HasDownloadStatus = phase != DownloadPhase.Idle;
+
+        if (phase == DownloadPhase.Idle)
+        {
+            _countdownTimer.Stop();
+            DownloadStatusText = string.Empty;
+            return;
+        }
+
+        var title = GetDisplayTitle(activity.BeatmapSetId);
+        var seconds = GetRemainingSeconds(activity);
+
+        DownloadStatusText = phase switch
+        {
+            DownloadPhase.Downloading when activity.Attempt > 1 => Format("ImportExport.DownloadStatus.DownloadingRetry",
+                title, activity.Attempt, activity.MaxAttempts),
+            DownloadPhase.Downloading when activity.FallbackUrl is { } fallbackUrl => Format("ImportExport.DownloadStatus.DownloadingFallback", title, fallbackUrl),
+            DownloadPhase.Downloading => Format("ImportExport.DownloadStatus.Downloading", title),
+            DownloadPhase.WaitingInterval => Format("ImportExport.DownloadStatus.WaitingInterval", seconds, title),
+            DownloadPhase.WaitingRetry => Format("ImportExport.DownloadStatus.WaitingRetry",
+                activity.StatusCode ?? 0, seconds, title, activity.Attempt, activity.MaxAttempts),
+            DownloadPhase.WaitingRetryAfter => Format("ImportExport.DownloadStatus.WaitingRetryAfter",
+                activity.StatusCode ?? 0, seconds, title),
+            _ => string.Empty,
+        };
+
+        var rowMessage = phase switch
+        {
+            DownloadPhase.WaitingInterval => Format("ImportExport.DownloadStatus.WaitingIntervalTip", seconds),
+            DownloadPhase.WaitingRetry => Format("ImportExport.DownloadStatus.WaitingRetryTip",
+                activity.StatusCode ?? 0, seconds, activity.Attempt, activity.MaxAttempts),
+            DownloadPhase.WaitingRetryAfter => Format("ImportExport.DownloadStatus.WaitingRetryAfterTip",
+                activity.StatusCode ?? 0, seconds),
+            _ => null,
+        };
+        var countdown = rowMessage is null ? null : $"{seconds}s";
+
+        foreach (var row in _allPreviewRows)
+        {
+            if (row.BeatmapSetId != activity.BeatmapSetId) continue;
+            row.WaitCountdown = countdown;
+            row.WaitMessage = rowMessage;
+        }
+    }
+
+    private void ClearRowWaitInfo(int beatmapSetId)
+    {
+        if (beatmapSetId <= 0) return;
+        foreach (var row in _allPreviewRows)
+        {
+            if (row.BeatmapSetId != beatmapSetId) continue;
+            row.WaitCountdown = null;
+            row.WaitMessage = null;
+        }
+    }
+
+    private static int GetRemainingSeconds(DownloadActivity activity)
+    {
+        if (activity.ResumeAt is not { } resumeAt) return 0;
+        var remaining = resumeAt - DateTimeOffset.Now;
+        return remaining <= TimeSpan.Zero ? 0 : (int)Math.Ceiling(remaining.TotalSeconds);
+    }
+
+    private string GetDisplayTitle(int beatmapSetId)
+    {
+        foreach (var row in _allPreviewRows)
+        {
+            if (row.BeatmapSetId != beatmapSetId) continue;
+            return _settingsService.SettingsData.PreferUnicode && !string.IsNullOrEmpty(row.TitleUnicode)
+                ? row.TitleUnicode
+                : row.Title;
+        }
+        return beatmapSetId.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private string Format(string key, params object[] args)
+        => string.Format(CultureInfo.CurrentCulture, LangServiceInstance.GetString(key), args);
 
     /// <summary>
     /// 外部からプレビュー行を設定する
@@ -271,6 +411,10 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
     {
         if (_disposed) return;
         _disposed = true;
+        _countdownTimer.Stop();
+        _countdownTimer.Tick -= OnCountdownTick;
+        _downloadService.ActivityChanged -= OnDownloadActivityChanged;
+        LangServiceInstance.LanguageChanged -= OnLanguageChanged;
         base.Dispose();
     }
 }

@@ -87,7 +87,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
         <!-- Row 0: ヘッダー（件数表示 + 一括DLボタン） -->
         <Border Grid.Row="0" Background="{DynamicResource SemiGrey1}"
@@ -146,8 +146,39 @@
             </Grid>
         </Border>
 
-        <!-- Row 1: osu!起動推奨メッセージ -->
+        <!-- Row 1: ダウンロード状況（何を待っているか） -->
         <Border Grid.Row="1"
+                x:Name="DownloadStatusBar"
+                Background="{DynamicResource SemiBlue0}"
+                BorderBrush="{DynamicResource SemiBlue3}"
+                BorderThickness="1,0,1,0"
+                Padding="12,6"
+                IsVisible="{Binding HasDownloadStatus}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <Panel Grid.Column="0" VerticalAlignment="Center">
+                    <mi:MaterialIcon Kind="Download" Width="16" Height="16"
+                                     Foreground="{DynamicResource SemiBlue7}"
+                                     IsVisible="{Binding IsStatusDownloading}"/>
+                    <mi:MaterialIcon Kind="TimerSandEmpty" Width="16" Height="16"
+                                     Foreground="{DynamicResource SemiBlue7}"
+                                     IsVisible="{Binding IsStatusWaitingInterval}"/>
+                    <mi:MaterialIcon Kind="AlertOutline" Width="16" Height="16"
+                                     Foreground="{DynamicResource SemiOrange6}"
+                                     IsVisible="{Binding IsStatusWaitingRetry}"/>
+                </Panel>
+                <!-- 代替経路の URL をコピーできるよう選択可能にする -->
+                <SelectableTextBlock Grid.Column="1"
+                           x:Name="DownloadStatusTextBlock"
+                           Text="{Binding DownloadStatusText}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SemiGrey9}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+
+        <!-- Row 2: osu!起動推奨メッセージ -->
+        <Border Grid.Row="2"
                 Background="{DynamicResource SemiYellow0}"
                 BorderBrush="{DynamicResource SemiYellow3}"
                 BorderThickness="1,0,1,0"
@@ -165,8 +196,8 @@
             </StackPanel>
         </Border>
 
-        <!-- Row 2: DataGrid -->
-        <DataGrid Grid.Row="2"
+        <!-- Row 3: DataGrid -->
+        <DataGrid Grid.Row="3"
                   x:Name="BeatmapGrid"
                   ItemsSource="{Binding ShowBeatmaps}"
                   IsReadOnly="True"
@@ -278,15 +309,32 @@
                                     </mi:MaterialIcon.IsVisible>
                                 </mi:MaterialIcon>
 
-                                <!-- 状態: Queued → 時計アイコン -->
+                                <!-- 状態: Queued → 時計アイコン（順番待ち） -->
                                 <mi:MaterialIcon Width="20" Height="20"
                                     Kind="Clock"
                                     Foreground="{DynamicResource SemiGrey7}"
+                                    ToolTip.Tip="{translate:Translate 'ImportExport.DownloadStatus.QueuedTip'}"
                                     IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Queued}"/>
+
+                                <!-- 状態: Waiting → 砂時計 + 残り秒数（間隔待ち / 混雑による再試行待ち） -->
+                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                            Background="Transparent"
+                                            ToolTip.Tip="{Binding WaitMessage}"
+                                            IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Waiting}">
+                                    <mi:MaterialIcon Width="18" Height="18"
+                                        Kind="TimerSandEmpty"
+                                        Foreground="{DynamicResource SemiBlue6}"/>
+                                    <TextBlock Text="{Binding WaitCountdown}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SemiBlue7}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
 
                                 <!-- 状態: Downloading → 回転ローディング -->
                                 <mi:MaterialIcon Width="20" Height="20"
                                     Kind="Loading"
+                                    ToolTip.Tip="{translate:Translate 'ImportExport.DownloadStatus.DownloadingTip'}"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Foreground="{DynamicResource SemiGrey7}"
@@ -314,6 +362,7 @@
                                 <mi:MaterialIcon Width="20" Height="20"
                                     Kind="CheckCircle"
                                     Foreground="{DynamicResource SemiColorSuccess}"
+                                    ToolTip.Tip="{Binding DownloadedTip}"
                                     IsVisible="{Binding DownloadState, Converter={StaticResource DownloadStateVisibilityConverter}, ConverterParameter=Downloaded}"/>
 
                                 <!-- 状態: Error → エラーアイコン + リトライボタン -->
@@ -338,8 +387,8 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Row 3: ページネーション -->
-        <Border Grid.Row="3"
+        <!-- Row 4: ページネーション -->
+        <Border Grid.Row="4"
                 Background="{DynamicResource SemiGrey1}"
                 BorderBrush="{DynamicResource SemiGrey3}"
                 BorderThickness="1,0,1,1"

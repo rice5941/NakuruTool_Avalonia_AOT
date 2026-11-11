@@ -272,6 +272,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         SubscribeItemEvents();
         TotalPreviewCount = rows.Length;
         IsImportPreview = isImport;
+        CurrentPage = 1;
         ApplyMissingFilter();
         UpdateFilteredPages();
         UpdateShowBeatmaps();
@@ -291,6 +292,7 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         IsImportPreview = false;
         HasDownloadedItems = false;
         ShowOnlyMissing = false;
+        CurrentPage = 1;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
         RefreshDownloadState();
@@ -309,9 +311,16 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
                         HasDownloadedItems = CheckHasDownloadedItems();
                     if (ShowOnlyMissing)
                     {
+                        // DL状態の遷移 (Queued→Waiting→Downloading 等) では表示対象が変わらないため、
+                        // フィルタ結果の件数が変わったときだけ表示を更新する。
+                        // 表示中のリストは差分更新し、DataGrid のスクロール位置を維持する
+                        var previousCount = _filteredRows.Length;
                         ApplyMissingFilter();
-                        UpdateFilteredPages();
-                        UpdateShowBeatmaps();
+                        if (_filteredRows.Length != previousCount)
+                        {
+                            UpdateFilteredPages();
+                            SyncShowBeatmaps();
+                        }
                     }
                 })
                 .AddTo(disposables);
@@ -354,6 +363,44 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
         }
     }
 
+    /// <summary>
+    /// 現在ページの表示リストを差分で更新する。
+    /// Clear による Reset 通知を避け、DataGrid のスクロール位置を維持するために使う。
+    /// </summary>
+    private void SyncShowBeatmaps()
+    {
+        var size = Math.Max(1, PageSize);
+        var skip = (CurrentPage - 1) * size;
+        var take = Math.Clamp(_filteredRows.Length - skip, 0, size);
+        var target = take > 0
+            ? _filteredRows.AsSpan(skip, take)
+            : Span<ImportExportBeatmapItem>.Empty;
+
+        // 表示対象から外れた行を削除
+        for (var i = _showBeatmapsList.Count - 1; i >= 0; i--)
+        {
+            if (!ContainsReference(target, _showBeatmapsList[i]))
+                _showBeatmapsList.RemoveAt(i);
+        }
+
+        // 残った行は target と同じ相対順序なので、不足分を該当位置に挿入する
+        for (var i = 0; i < target.Length; i++)
+        {
+            if (i < _showBeatmapsList.Count && ReferenceEquals(_showBeatmapsList[i], target[i]))
+                continue;
+            _showBeatmapsList.Insert(i, target[i]);
+        }
+    }
+
+    private static bool ContainsReference(ReadOnlySpan<ImportExportBeatmapItem> span, ImportExportBeatmapItem item)
+    {
+        foreach (var x in span)
+        {
+            if (ReferenceEquals(x, item)) return true;
+        }
+        return false;
+    }
+
     private void ApplyMissingFilter()
     {
         if (ShowOnlyMissing)
@@ -388,13 +435,17 @@ public partial class ImportExportBeatmapListViewModel : ViewModelBase, IDisposab
 
     partial void OnFilteredPagesChanged(int value)
     {
-        CurrentPage = 1;
+        // DL完了でページ数が減っても閲覧中のページは維持し、範囲外になった場合のみ最終ページへ寄せる。
+        // 先頭ページへ戻すべきケース (プレビュー切替/フィルタ切替/ページサイズ変更) は呼び出し側で CurrentPage = 1 にする
+        if (CurrentPage > value)
+            CurrentPage = value;
         NextPageCommand.NotifyCanExecuteChanged();
         PreviousPageCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnPageSizeChanged(int value)
     {
+        CurrentPage = 1;
         UpdateFilteredPages();
         UpdateShowBeatmaps();
     }

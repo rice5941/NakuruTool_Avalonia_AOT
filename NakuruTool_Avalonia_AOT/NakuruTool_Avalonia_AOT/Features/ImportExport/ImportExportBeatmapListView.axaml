@@ -151,54 +151,69 @@
             </Grid>
         </Border>
 
-        <!-- Row 1: ダウンロード状況（何を待っているか） -->
+        <!-- Row 1: ダウンロード状況（何を待っているか）
+             メッセージの有無でリストの高さが変わらないよう、領域は常に固定高さで確保する。
+             文言は1行に収め、はみ出した分は省略してツールチップで全文を表示する -->
         <Border Grid.Row="1"
-                x:Name="DownloadStatusBar"
-                Background="{DynamicResource SemiBlue0}"
-                BorderBrush="{DynamicResource SemiBlue3}"
-                BorderThickness="1,0,1,0"
-                Padding="12,6"
-                IsVisible="{Binding HasDownloadStatus}">
-            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                <Panel Grid.Column="0" VerticalAlignment="Center">
-                    <mi:MaterialIcon Kind="Download" Width="16" Height="16"
-                                     Foreground="{DynamicResource SemiBlue7}"
-                                     IsVisible="{Binding IsStatusDownloading}"/>
-                    <mi:MaterialIcon Kind="TimerSandEmpty" Width="16" Height="16"
-                                     Foreground="{DynamicResource SemiBlue7}"
-                                     IsVisible="{Binding IsStatusWaitingInterval}"/>
-                    <mi:MaterialIcon Kind="AlertOutline" Width="16" Height="16"
-                                     Foreground="{DynamicResource SemiOrange6}"
-                                     IsVisible="{Binding IsStatusWaitingRetry}"/>
-                </Panel>
-                <!-- 代替経路の URL をコピーできるよう選択可能にする -->
-                <SelectableTextBlock Grid.Column="1"
-                           x:Name="DownloadStatusTextBlock"
-                           Text="{Binding DownloadStatusText}"
-                           FontSize="12"
-                           Foreground="{DynamicResource SemiGrey9}"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
-            </Grid>
+                x:Name="DownloadStatusArea"
+                Height="30"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                BorderThickness="1,0,1,0">
+            <Border x:Name="DownloadStatusBar"
+                    Background="{DynamicResource SemiBlue0}"
+                    Padding="12,0"
+                    IsVisible="{Binding HasDownloadStatus}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <Panel Grid.Column="0" VerticalAlignment="Center">
+                        <mi:MaterialIcon Kind="Download" Width="16" Height="16"
+                                         Foreground="{DynamicResource SemiBlue7}"
+                                         IsVisible="{Binding IsStatusDownloading}"/>
+                        <mi:MaterialIcon Kind="TimerSandEmpty" Width="16" Height="16"
+                                         Foreground="{DynamicResource SemiBlue7}"
+                                         IsVisible="{Binding IsStatusWaitingInterval}"/>
+                        <mi:MaterialIcon Kind="AlertOutline" Width="16" Height="16"
+                                         Foreground="{DynamicResource SemiOrange6}"
+                                         IsVisible="{Binding IsStatusWaitingRetry}"/>
+                    </Panel>
+                    <!-- 代替経路の URL をコピーできるよう選択可能にする (Ctrl+A → Ctrl+C で省略部分も含めてコピー可) -->
+                    <SelectableTextBlock Grid.Column="1"
+                               x:Name="DownloadStatusTextBlock"
+                               Text="{Binding DownloadStatusText}"
+                               ToolTip.Tip="{Binding DownloadStatusText}"
+                               FontSize="12"
+                               Foreground="{DynamicResource SemiGrey9}"
+                               VerticalAlignment="Center"
+                               TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis"/>
+                </Grid>
+            </Border>
         </Border>
 
-        <!-- Row 2: osu!起動推奨メッセージ -->
+        <!-- Row 2: osu!起動推奨メッセージ（Row 1 と同様に領域は常に確保する） -->
         <Border Grid.Row="2"
-                Background="{DynamicResource SemiYellow0}"
-                BorderBrush="{DynamicResource SemiYellow3}"
-                BorderThickness="1,0,1,0"
-                Padding="12,6"
-                IsVisible="{Binding HasDownloadedItems}">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16"
-                                 Foreground="{DynamicResource SemiYellow7}"
-                                 VerticalAlignment="Center"/>
-                <TextBlock Text="{translate:Translate 'ImportExport.OsuRestartRequired'}"
-                           FontSize="12"
-                           Foreground="{DynamicResource SemiYellow9}"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
-            </StackPanel>
+                x:Name="OsuRestartArea"
+                Height="30"
+                BorderBrush="{DynamicResource SemiGrey3}"
+                BorderThickness="1,0,1,0">
+            <Border x:Name="OsuRestartBar"
+                    Background="{DynamicResource SemiYellow0}"
+                    Padding="12,0"
+                    IsVisible="{Binding HasDownloadedItems}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <mi:MaterialIcon Grid.Column="0"
+                                     Kind="InformationOutline" Width="16" Height="16"
+                                     Foreground="{DynamicResource SemiYellow7}"
+                                     VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{translate:Translate 'ImportExport.OsuRestartRequired'}"
+                               ToolTip.Tip="{translate:Translate 'ImportExport.OsuRestartRequired'}"
+                               FontSize="12"
+                               Foreground="{DynamicResource SemiYellow9}"
+                               VerticalAlignment="Center"
+                               TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis"/>
+                </Grid>
+            </Border>
         </Border>
 
         <!-- Row 3: DataGrid -->

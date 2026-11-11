@@ -91,6 +91,48 @@ public sealed class DownloadStatusDisplayTests
         }
     }
 
+    /// <summary>ステータス欄 / osu!起動メッセージの表示有無でリストの高さが変わらないこと。</summary>
+    [AvaloniaFact]
+    public void GridHeight_DoesNotChange_WhenMessagesAppear()
+    {
+        var service = new FakeDownloadService();
+        using var settings = new StubSettingsService(new SettingsData());
+        using var viewModel = new ImportExportBeatmapListViewModel(settings, service);
+
+        var item = new ImportExportBeatmapItem { BeatmapSetId = 10, Title = "Song", KeyCount = 7 };
+        viewModel.SetPreviewRows([item], isImport: true);
+
+        var view = new ImportExportBeatmapListView { DataContext = viewModel };
+        var window = new Window { Width = 1000, Height = 420, Content = view };
+        window.Show();
+        try
+        {
+            var grid = view.GetVisualDescendants().OfType<DataGrid>().Single(g => g.Name == "BeatmapGrid");
+            Dispatcher.UIThread.RunJobs();
+            var initial = grid.Bounds;
+            Assert.False(viewModel.HasDownloadStatus);
+            Assert.False(viewModel.HasDownloadedItems);
+
+            // 非常に長い文言でも折り返さず高さは固定
+            item.DownloadState = BeatmapDownloadState.Downloading;
+            service.Raise(new DownloadActivity(DownloadPhase.Downloading, 10, Attempt: 1, MaxAttempts: 3,
+                FallbackUrl: "https://osu.direct/api/d/" + new string('9', 300)));
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(viewModel.HasDownloadStatus);
+            Assert.Equal(initial, grid.Bounds);
+
+            item.DownloadState = BeatmapDownloadState.Downloaded;
+            service.Raise(DownloadActivity.Idle);
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(viewModel.HasDownloadedItems);
+            Assert.Equal(initial, grid.Bounds);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void ErrorTooltip_IsLocalizedFromFailureReason()
     {

@@ -30,6 +30,14 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
 
     public Observable<Beatmap> GenerateBeatmapRequested => _generateBeatmapRequested;
 
+    private readonly Subject<Beatmap> _scrollToBeatmapRequested = new();
+
+    /// <summary>
+    /// オーディオプレイヤーの次曲/前曲操作で譜面が選択されたときに発火する。
+    /// View はこれを購読して該当行をリストの表示範囲までスクロールする。
+    /// </summary>
+    public Observable<Beatmap> ScrollToBeatmapRequested => _scrollToBeatmapRequested;
+
     private readonly AudioPlayerViewModel _audioPlayer;
     private readonly IDatabaseService _databaseService;
     private readonly MapFilterViewModel _filterViewModel;
@@ -144,6 +152,7 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         // ナビゲーション完了後に再生を呼び出す
         if (SelectedBeatmap != null)
         {
+            _scrollToBeatmapRequested.OnNext(SelectedBeatmap);
             AudioPlayerPanel.PlayBeatmap(SelectedBeatmap, filteredIndex);
         }
     }
@@ -186,6 +195,8 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
     {
         _generateBeatmapRequested.OnCompleted();
         _generateBeatmapRequested.Dispose();
+        _scrollToBeatmapRequested.OnCompleted();
+        _scrollToBeatmapRequested.Dispose();
         _audioPlayer.Dispose();
         AudioPlayerPanel.Dispose();
         base.Dispose();

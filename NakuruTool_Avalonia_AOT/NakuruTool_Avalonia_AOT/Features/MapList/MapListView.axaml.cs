@@ -6,9 +6,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
+using R3;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
 
@@ -115,6 +117,7 @@ public partial class MapListView : UserControl
 
     private Beatmap? _rightClickTarget;
     private IBeatmapListViewModel? _boundViewModel;
+    private IDisposable? _scrollRequestSubscription;
 
     public MapListView()
     {
@@ -211,10 +214,31 @@ public partial class MapListView : UserControl
         }
 
         // AudioPlayerHost は MapListViewModel 固有 (AudioPlayerPanel) のためここで個別分岐
-        if (DataContext is MapListViewModel mapListVm && AudioPlayerHost is not null)
+        if (DataContext is MapListViewModel mapListVm)
         {
-            AudioPlayerHost.DataContext = mapListVm.AudioPlayerPanel;
+            if (AudioPlayerHost is not null)
+                AudioPlayerHost.DataContext = mapListVm.AudioPlayerPanel;
+
+            // オーディオプレイヤーの次曲/前曲で選択された譜面をリストの表示範囲までスクロールする
+            _scrollRequestSubscription = mapListVm.ScrollToBeatmapRequested
+                .Subscribe(ScheduleScrollIntoView);
         }
+    }
+
+    /// <summary>
+    /// ページ切り替え直後は DataGrid の行がまだ生成されていないため、
+    /// レイアウト更新後に ScrollIntoView を実行する。
+    /// </summary>
+    private void ScheduleScrollIntoView(Beatmap beatmap)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (MapListDataGrid is null) return;
+            // 遅延実行までに選択が変わっていたらスクロールしない
+            if (!ReferenceEquals(MapListDataGrid.SelectedItem, beatmap)) return;
+
+            MapListDataGrid.ScrollIntoView(beatmap, null);
+        }, DispatcherPriority.Background);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -231,6 +255,9 @@ public partial class MapListView : UserControl
 
     private void ClearViewModelBindings()
     {
+        _scrollRequestSubscription?.Dispose();
+        _scrollRequestSubscription = null;
+
         if (AudioPlayerHost is not null)
             AudioPlayerHost.DataContext = null;
         if (OpenOfficialPageMenuItem is not null)

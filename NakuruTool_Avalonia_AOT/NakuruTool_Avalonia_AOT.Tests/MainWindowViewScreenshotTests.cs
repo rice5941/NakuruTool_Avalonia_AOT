@@ -355,7 +355,7 @@ public class MainWindowViewScreenshotTests
         var systemsMenu = mainWindowView.FindControl<ListBox>("SystemsMenu")!;
 
         // 初期表示は MapList
-        var mapListPage = Assert.IsType<MapListPageView>(nav.CurrentPage);
+        var mapListPage = Assert.IsType<MapListPageView>(mainWindowView.CurrentContentPage);
         Assert.Equal(MainPageKind.MapList, Assert.IsType<ListBoxItem>(mainMenu.SelectedItem).Tag);
         Assert.Null(systemsMenu.SelectedItem);
 
@@ -369,14 +369,18 @@ public class MainWindowViewScreenshotTests
         systemsMenu.SelectedIndex = 0;
         PumpUi();
         Assert.Equal(MainPageKind.Settings, mainWindowViewModel.SelectedPage);
-        Assert.IsType<SettingsPage>(nav.CurrentPage);
+        Assert.IsType<SettingsPage>(mainWindowView.CurrentContentPage);
         Assert.Null(mainMenu.SelectedItem);
         Assert.Equal(1, nav.StackDepth);
+
+        // 非表示になった MapList ページは Visual Tree に接続されたまま（DataGrid の作り直しを起こさない）
+        Assert.False(mapListPage.IsVisible);
+        Assert.NotNull(mapListPage.GetVisualParent());
 
         // ViewModel 側からの切り替え（DB 読み込み成功時の MapList 遷移など）でも同じページインスタンスに戻る
         mainWindowViewModel.SelectedPage = MainPageKind.MapList;
         PumpUi();
-        Assert.Same(mapListPage, nav.CurrentPage);
+        Assert.Same(mapListPage, mainWindowView.CurrentContentPage);
         Assert.Equal(MainPageKind.MapList, Assert.IsType<ListBoxItem>(mainMenu.SelectedItem).Tag);
         Assert.Null(systemsMenu.SelectedItem);
         Assert.Equal(1, nav.StackDepth);
@@ -503,6 +507,68 @@ public class MainWindowViewScreenshotTests
         PumpUi();
         Assert.Equal(1100, mainWindowView.ClientSize.Width);
         Assert.Equal(650, mainWindowView.ClientSize.Height);
+
+        mainWindowView.Close();
+    }
+
+    /// <summary>
+    /// beatmap一覧 → 他ページ → beatmap一覧 と遷移しても、選択中の譜面が再選択されない
+    /// （再選択されると AudioPlayerPanel.PlayBeatmap が呼ばれ、再生中の曲が先頭から始まってしまう）ことを確認
+    /// </summary>
+    [AvaloniaFact]
+    public void SidebarNavigation_ReturningToMapList_DoesNotReselectPlayingBeatmap()
+    {
+        var beatmaps = CreateTestBeatmaps().ToArray();
+        var mapListPageViewModel = new MockMapListPageViewModel(new MockDatabaseService(beatmaps));
+        mapListPageViewModel.Initialize();
+
+        var mockSettingsService = new MockSettingsService();
+        var mockDatabaseService = new MockDatabaseService();
+        var mainWindowViewModel = new MainWindowViewModel(
+            new MockSettingsViewModel(),
+            new MockDatabaseLoadingViewModel(),
+            mapListPageViewModel.ListViewModel,
+            mapListPageViewModel,
+            new ImportExportPageViewModel(mockDatabaseService, new MockImportExportService(), mockSettingsService, new NullBeatmapDownloadService()),
+            new BeatmapGenerationPageViewModel(mockDatabaseService, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter()),
+            new MockLicensesViewModel(),
+            mockSettingsService)
+        {
+            IsLoadingOverlayVisible = false
+        };
+
+        var mainWindowView = new MainWindowView
+        {
+            Width = 1280,
+            Height = 720,
+            DataContext = mainWindowViewModel
+        };
+        mainWindowView.Show();
+        PumpUi();
+
+        // 一覧で譜面を選択（= 再生開始）
+        var listViewModel = mapListPageViewModel.ListViewModel;
+        var selected = listViewModel.ShowBeatmaps[1];
+        listViewModel.SelectedBeatmap = selected;
+        PumpUi();
+
+        var selectionChanges = new List<Beatmap?>();
+        listViewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(listViewModel.SelectedBeatmap))
+            {
+                selectionChanges.Add(listViewModel.SelectedBeatmap);
+            }
+        };
+
+        // 他ページへ移動して戻る
+        mainWindowViewModel.SelectedPage = MainPageKind.Settings;
+        PumpUi();
+        mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+        PumpUi();
+
+        Assert.Same(selected, listViewModel.SelectedBeatmap);
+        Assert.Empty(selectionChanges);
 
         mainWindowView.Close();
     }
@@ -784,8 +850,12 @@ public class MockMapListPageViewModel : MapListPageViewModel
         return new AudioPlayerPanelViewModel(service, audioVm, settingsService);
     }
 
-    public MockMapListPageViewModel() : base(
-        new MockDatabaseService(),
+    public MockMapListPageViewModel() : this(new MockDatabaseService())
+    {
+    }
+
+    public MockMapListPageViewModel(IDatabaseService databaseService) : base(
+        databaseService,
         new MockGenerateCollectionService(),
         new MockFilterPresetService(),
         new MockAudioPlayerViewModel(),
@@ -928,6 +998,10 @@ public class MockImportExportService : IImportExportService
 /// </summary>
 public class MockDatabaseService : IDatabaseService
 {
+    public MockDatabaseService() { }
+
+    public MockDatabaseService(Beatmap[] beatmaps) => Beatmaps = beatmaps;
+
     public Beatmap[] Beatmaps { get; } = Array.Empty<Beatmap>();
     public List<OsuCollection> OsuCollections { get; } = new List<OsuCollection>();
     public Observable<DatabaseLoadProgress> CollectionDbProgress { get; } = Observable.Empty<DatabaseLoadProgress>();

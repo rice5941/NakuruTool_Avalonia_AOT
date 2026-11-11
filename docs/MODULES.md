@@ -13,7 +13,7 @@
 | `MainWindowViewModel.cs` | ViewModel | 表示ページ（`SelectedPage`）の制御、読み込みオーバーレイ制御 |
 | `MainPageKind.cs` | Enum | サイドバーから切り替えるページ種別（MapList / ImportExport / BeatmapGeneration / Settings / Licenses） |
 | `MainWindowView.axaml` | View | ヘッダー + `DrawerPage`（左サイドバー）+ `NavigationPage`（コンテンツ）+ オーバーレイのレイアウト定義 |
-| `MainWindowView.axaml.cs` | CodeBehind | Opened イベントから `StartLoadingAsync` を呼び出し。`SelectedPage` とサイドバー選択・`NavigationPage` の表示ページを同期（ページインスタンスはキャッシュして再利用） |
+| `MainWindowView.axaml.cs` | CodeBehind | Opened イベントから `StartLoadingAsync` を呼び出し。`SelectedPage` とサイドバー選択・表示ページを同期（ページインスタンスはキャッシュし、IsVisible で切り替えて再利用） |
 
 ### 責務
 
@@ -35,7 +35,7 @@
 
 - **ヘッダーバー** — アプリ名表示、サイドバー折りたたみ用 `ToggleButton`（`ExpandButton`、`DrawerPage.IsOpen` と反転バインド）
 - **左サイドバー** — Avalonia 12 の `DrawerPage`（`DrawerLayoutBehavior="Split"`）。`Drawer` にカテゴリラベル（メイン/システム）と `ListBox`（`MainMenu` / `SystemsMenu`）を配置し、各 `ListBoxItem.Tag` に `MainPageKind` を持たせる。Semi テーマの `PART_TopBar`（標準ハンバーガーボタン）は非表示
-- **コンテンツ領域** — `DrawerPage.Content` の `NavigationPage`（`MainNav`）。各ページ View は `ContentPage` で、ナビゲーションバーは非表示
+- **コンテンツ領域** — `DrawerPage.Content` の `NavigationPage`（`MainNav`）。ルートのホストページ（ナビゲーションバー非表示）の中に、`ContentPage` の各ページ View を重ねて配置
 - **オーバーレイ** — 半透明背景の `Border` + 中央配置のカード内に `DatabaseLoadingView` を表示
 
 ### 主要挙動
@@ -46,9 +46,11 @@
 
 ### ページ切り替え
 
-- サイドバーの選択 → `SelectedPage` 更新 → `NavigationPage.ReplaceAsync`（初回のみ `PushAsync`）で表示ページを差し替え。スタックは常に 1 ページ
-- ページは初回表示時に生成してキャッシュし、以降は同じインスタンスを再利用する（フィルタ・選択状態などを保持）
-- ページ切り替えで View が Visual Tree から外れて再接続されるため、`MapListPageView` / `MapListView` / `ImportExportBeatmapListView` は `OnAttachedToVisualTree` で購読・バインドを張り直す
+- `NavigationPage` にはホスト用の `ContentPage` を 1 枚だけ `PushAsync` し、その中の `Panel` に各ページを重ねて配置する。スタックは常に 1 ページ
+- サイドバーの選択 → `SelectedPage` 更新 → 選択ページだけ `IsVisible = true`、他は `false` にして切り替える（旧 TabControl と同様、非表示のページも Visual Tree に接続したまま）
+  - `NavigationPage.ReplaceAsync` で差し替える方式にすると、DataGrid が再接続時（`OnAttachedToVisualTree` → `InitializeElements`）に行を作り直して選択を一度解除する。`SelectedBeatmap` が null → 同じ譜面と変化して `AudioPlayerPanel.PlayBeatmap` が呼ばれ、再生中の曲が先頭から始まってしまうため採用しない
+- ページは初回表示時に生成してキャッシュし、以降は同じインスタンスを再利用する（フィルタ・選択状態・スクロール位置などを保持）
+- `MapListPageView` / `MapListView` / `ImportExportBeatmapListView` は、Visual Tree から外れて再接続された場合に備えて `OnAttachedToVisualTree` で購読・バインドを張り直す
 
 ---
 

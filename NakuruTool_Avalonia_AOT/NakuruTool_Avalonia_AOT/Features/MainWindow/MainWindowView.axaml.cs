@@ -23,14 +23,26 @@ public partial class MainWindowView : Window
     /// </summary>
     private readonly Dictionary<MainPageKind, ContentPage> _pages = [];
 
+    /// <summary>
+    /// 各ページを重ねて配置するパネル。NavigationPage のルートページ（<see cref="_hostPage"/>）の中身。
+    /// ページの差し替え（Replace）ではなく IsVisible の切り替えで表示ページを変えるため、
+    /// 非表示中もページは Visual Tree に接続されたままになる。
+    /// （差し替えると DataGrid が再接続時に行を作り直して選択を一度解除し、
+    ///   選択中の譜面が「再選択」扱いになって再生中の曲が先頭から始まる・スクロール位置が失われるため）
+    /// </summary>
+    private readonly Panel _pageHost = new();
+
+    private readonly ContentPage _hostPage;
+    private bool _isHostPagePushed;
+
     private CompositeDisposable _subscriptions = [];
     private MainWindowViewModel? _viewModel;
 
     /// <summary>ListBox の選択をコードから同期している間は SelectionChanged を無視する</summary>
     private bool _isSyncingMenu;
 
-    /// <summary>NavigationPage の遷移中に要求されたページ切り替えを取りこぼさないためのフラグ</summary>
-    private bool _isNavigating;
+    /// <summary>現在表示しているページ（テスト用）</summary>
+    internal ContentPage? CurrentContentPage { get; private set; }
 
     /// <summary>
     /// 音楽プレイヤーモードへ切り替えたときのウィンドウ幅。
@@ -56,6 +68,10 @@ public partial class MainWindowView : Window
 
     public MainWindowView()
     {
+        _hostPage = new ContentPage { Content = _pageHost };
+        NavigationPage.SetHasNavigationBar(_hostPage, false);
+        NavigationPage.SetHasBackButton(_hostPage, false);
+
         InitializeComponent();
         Loaded += OnLoaded;
         Resized += OnWindowResized;
@@ -122,6 +138,8 @@ public partial class MainWindowView : Window
         _subscriptions.Dispose();
         _subscriptions = [];
         _pages.Clear();
+        _pageHost.Children.Clear();
+        CurrentContentPage = null;
         _viewModel = DataContext as MainWindowViewModel;
 
         if (_viewModel is null)
@@ -267,7 +285,7 @@ public partial class MainWindowView : Window
     }
 
     /// <summary>
-    /// ViewModel の SelectedPage に合わせてサイドバーの選択と NavigationPage の表示ページを揃える
+    /// ViewModel の SelectedPage に合わせてサイドバーの選択と表示ページを揃える
     /// </summary>
     private async Task NavigateToSelectedPageAsync()
     {
@@ -278,37 +296,19 @@ public partial class MainWindowView : Window
 
         SyncMenuSelection(_viewModel.SelectedPage);
 
-        if (_isNavigating)
+        // 選択ページだけを表示し、他のページは非表示にする（Visual Tree からは外さない）
+        var selected = GetOrCreatePage(_viewModel.SelectedPage);
+        foreach (var page in _pages.Values)
         {
-            // 遷移完了後のループで最新の SelectedPage が反映される
-            return;
+            page.IsVisible = ReferenceEquals(page, selected);
         }
+        CurrentContentPage = selected;
 
-        _isNavigating = true;
-        try
+        // NavigationPage にはページを重ねたホストページを 1 枚だけ載せる（Push 完了前の再入で二重に積まない）
+        if (!_isHostPagePushed)
         {
-            // 遷移中に選択が変わった場合も、最終的に SelectedPage と一致するまで繰り返す
-            while (_viewModel is not null)
-            {
-                var page = GetOrCreatePage(_viewModel.SelectedPage);
-                if (ReferenceEquals(MainNav.CurrentPage, page))
-                {
-                    break;
-                }
-
-                if (MainNav.StackDepth == 0)
-                {
-                    await MainNav.PushAsync(page, null);
-                }
-                else
-                {
-                    await MainNav.ReplaceAsync(page, null);
-                }
-            }
-        }
-        finally
-        {
-            _isNavigating = false;
+            _isHostPagePushed = true;
+            await MainNav.PushAsync(_hostPage, null);
         }
     }
 
@@ -359,11 +359,8 @@ public partial class MainWindowView : Window
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
 
-        // ページ名はサイドバーで分かるためナビゲーションバーは表示しない（従来の TabControl と同じ表示領域を確保する）
-        NavigationPage.SetHasNavigationBar(page, false);
-        NavigationPage.SetHasBackButton(page, false);
-
         _pages[kind] = page;
+        _pageHost.Children.Add(page);
         return page;
     }
 }

@@ -83,6 +83,7 @@ Avalonia.Headless.XUnit 12 は xUnit v3 が必須のため、テストプロジ�
 | `CaptureMainWindowView_WithMapList_MenuCollapsed` | `[AvaloniaFact]` | サイドメニュー(DrawerPage)を閉じた状態の MainWindowView |
 | `CaptureMainWindowView_Settings` | `[AvaloniaFact]` | 設定ページを表示した状態の MainWindowView |
 | `SidebarNavigation_ReusesPagesAndSyncsMenuSelection` | `[AvaloniaFact]` | サイドバー/ViewModel からのページ切り替えでページインスタンスが再利用され、メニュー選択・MapListView のバインドが維持されること |
+| `SidebarNavigation_ReturningToMapList_DoesNotReselectPlayingBeatmap` | `[AvaloniaFact]` | beatmap一覧 → 他ページ → beatmap一覧 と戻っても選択中の譜面が再選択されない（再生中の曲が先頭に戻らない）こと |
 | `CaptureMainWindowView_LoadingOverlay` | `[AvaloniaFact]` | 読み込みオーバーレイ表示状態（各 DB の進捗表示あり） |
 | `CaptureMainWindowView_DifferentSizes` | `[AvaloniaTheory]` | 異なるウィンドウサイズ（800×600, 1280×720, 1920×1080） |
 

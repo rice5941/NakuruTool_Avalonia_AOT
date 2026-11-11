@@ -12,6 +12,20 @@ namespace NakuruTool_Avalonia_AOT.Tests;
 public class AudioPlayerPanelViewModelTests
 {
     [Fact]
+    public void ToggleMusicPlayerModeCommand_TogglesIsMusicPlayerMode()
+    {
+        var vm = CreateSut();
+        Assert.False(vm.IsMusicPlayerMode);
+
+        vm.ToggleMusicPlayerModeCommand.Execute(null);
+        Assert.True(vm.IsMusicPlayerMode);
+
+        vm.ToggleMusicPlayerModeCommand.Execute(null);
+        Assert.False(vm.IsMusicPlayerMode);
+
+        vm.Dispose();
+    }
+    [Fact]
     public void RefreshNavigationContextPreservingCurrent_DoesNotClearPlayedMd5Hashes()
     {
         var vm = CreateSut();

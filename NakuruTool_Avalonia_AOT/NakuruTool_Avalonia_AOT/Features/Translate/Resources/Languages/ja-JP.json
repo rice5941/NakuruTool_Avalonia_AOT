@@ -261,6 +261,7 @@
     "Next": "次の曲",
     "Repeat": "リピート",
     "Toggle": "オーディオパネル切替",
+    "PlayerMode": "音楽プレイヤーモード切替",
     "Volume": "音量"
   },
   "BeatmapGen": {

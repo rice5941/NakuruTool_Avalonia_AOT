@@ -68,6 +68,13 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     [ObservableProperty]
     public partial string CurrentCreator { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 音楽プレイヤーモード（オーディオパネルのみを表示し、ウィンドウを縮小するモード）か。
+    /// MainWindowView がこの値を監視してレイアウトとウィンドウサイズを切り替える。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsMusicPlayerMode { get; set; }
+
     // ---- 手動プロパティ ----
 
     /// <summary>
@@ -341,6 +348,13 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         _shuffleIndex = -1;
         _playedMd5Hashes.Clear();
         RegisterPlayedBeatmap(_currentBeatmap);
+    }
+
+    /// <summary>音楽プレイヤーモードの ON/OFF を切り替える。</summary>
+    [RelayCommand]
+    private void ToggleMusicPlayerMode()
+    {
+        IsMusicPlayerMode = !IsMusicPlayerMode;
     }
 
     private void RegisterPlayedBeatmap(Beatmap? beatmap)

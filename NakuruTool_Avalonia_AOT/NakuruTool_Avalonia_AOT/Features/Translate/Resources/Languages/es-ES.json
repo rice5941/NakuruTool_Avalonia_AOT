@@ -261,6 +261,7 @@
     "Next": "Siguiente pista",
     "Repeat": "Repetir",
     "Toggle": "Alternar panel de audio",
+    "PlayerMode": "Alternar modo reproductor de música",
     "Volume": "Volumen"
   },
   "BeatmapGen": {

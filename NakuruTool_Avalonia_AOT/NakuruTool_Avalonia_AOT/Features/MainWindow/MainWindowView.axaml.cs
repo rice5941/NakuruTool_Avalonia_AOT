@@ -1,6 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
@@ -30,10 +32,76 @@ public partial class MainWindowView : Window
     /// <summary>NavigationPage の遷移中に要求されたページ切り替えを取りこぼさないためのフラグ</summary>
     private bool _isNavigating;
 
+    /// <summary>
+    /// 音楽プレイヤーモードへ切り替えたときのウィンドウ幅。
+    /// オーディオパネルの音量スライダーまで切れずに収まる幅（約1030）を切りのいい値に丸めたもの。
+    /// </summary>
+    public const double MusicPlayerModeWidth = 1050;
+
+    /// <summary>ウィンドウに音楽プレイヤーモードのサイズ設定を適用済みか</summary>
+    private bool _isMusicPlayerModeApplied;
+
+    // 音楽プレイヤーモードへ切り替える直前のウィンドウ状態（通常モードへ戻すときに復元する）
+    private WindowState _savedWindowState = WindowState.Normal;
+    private double _savedMinHeight;
+    private double _savedMaxHeight = double.PositiveInfinity;
+    private bool _savedCanMaximize = true;
+
+    /// <summary>
+    /// 通常モードかつ通常状態（最大化・最小化していない）のときの最新のウィンドウサイズ。
+    /// 音楽プレイヤーモード中のリサイズや最大化時のサイズでは更新しないため、
+    /// 通常モードへ戻すときにこのサイズへ復元できる。
+    /// </summary>
+    private Size? _normalModeSize;
+
     public MainWindowView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Resized += OnWindowResized;
+    }
+
+    /// <summary>
+    /// ウィンドウサイズ変更時に、通常モードのサイズを記録する。
+    /// 最大化時は WM_SIZE 処理の途中で WindowState の更新前にリサイズが通知されることがあるため、
+    /// 状態が確定した後（Dispatcher の後続ジョブ）で判定する。
+    /// </summary>
+    private void OnWindowResized(object? sender, WindowResizedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(RecordNormalModeSize, DispatcherPriority.Background);
+    }
+
+    private void RecordNormalModeSize()
+    {
+        if (_isMusicPlayerModeApplied || WindowState != WindowState.Normal)
+        {
+            return;
+        }
+
+        var size = ClientSize;
+        if (size.Width > 0 && size.Height > 0)
+        {
+            _normalModeSize = size;
+        }
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        // 音楽プレイヤーモード中は最大化・全画面を許可しない（タイトルバーのダブルクリックや Win+↑ などの経路も含めて戻す）
+        if (change.Property == WindowStateProperty
+            && _isMusicPlayerModeApplied
+            && change.GetNewValue<WindowState>() is WindowState.Maximized or WindowState.FullScreen)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_isMusicPlayerModeApplied && WindowState is WindowState.Maximized or WindowState.FullScreen)
+                {
+                    WindowState = WindowState.Normal;
+                }
+            });
+        }
     }
 
     public MainWindowView(MainWindowViewModel viewModel) : this()
@@ -67,10 +135,108 @@ public partial class MainWindowView : Window
             .Subscribe(args => Dispatcher.UIThread.Post(() => { _ = NavigateToSelectedPageAsync(); }))
             .AddTo(_subscriptions);
 
+        // 音楽プレイヤーモードの切り替えに合わせてウィンドウサイズを変更する
+        var audioPanel = _viewModel.AudioPlayerPanelViewModel;
+        audioPanel
+            .ObserveProperty(nameof(AudioPlayerPanelViewModel.IsMusicPlayerMode))
+            .Subscribe(_ => Dispatcher.UIThread.Post(() => ApplyMusicPlayerMode(audioPanel.IsMusicPlayerMode)))
+            .AddTo(_subscriptions);
+
         if (IsLoaded)
         {
             _ = NavigateToSelectedPageAsync();
         }
+
+        if (audioPanel.IsMusicPlayerMode != _isMusicPlayerModeApplied)
+        {
+            Dispatcher.UIThread.Post(() => ApplyMusicPlayerMode(audioPanel.IsMusicPlayerMode));
+        }
+    }
+
+    /// <summary>
+    /// 音楽プレイヤーモードの ON/OFF に合わせてウィンドウサイズを切り替える。
+    /// ON: 最大化を禁止し、高さをオーディオパネルに合わせて固定して幅のみリサイズ可能にする。
+    /// OFF: 音楽プレイヤーモード中にリサイズしても、切り替え前の通常モードのサイズ・最大化状態に戻す。
+    /// </summary>
+    private void ApplyMusicPlayerMode(bool enabled)
+    {
+        if (enabled == _isMusicPlayerModeApplied)
+        {
+            return;
+        }
+
+        if (enabled)
+        {
+            // 通常状態ならこの時点のサイズが通常モードのサイズ。
+            // 最大化中は最大化前に記録しておいた通常状態のサイズ（_normalModeSize）をそのまま使う。
+            if (WindowState == WindowState.Normal)
+            {
+                RecordNormalModeSize();
+            }
+
+            _isMusicPlayerModeApplied = true;
+            _savedWindowState = WindowState;
+            if (WindowState != WindowState.Normal)
+            {
+                // 最大化・最小化中はサイズ指定が効かないため通常状態に戻してから縮小する
+                WindowState = WindowState.Normal;
+            }
+
+            _savedMinHeight = MinHeight;
+            _savedMaxHeight = MaxHeight;
+            _savedCanMaximize = CanMaximize;
+
+            // 最大化ボタンを非活性にする
+            CanMaximize = false;
+
+            // 幅はプレイヤーモード用の既定値にする（モード中はユーザーが変更可能）
+            Width = MusicPlayerModeWidth;
+
+            MinHeight = 0;
+            MaxHeight = double.PositiveInfinity;
+            SizeToContent = SizeToContent.Height;
+
+            // レイアウト確定後の高さで固定し、幅だけリサイズできるようにする
+            Dispatcher.UIThread.Post(LockMusicPlayerHeight, DispatcherPriority.Loaded);
+        }
+        else
+        {
+            _isMusicPlayerModeApplied = false;
+
+            SizeToContent = SizeToContent.Manual;
+            MaxHeight = _savedMaxHeight;
+            MinHeight = _savedMinHeight;
+            CanMaximize = _savedCanMaximize;
+
+            // 通常状態のまま通常モードのサイズに戻す（最大化はその後に行い、最大化解除時の復元サイズもこのサイズにする）
+            if (_normalModeSize is { } size)
+            {
+                Width = size.Width;
+                Height = size.Height;
+            }
+
+            if (_savedWindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Maximized;
+            }
+        }
+    }
+
+    private void LockMusicPlayerHeight()
+    {
+        if (!_isMusicPlayerModeApplied)
+        {
+            return;
+        }
+
+        var height = ClientSize.Height;
+        if (height <= 0)
+        {
+            return;
+        }
+
+        MinHeight = height;
+        MaxHeight = height;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

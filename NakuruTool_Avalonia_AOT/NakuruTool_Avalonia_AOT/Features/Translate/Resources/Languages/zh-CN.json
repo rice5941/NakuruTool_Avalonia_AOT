@@ -261,6 +261,7 @@
     "Next": "下一首",
     "Repeat": "重复播放",
     "Toggle": "切换音频面板",
+    "PlayerMode": "切换音乐播放器模式",
     "Volume": "音量"
   },
   "BeatmapGen": {

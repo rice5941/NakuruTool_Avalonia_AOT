@@ -425,6 +425,88 @@ public class MainWindowViewScreenshotTests
         mainWindowView.Close();
     }
 
+    /// <summary>
+    /// 音楽プレイヤーモード: オーディオパネルのみ表示し、高さをパネルに合わせて固定する。
+    /// 解除すると元のレイアウト・高さに戻ることを確認する。
+    /// </summary>
+    [AvaloniaFact]
+    public void MusicPlayerMode_ShowsOnlyAudioPanelAndRestoresWindow()
+    {
+        var mainWindowViewModel = CreateMainWindowViewModel();
+        mainWindowViewModel.IsLoadingOverlayVisible = false;
+
+        var mainWindowView = new MainWindowView
+        {
+            Width = 1280,
+            Height = 720,
+            DataContext = mainWindowViewModel
+        };
+        mainWindowView.Show();
+        PumpUi();
+
+        var drawer = mainWindowView.FindControl<DrawerPage>("MainDrawer")!;
+        var playerHost = mainWindowView.FindControl<Border>("MusicPlayerHost")!;
+        Assert.True(drawer.IsEffectivelyVisible);
+        Assert.False(playerHost.IsVisible);
+
+        // パネルの切替コマンドでプレイヤーモードへ
+        mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+        PumpUi();
+
+        Assert.True(mainWindowViewModel.AudioPlayerPanelViewModel.IsMusicPlayerMode);
+        Assert.False(drawer.IsEffectivelyVisible);
+        Assert.True(playerHost.IsVisible);
+        Assert.Same(mainWindowViewModel.AudioPlayerPanelViewModel,
+            playerHost.FindDescendantOfType<AudioPlayerPanelView>()!.DataContext);
+        Assert.Equal(MainWindowView.MusicPlayerModeWidth, mainWindowView.ClientSize.Width);
+        Assert.True(mainWindowView.ClientSize.Height < 720, $"Height was not reduced: {mainWindowView.ClientSize.Height}");
+        Assert.Equal(mainWindowView.ClientSize.Height, mainWindowView.MinHeight);
+        Assert.Equal(mainWindowView.ClientSize.Height, mainWindowView.MaxHeight);
+
+        // プレイヤーモード中は最大化できない
+        Assert.False(mainWindowView.CanMaximize);
+        mainWindowView.WindowState = WindowState.Maximized;
+        PumpUi();
+        Assert.Equal(WindowState.Normal, mainWindowView.WindowState);
+
+        var frame = mainWindowView.CaptureRenderedFrame();
+        Directory.CreateDirectory(ScreenshotsDirectory);
+        var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_MusicPlayerMode.png");
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+        Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
+
+        // プレイヤーモード中に幅を変更しても、解除時は通常モードのサイズ (1280x720) に戻る
+        mainWindowView.Width = 900;
+        PumpUi();
+        Assert.Equal(900, mainWindowView.ClientSize.Width);
+
+        mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+        PumpUi();
+
+        Assert.True(drawer.IsEffectivelyVisible);
+        Assert.False(playerHost.IsVisible);
+        Assert.Equal(SizeToContent.Manual, mainWindowView.SizeToContent);
+        Assert.Equal(1280, mainWindowView.ClientSize.Width);
+        Assert.Equal(720, mainWindowView.ClientSize.Height);
+        Assert.Equal(500, mainWindowView.MinHeight);
+        Assert.True(mainWindowView.CanMaximize);
+
+        // 通常モードでリサイズした後に再度往復した場合は、その新しいサイズに戻る
+        mainWindowView.Width = 1100;
+        mainWindowView.Height = 650;
+        PumpUi();
+        mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+        PumpUi();
+        mainWindowView.Width = 900;
+        PumpUi();
+        mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+        PumpUi();
+        Assert.Equal(1100, mainWindowView.ClientSize.Width);
+        Assert.Equal(650, mainWindowView.ClientSize.Height);
+
+        mainWindowView.Close();
+    }
+
     private static Avalonia.Media.Color GetMenuItemForegroundColor(ListBoxItem item)
     {
         var presenter = item.GetVisualDescendants()

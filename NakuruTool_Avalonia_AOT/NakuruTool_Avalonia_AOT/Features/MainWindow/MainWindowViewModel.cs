@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
@@ -23,6 +24,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public ImportExportPageViewModel ImportExportPageViewModel { get; }
     public BeatmapGenerationPageViewModel BeatmapGenerationPageViewModel { get; }
     public ILicensesViewModel LicensesViewModel { get; }
+
+    /// <summary>
+    /// オーディオパネルの ViewModel（シングルトン）。音楽プレイヤーモード時のパネル表示とモード監視に使う。
+    /// </summary>
+    public AudioPlayerPanelViewModel AudioPlayerPanelViewModel { get; }
 
     private readonly ISettingsService _settingsService;
 
@@ -52,6 +58,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ImportExportPageViewModel = importExportPageViewModel;
         BeatmapGenerationPageViewModel = beatmapGenerationPageViewModel;
         LicensesViewModel = licensesViewModel;
+        AudioPlayerPanelViewModel = mapListPageViewModel.ListViewModel.AudioPlayerPanel;
         _settingsService = settingsService;
 
         // フォルダパスの変更をR3で監視し、データベースを再読み込み

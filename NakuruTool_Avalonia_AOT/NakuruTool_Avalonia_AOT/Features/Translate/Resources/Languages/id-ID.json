@@ -261,6 +261,7 @@
     "Next": "Lagu berikutnya",
     "Repeat": "Ulangi",
     "Toggle": "Ganti panel audio",
+    "PlayerMode": "Ganti mode pemutar musik",
     "Volume": "Volume"
   },
   "BeatmapGen": {

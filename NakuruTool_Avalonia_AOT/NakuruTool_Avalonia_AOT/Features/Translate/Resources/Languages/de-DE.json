@@ -261,6 +261,7 @@
     "Next": "Nächster Titel",
     "Repeat": "Wiederholen",
     "Toggle": "Audiobereich umschalten",
+    "PlayerMode": "Musikplayer-Modus umschalten",
     "Volume": "Lautstärke"
   },
   "BeatmapGen": {

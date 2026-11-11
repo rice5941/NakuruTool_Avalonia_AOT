@@ -261,6 +261,7 @@
     "Next": "다음 곡",
     "Repeat": "반복",
     "Toggle": "오디오 패널 전환",
+    "PlayerMode": "음악 플레이어 모드 전환",
     "Volume": "볼륨"
   },
   "BeatmapGen": {

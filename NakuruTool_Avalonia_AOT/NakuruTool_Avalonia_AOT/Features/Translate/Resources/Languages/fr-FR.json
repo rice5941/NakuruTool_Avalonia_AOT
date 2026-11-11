@@ -261,6 +261,7 @@
     "Next": "Piste suivante",
     "Repeat": "Répéter",
     "Toggle": "Afficher/Masquer le panneau audio",
+    "PlayerMode": "Basculer le mode lecteur de musique",
     "Volume": "Volume"
   },
   "BeatmapGen": {

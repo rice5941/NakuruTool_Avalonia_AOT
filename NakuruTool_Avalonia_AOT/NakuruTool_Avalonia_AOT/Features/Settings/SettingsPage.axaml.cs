@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.Settings;
 
-public partial class SettingsPage : UserControl
+public partial class SettingsPage : ContentPage
 {
     public SettingsPage()
     {

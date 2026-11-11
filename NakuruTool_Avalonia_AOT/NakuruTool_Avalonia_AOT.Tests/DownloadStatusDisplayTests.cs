@@ -195,7 +195,7 @@ public sealed class DownloadStatusDisplayTests
         Directory.CreateDirectory(directory);
         using var frame = window.CaptureRenderedFrame();
         Assert.NotNull(frame);
-        frame.Save(Path.Combine(directory, name + ".png"));
+        frame.Save(Path.Combine(directory, name + ".png"), Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
     }
 
     private sealed class FakeDownloadService : IBeatmapDownloadService

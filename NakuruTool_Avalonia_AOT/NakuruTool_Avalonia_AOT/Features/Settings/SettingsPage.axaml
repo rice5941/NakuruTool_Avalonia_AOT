@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<ContentPage xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:Settings="using:NakuruTool_Avalonia_AOT.Features.Settings"
              xmlns:converters="using:NakuruTool_Avalonia_AOT.Features.Shared.Converters"
@@ -8,7 +8,8 @@
              xmlns:translate="using:NakuruTool_Avalonia_AOT.Features.Translate"
              xmlns:mi="using:Material.Icons.Avalonia"
              x:Class="NakuruTool_Avalonia_AOT.Features.Settings.SettingsPage"
-             x:DataType="Settings:SettingsViewModel">
+             x:DataType="Settings:SettingsViewModel"
+             Header="{translate:Translate 'Menu.Settings'}">
 
     <WrapPanel ItemSpacing="16">
         <HeaderedContentControl
@@ -48,7 +49,7 @@
                 <Button Background="{StaticResource SemiBlue7}" BorderBrush="{StaticResource SemiBlue7}" Name="SelectFileButton" Click="SelectFileButton_Click" Theme="{StaticResource SolidButton}">
                     <ContentControl>
 						<StackPanel Orientation="Horizontal" Spacing="4">
-							<mi:MaterialIcon Kind="Terminal" VerticalAlignment="Center"/>
+							<mi:MaterialIcon Kind="Terminal" Width="16" Height="16" VerticalAlignment="Center"/>
 							<TextBlock Text="{translate:Translate 'Settings.ChooseOsuPath'}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</ContentControl>
@@ -60,7 +61,7 @@
             Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.Theme'}">
 		        <Button Command="{Binding ToggleThemeCommand}" HorizontalAlignment="Left">
-					<mi:MaterialIcon Kind="SunMoonStars" VerticalAlignment="Center"/>
+					<mi:MaterialIcon Kind="SunMoonStars" Width="16" Height="16" VerticalAlignment="Center"/>
 				</Button>
             </HeaderedContentControl>
 
@@ -95,4 +96,4 @@
         </HeaderedContentControl>
 
     </WrapPanel>
-</UserControl>
+</ContentPage>

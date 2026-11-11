@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<ContentPage xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
              xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
@@ -10,9 +10,10 @@
              xmlns:sortingConv="using:NakuruTool_Avalonia_AOT.Features.MapList.Sorting.Converters"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="600"
              x:Class="NakuruTool_Avalonia_AOT.Features.BeatmapGenerator.BeatmapGenerationPageView"
-             x:DataType="local:BeatmapGenerationPageViewModel">
+             x:DataType="local:BeatmapGenerationPageViewModel"
+             Header="{translate:Translate 'Menu.BeatmapGeneration'}">
 
-    <UserControl.Resources>
+    <ContentPage.Resources>
         <sortingConv:SortFieldNameConverter x:Key="SortFieldNameConverter"/>
 
         <DataTemplate x:Key="SortRuleTemplate" DataType="sorting:SortRule">
@@ -42,7 +43,7 @@
                              IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>
             </Grid>
         </DataTemplate>
-    </UserControl.Resources>
+    </ContentPage.Resources>
 
     <Grid ColumnDefinitions="auto,8,400,8,*" Margin="0,0,0,8">
 
@@ -173,4 +174,4 @@
             CloseCommand="{Binding CloseSingleGenerationCommand}"/>
 
     </Grid>
-</UserControl>
+</ContentPage>

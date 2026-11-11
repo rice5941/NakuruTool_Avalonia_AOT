@@ -178,7 +178,23 @@ public partial class MapListView : UserControl
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        BindToDataContext();
+    }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        // NavigationPage のページ切り替えで Detach → 再 Attach された場合は DataContext が変わらないため、
+        // OnDetachedFromVisualTree で解除したバインドをここで張り直す
+        if (_boundViewModel is null && DataContext is not null)
+        {
+            BindToDataContext();
+        }
+    }
+
+    private void BindToDataContext()
+    {
         _boundViewModel?.ClearContextMenuBeatmap();
 
         ClearViewModelBindings();

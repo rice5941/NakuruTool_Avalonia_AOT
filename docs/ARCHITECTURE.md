@@ -29,19 +29,19 @@ osu!mania の beatmap を管理し、各種データベースファイルを読�
 
 | パッケージ | バージョン | 用途 |
 |-----------|-----------|------|
-| Avalonia | 11.3.10 | UIフレームワーク |
-| Avalonia.Desktop | 11.3.10 | デスクトップランタイム |
-| Avalonia.Fonts.Inter | 11.3.10 | Inter フォント |
-| Avalonia.Diagnostics | 11.3.10 | デバッグ用DevTools（Debug構成のみ） |
-| CommunityToolkit.Mvvm | 8.4.0 | MVVM Source Generator（`[ObservableProperty]`、`[RelayCommand]`） |
-| HotAvalonia | 3.0.2 | XAML ホットリロード |
-| Material.Icons.Avalonia | 2.4.1 | Material Design アイコン |
-| Pure.DI | 2.2.15 | コンパイル時DI（Source Generator） |
-| R3 | 1.3.0 | リアクティブプログラミング |
-| R3Extensions.Avalonia | 1.3.0 | R3 の Avalonia バインディング |
-| Semi.Avalonia | 11.3.7.1 | Semi Design テーマ |
-| Semi.Avalonia.DataGrid | 11.3.7.1 | DataGrid テーマ |
-| ZLinq | 1.5.4 | ゼロアロケーション LINQ |
+| Avalonia | 12.1.6 | UIフレームワーク |
+| Avalonia.Desktop | 12.1.6 | デスクトップランタイム |
+| Avalonia.Fonts.Inter | 12.1.6 | Inter フォント |
+| AvaloniaUI.DiagnosticsSupport | 2.2.3 | デバッグ用DevTools（Debug構成のみ、`AttachDeveloperTools()`） |
+| CommunityToolkit.Mvvm | 8.4.2 | MVVM Source Generator（`[ObservableProperty]`、`[RelayCommand]`） |
+| HotAvalonia | 3.1.5 | XAML ホットリロード（Debug構成のみ） |
+| Material.Icons.Avalonia | 3.0.2 | Material Design アイコン（3.x の既定サイズ変更は `App.axaml` の互換スタイルで吸収） |
+| Pure.DI | 2.5.7 | コンパイル時DI（Source Generator） |
+| R3 | 1.3.1 | リアクティブプログラミング |
+| R3Extensions.Avalonia | 1.3.1 | R3 の Avalonia バインディング |
+| Semi.Avalonia | 12.1.0.1 | Semi Design テーマ |
+| Semi.Avalonia.DataGrid | 12.1.0.1 | DataGrid テーマ |
+| ZLinq | 1.6.1 | ゼロアロケーション LINQ |
 
 ### ネイティブライブラリ
 
@@ -70,7 +70,7 @@ Features/
 ├── ImportExport/      # コレクションJSON形式エクスポート/インポート
 │   └── Models/        #   CollectionExchangeData, ExportCollectionItem, ImportFileItem, ImportExportBeatmapItem
 ├── Licenses/          # ライセンス表示画面
-├── MainWindow/        # メインウィンドウ（タブナビゲーション、読み込みオーバーレイ）
+├── MainWindow/        # メインウィンドウ（DrawerPage サイドバー + NavigationPage、読み込みオーバーレイ）
 ├── MapList/           # 譜面一覧・フィルタ・コレクション生成
 │   └── Models/        #   FilterCondition, FilterPreset
 ├── OsuDatabase/       # osu! DB パーサー群・データモデル

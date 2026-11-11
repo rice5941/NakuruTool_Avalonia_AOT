@@ -84,18 +84,12 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを完了
-        Dispatcher.UIThread.RunJobs();
-        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        // UIスレッドのジョブを完了させ、レンダリングを完了（NavigationPage への初回 Push を含む）
+        PumpUi();
 
-        // TabControlを取得してMapListタブを選択（インデックス1）
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
-        if (tabControl != null)
-        {
-            tabControl.SelectedIndex = 1; // MapListViewPageのタブ
-            Dispatcher.UIThread.RunJobs();
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-        }
+        // サイドバーで MapList ページを選択（NavigationPage の遷移は非同期なので UI ジョブを回す）
+        mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+        PumpUi();
 
         // MapListViewPageのDataGridを設宁E
         SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
@@ -108,7 +102,7 @@ public class MainWindowViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_MapList.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -160,11 +154,10 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを完了
-        Dispatcher.UIThread.RunJobs();
-        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        // UIスレッドのジョブを完了させ、レンダリングを完了（NavigationPage への初回 Push を含む）
+        PumpUi();
 
-        // サイドメニューを閉じる（ExpandButtonをチェック状態にする）
+        // サイドメニュー(DrawerPage)を閉じる（ExpandButtonをチェック状態にする）
         var expandButton = mainWindowView.FindControl<ToggleButton>("ExpandButton");
         if (expandButton != null)
         {
@@ -173,14 +166,9 @@ public class MainWindowViewScreenshotTests
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         }
 
-        // TabControlを取得してMapListタブを選抁E
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
-        if (tabControl != null)
-        {
-            tabControl.SelectedIndex = 1;
-            Dispatcher.UIThread.RunJobs();
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-        }
+        // サイドバーで MapList ページを選択（NavigationPage の遷移は非同期なので UI ジョブを回す）
+        mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+        PumpUi();
 
         // MapListViewPageのDataGridを設宁E
         SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
@@ -193,7 +181,7 @@ public class MainWindowViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_MapList_MenuCollapsed.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -253,9 +241,8 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを完了
-        Dispatcher.UIThread.RunJobs();
-        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        // UIスレッドのジョブを完了させ、レンダリングを完了（NavigationPage への初回 Push を含む）
+        PumpUi();
 
         // スクリーンショットを撮影
         var frame = mainWindowView.CaptureRenderedFrame();
@@ -265,7 +252,7 @@ public class MainWindowViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_LoadingOverlay.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -319,18 +306,12 @@ public class MainWindowViewScreenshotTests
         // ウィンドウを表示
         mainWindowView.Show();
 
-        // UIスレッドのジョブを完了させ、レンダリングを完了
-        Dispatcher.UIThread.RunJobs();
-        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        // UIスレッドのジョブを完了させ、レンダリングを完了（NavigationPage への初回 Push を含む）
+        PumpUi();
 
-        // MapListタブを選択
-        var tabControl = mainWindowView.FindControl<TabControl>("MainTab");
-        if (tabControl != null)
-        {
-            tabControl.SelectedIndex = 1;
-            Dispatcher.UIThread.RunJobs();
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-        }
+        // サイドバーで MapList ページを選択（NavigationPage の遷移は非同期なので UI ジョブを回す）
+        mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+        PumpUi();
 
         // MapListViewPageのDataGridを設定
         SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
@@ -343,12 +324,150 @@ public class MainWindowViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, $"MainWindowView_{sizeName}_{width}x{height}.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
 
         mainWindowView.Close();
+    }
+
+    /// <summary>
+    /// サイドバー(DrawerPage)からのページ切り替えで、ページインスタンスが再利用されメニュー選択と同期することを確認
+    /// </summary>
+    [AvaloniaFact]
+    public void SidebarNavigation_ReusesPagesAndSyncsMenuSelection()
+    {
+        var mainWindowViewModel = CreateMainWindowViewModel();
+        mainWindowViewModel.IsLoadingOverlayVisible = false;
+
+        var mainWindowView = new MainWindowView
+        {
+            Width = 1280,
+            Height = 720,
+            DataContext = mainWindowViewModel
+        };
+        mainWindowView.Show();
+        PumpUi();
+
+        var nav = mainWindowView.FindControl<NavigationPage>("MainNav")!;
+        var mainMenu = mainWindowView.FindControl<ListBox>("MainMenu")!;
+        var systemsMenu = mainWindowView.FindControl<ListBox>("SystemsMenu")!;
+
+        // 初期表示は MapList
+        var mapListPage = Assert.IsType<MapListPageView>(nav.CurrentPage);
+        Assert.Equal(MainPageKind.MapList, Assert.IsType<ListBoxItem>(mainMenu.SelectedItem).Tag);
+        Assert.Null(systemsMenu.SelectedItem);
+
+        // 開いていないページの項目は旧 TabControl と同じ淡いテキスト色、開いているページは通常のテキスト色
+        Assert.Equal(GetResourceColor(mainWindowView, "TabItemLineHeaderForeground"),
+            GetMenuItemForegroundColor((ListBoxItem)systemsMenu.Items[0]!));
+        Assert.Equal(GetResourceColor(mainWindowView, "TabItemLineHeaderSelectedForeground"),
+            GetMenuItemForegroundColor((ListBoxItem)mainMenu.SelectedItem!));
+
+        // サイドバー(システム)の「設定」をクリック相当で選択
+        systemsMenu.SelectedIndex = 0;
+        PumpUi();
+        Assert.Equal(MainPageKind.Settings, mainWindowViewModel.SelectedPage);
+        Assert.IsType<SettingsPage>(nav.CurrentPage);
+        Assert.Null(mainMenu.SelectedItem);
+        Assert.Equal(1, nav.StackDepth);
+
+        // ViewModel 側からの切り替え（DB 読み込み成功時の MapList 遷移など）でも同じページインスタンスに戻る
+        mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+        PumpUi();
+        Assert.Same(mapListPage, nav.CurrentPage);
+        Assert.Equal(MainPageKind.MapList, Assert.IsType<ListBoxItem>(mainMenu.SelectedItem).Tag);
+        Assert.Null(systemsMenu.SelectedItem);
+        Assert.Equal(1, nav.StackDepth);
+
+        // 再表示後も MapListView のバインド（右クリックメニューのコマンド）が復元されている
+        var mapListView = mainWindowView.FindDescendantOfType<MapListView>()!;
+        var generateMenuItem = mapListView.FindControl<MenuItem>("GenerateMenuItem");
+        Assert.Same(mainWindowViewModel.MapListPageViewModel.ListViewModel.GenerateBeatmapCommand, generateMenuItem?.Command);
+
+        // メニュー開閉トグルで DrawerPage が閉じる
+        var drawer = mainWindowView.FindControl<DrawerPage>("MainDrawer")!;
+        mainWindowView.FindControl<ToggleButton>("ExpandButton")!.IsChecked = true;
+        PumpUi();
+        Assert.False(drawer.IsOpen);
+
+        mainWindowView.Close();
+    }
+
+    /// <summary>
+    /// 設定ページを表示した状態のスクリーンショットを撮影（サイズ未指定だったアイコンの確認用）
+    /// </summary>
+    [AvaloniaFact]
+    public void CaptureMainWindowView_Settings()
+    {
+        var mainWindowViewModel = CreateMainWindowViewModel();
+        mainWindowViewModel.IsLoadingOverlayVisible = false;
+
+        var mainWindowView = new MainWindowView
+        {
+            Width = 1280,
+            Height = 720,
+            DataContext = mainWindowViewModel
+        };
+        mainWindowView.Show();
+        PumpUi();
+
+        mainWindowViewModel.SelectedPage = MainPageKind.Settings;
+        PumpUi();
+
+        var frame = mainWindowView.CaptureRenderedFrame();
+        Directory.CreateDirectory(ScreenshotsDirectory);
+        var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_Settings.png");
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+        Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
+
+        mainWindowView.Close();
+    }
+
+    private static Avalonia.Media.Color GetMenuItemForegroundColor(ListBoxItem item)
+    {
+        var presenter = item.GetVisualDescendants()
+            .OfType<Avalonia.Controls.Presenters.ContentPresenter>()
+            .First(p => p.Name == "PART_ContentPresenter");
+        return Assert.IsAssignableFrom<Avalonia.Media.ISolidColorBrush>(presenter.Foreground).Color;
+    }
+
+    private static Avalonia.Media.Color GetResourceColor(Window window, string key)
+    {
+        Assert.True(window.TryFindResource(key, window.ActualThemeVariant, out var resource), $"Resource not found: {key}");
+        return Assert.IsAssignableFrom<Avalonia.Media.ISolidColorBrush>(resource).Color;
+    }
+
+    private static MainWindowViewModel CreateMainWindowViewModel()
+    {
+        var mockMapListViewModel = new MockMapListViewModel();
+        mockMapListViewModel.SetTestData(CreateTestBeatmaps());
+        var mockSettingsService = new MockSettingsService();
+        var mockDatabaseService = new MockDatabaseService();
+
+        return new MainWindowViewModel(
+            new MockSettingsViewModel(),
+            new MockDatabaseLoadingViewModel(),
+            mockMapListViewModel,
+            new MockMapListPageViewModel(),
+            new ImportExportPageViewModel(mockDatabaseService, new MockImportExportService(), mockSettingsService, new NullBeatmapDownloadService()),
+            new BeatmapGenerationPageViewModel(mockDatabaseService, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter()),
+            new MockLicensesViewModel(),
+            mockSettingsService);
+    }
+
+    /// <summary>
+    /// UI スレッドのジョブとレンダリングを数回進める。
+    /// NavigationPage の Push/Replace は非同期で完了するため、1 回では反映されないことがある。
+    /// </summary>
+    private static void PumpUi()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        }
     }
 
     /// <summary>

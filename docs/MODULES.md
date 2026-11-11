@@ -10,44 +10,45 @@
 
 | ファイル | 種別 | 概要 |
 |---------|------|------|
-| `MainWindowViewModel.cs` | ViewModel | タブナビゲーション制御、読み込みオーバーレイ制御 |
-| `MainWindowView.axaml` | View | 左サイドバータブ＋オーバーレイのレイアウト定義 |
-| `MainWindowView.axaml.cs` | CodeBehind | ウィンドウのOpened イベントから `StartLoadingAsync` を呼び出し |
+| `MainWindowViewModel.cs` | ViewModel | 表示ページ（`SelectedPage`）の制御、読み込みオーバーレイ制御 |
+| `MainPageKind.cs` | Enum | サイドバーから切り替えるページ種別（MapList / ImportExport / BeatmapGeneration / Settings / Licenses） |
+| `MainWindowView.axaml` | View | ヘッダー + `DrawerPage`（左サイドバー）+ `NavigationPage`（コンテンツ）+ オーバーレイのレイアウト定義 |
+| `MainWindowView.axaml.cs` | CodeBehind | Opened イベントから `StartLoadingAsync` を呼び出し。`SelectedPage` とサイドバー選択・`NavigationPage` の表示ページを同期（ページインスタンスはキャッシュして再利用） |
 
 ### 責務
 
 - アプリケーションのルートウィンドウとして機能
-- 左サイドバーのタブナビゲーション（MapList, Import/Export, Settings, Licenses）
+- 左サイドバー（`DrawerPage`）によるページナビゲーション（MapList, Import/Export, BeatmapGeneration, Settings, Licenses）
 - データベース読み込み中のオーバーレイ表示制御（`IsLoadingOverlayVisible`）
-- 読み込みエラー発生時の設定タブへの自動遷移
+- 読み込みエラー発生時の設定ページへの自動遷移
 
 ### 依存モジュール
 
 - **OsuDatabase** — `IDatabaseLoadingViewModel` を通じてDB読み込み進捗を表示
-- **MapList** — `MapListPageViewModel` をMapListタブに配置
-- **Settings** — `ISettingsViewModel` を設定タブに配置、`ISettingsService` でフォルダパス変更を監視
-- **Licenses** — `ILicensesViewModel` をライセンスタブに配置
+- **MapList** — `MapListPageViewModel` を MapList ページ（`ContentPage`）に配置
+- **Settings** — `ISettingsViewModel` を設定ページに配置、`ISettingsService` でフォルダパス変更を監視
+- **Licenses** — `ILicensesViewModel` をライセンスページに配置
 - **Shared** — `ViewModelBase` を継承
 - **Translate** — `TranslateExtension` でUI文字列を多言語化
 
 ### UI構成
 
-- **ヘッダーバー** — アプリ名表示、サイドバー折りたたみ用 `ToggleButton`
-- **左サイドバー** — `TabControl`（`TabStripPlacement="Left"`）によるページ切り替え。カテゴリラベル（メイン/システム）と各ページタブで構成
+- **ヘッダーバー** — アプリ名表示、サイドバー折りたたみ用 `ToggleButton`（`ExpandButton`、`DrawerPage.IsOpen` と反転バインド）
+- **左サイドバー** — Avalonia 12 の `DrawerPage`（`DrawerLayoutBehavior="Split"`）。`Drawer` にカテゴリラベル（メイン/システム）と `ListBox`（`MainMenu` / `SystemsMenu`）を配置し、各 `ListBoxItem.Tag` に `MainPageKind` を持たせる。Semi テーマの `PART_TopBar`（標準ハンバーガーボタン）は非表示
+- **コンテンツ領域** — `DrawerPage.Content` の `NavigationPage`（`MainNav`）。各ページ View は `ContentPage` で、ナビゲーションバーは非表示
 - **オーバーレイ** — 半透明背景の `Border` + 中央配置のカード内に `DatabaseLoadingView` を表示
 
 ### 主要挙動
 
 1. **起動時読み込み** — `Window.Opened` → `StartLoadingAsync()` → `DatabaseLoadingViewModel.InitialLoadAsync()` → `MapListPageViewModel.Initialize()` → オーバーレイ非表示
-2. **エラー時の設定タブ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合、`SelectedTabIndex` を設定タブ（インデックス 4）に切り替え
+2. **エラー時の設定ページ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合は `SelectedPage = MainPageKind.Settings`、それ以外は `MainPageKind.MapList` に切り替え
 3. **フォルダパス変更監視** — `ISettingsData.OsuFolderPath` をR3の `ObserveProperty` で監視し、変更時に `ReloadDatabaseAsync()` を実行
 
-### タブインデックス定数
+### ページ切り替え
 
-| 定数 | 値 | 対応タブ |
-|------|---|---------|
-| `TabIndexMapList` | 1 | 譜面一覧 |
-| `TabIndexSettings` | 4 | 設定 |
+- サイドバーの選択 → `SelectedPage` 更新 → `NavigationPage.ReplaceAsync`（初回のみ `PushAsync`）で表示ページを差し替え。スタックは常に 1 ページ
+- ページは初回表示時に生成してキャッシュし、以降は同じインスタンスを再利用する（フィルタ・選択状態などを保持）
+- ページ切り替えで View が Visual Tree から外れて再接続されるため、`MapListPageView` / `MapListView` / `ImportExportBeatmapListView` は `OnAttachedToVisualTree` で購読・バインドを張り直す
 
 ---
 
@@ -1170,14 +1171,15 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 
 | パッケージ名 | バージョン | ライセンス |
 |-------------|-----------|-----------|
-| Avalonia | 11.3.10 | MIT |
-| CommunityToolkit.Mvvm | 8.4.0 | MIT |
-| R3 | 1.3.0 | MIT |
-| Semi.Avalonia | 11.3.7.1 | MIT |
-| Pure.DI | 2.2.15 | MIT |
-| Material.Icons.Avalonia | 2.4.1 | MIT |
-| ZLinq | 1.5.4 | MIT |
-| HotAvalonia | 3.0.2 | MIT |
+| Avalonia | 12.1.6 | MIT |
+| CommunityToolkit.Mvvm | 8.4.2 | MIT |
+| R3 | 1.3.1 | MIT |
+| Semi.Avalonia | 12.1.0.1 | MIT |
+| Irihi.Avalonia.Shared | 0.5.0 | MIT |
+| Pure.DI | 2.5.7 | MIT |
+| Material.Icons.Avalonia | 3.0.2 | MIT |
+| ZLinq | 1.6.1 | MIT |
+| HotAvalonia | 3.1.5 | MIT |
 | nakuru_audio | 0.1.0 | MIT |
 | rodio | 0.21.1 | MIT OR Apache-2.0 |
 | csbindgen | 1.9.7 | MIT |

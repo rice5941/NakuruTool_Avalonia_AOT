@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace NakuruTool_Avalonia_AOT.Features.Licenses;
 
-public partial class LicensesPage : UserControl
+public partial class LicensesPage : ContentPage
 {
     public LicensesPage()
     {

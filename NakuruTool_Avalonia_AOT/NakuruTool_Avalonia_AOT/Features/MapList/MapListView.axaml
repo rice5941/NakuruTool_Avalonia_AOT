@@ -223,7 +223,7 @@
                                 IsVisible="{Binding ShowSortButton, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
                                 Command="{Binding SortCommand, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
                                 ToolTip.Tip="{translate:Translate 'MapList.Sort.Open'}">
-                            <mi:MaterialIcon Kind="SortVariant" Width="20"/>
+                            <mi:MaterialIcon Kind="SortVariant" Width="20" Height="16"/>
                         </Button>
                     </StackPanel>
                 </Grid>

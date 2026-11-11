@@ -182,7 +182,7 @@
                                    Text="{translate:Translate 'Preset.PresetName'}"/>
                         <TextBox Classes="filter-input"
                                  Text="{Binding EditingPresetName}"
-                                 Watermark="{translate:Translate 'Preset.EnterPresetName'}"/>
+                                 PlaceholderText="{translate:Translate 'Preset.EnterPresetName'}"/>
                     </StackPanel>
 
                     <!-- プリセット選択時: Row 1 フィルタ条件リスト（ScrollViewer内） -->
@@ -284,13 +284,13 @@
                                                     <TextBox Classes="filter-input"
                                                              Text="{Binding Value}"
                                                              IsVisible="{Binding IsStringType}"
-                                                             Watermark="{translate:Translate 'MapFilter.EnterText'}"/>
+                                                             PlaceholderText="{translate:Translate 'MapFilter.EnterText'}"/>
 
                                                     <!-- 数値入力 -->
                                                     <TextBox Classes="filter-input"
                                                              Text="{Binding Value}"
                                                              IsVisible="{Binding IsNumericType}"
-                                                             Watermark="{translate:Translate 'MapFilter.EnterNumber'}"/>
+                                                             PlaceholderText="{translate:Translate 'MapFilter.EnterNumber'}"/>
 
                                                     <!-- 日付入力 -->
                                                     <CalendarDatePicker SelectedDate="{Binding DateValue, Mode=TwoWay}"
@@ -315,7 +315,7 @@
                                                         <TextBox Classes="filter-input"
                                                                  Text="{Binding Value}"
                                                                  IsVisible="{Binding IsDurationType}"
-                                                                 Watermark="mm:ss"/>
+                                                                 PlaceholderText="mm:ss"/>
                                                 </StackPanel>
 
                                                 <!-- 範囲比較時の入力（横並び） -->
@@ -336,7 +336,7 @@
                                                         <TextBox Classes="filter-input"
                                                                  Text="{Binding Value}"
                                                                  IsVisible="{Binding IsNumericType}"
-                                                                 Watermark="{translate:Translate 'MapFilter.EnterMinNumber'}"/>
+                                                                 PlaceholderText="{translate:Translate 'MapFilter.EnterMinNumber'}"/>
 
                                                         <!-- 日付最小値 -->
                                                         <CalendarDatePicker SelectedDate="{Binding DateValue, Mode=TwoWay}"
@@ -347,7 +347,7 @@
                                                             <TextBox Classes="filter-input"
                                                                      Text="{Binding Value}"
                                                                      IsVisible="{Binding IsDurationType}"
-                                                                     Watermark="mm:ss"/>
+                                                                     PlaceholderText="mm:ss"/>
                                                     </StackPanel>
 
                                                     <!-- 最大値 -->
@@ -363,7 +363,7 @@
                                                         <TextBox Classes="filter-input"
                                                                  Text="{Binding ValueMax}"
                                                                  IsVisible="{Binding IsNumericType}"
-                                                                 Watermark="{translate:Translate 'MapFilter.EnterMaxNumber'}"/>
+                                                                 PlaceholderText="{translate:Translate 'MapFilter.EnterMaxNumber'}"/>
 
                                                         <!-- 日付最大値 -->
                                                         <CalendarDatePicker SelectedDate="{Binding DateValueMax, Mode=TwoWay}"
@@ -374,7 +374,7 @@
                                                             <TextBox Classes="filter-input"
                                                                      Text="{Binding ValueMax}"
                                                                      IsVisible="{Binding IsDurationType}"
-                                                                     Watermark="mm:ss"/>
+                                                                     PlaceholderText="mm:ss"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </StackPanel>

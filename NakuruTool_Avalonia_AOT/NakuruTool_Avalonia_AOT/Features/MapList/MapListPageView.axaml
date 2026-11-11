@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<ContentPage xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:MapList="using:NakuruTool_Avalonia_AOT.Features.MapList"
              xmlns:BeatmapGen="using:NakuruTool_Avalonia_AOT.Features.BeatmapGenerator"
@@ -11,9 +11,10 @@
              xmlns:sortingConv="using:NakuruTool_Avalonia_AOT.Features.MapList.Sorting.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
              x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListPageView"
-             x:DataType="MapList:MapListPageViewModel">
+             x:DataType="MapList:MapListPageViewModel"
+             Header="{translate:Translate 'Menu.MapList'}">
 
-    <UserControl.Resources>
+    <ContentPage.Resources>
         <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" TrueOpacity="1.0" FalseOpacity="0.0"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:BoolToIconKindConverter x:Key="PlayPauseIconConverter" TrueIcon="Pause" FalseIcon="Play"/>
@@ -47,8 +48,8 @@
                              IsChecked="{Binding Direction, Converter={x:Static converters:EnumToBoolConverter.Instance}, ConverterParameter={x:Static sorting:SortDirection.Descending}}"/>
             </Grid>
         </DataTemplate>
-    </UserControl.Resources>
-    <UserControl.Styles>
+    </ContentPage.Resources>
+    <ContentPage.Styles>
         <Style Selector="Border.card">
             <Setter Property="Background" Value="{DynamicResource SemiGrey1}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey3}"/>
@@ -56,7 +57,7 @@
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Padding" Value="8"/>
         </Style>
-    </UserControl.Styles>
+    </ContentPage.Styles>
 
     <Panel>
         <Grid RowDefinitions="*,Auto" ColumnDefinitions="320,*">
@@ -86,7 +87,7 @@
                         <Grid Grid.Row="1" RowDefinitions="auto,auto,auto" ColumnDefinitions="*,auto">
                             <TextBox Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"
                                      Text="{Binding CollectionName, Mode=TwoWay}"
-                                     Watermark="{translate:Translate 'Collection.EnterCollectionName'}"/>
+                                     PlaceholderText="{translate:Translate 'Collection.EnterCollectionName'}"/>
 
                             <Button Grid.Column="1" Grid.Row="0"  Margin="12,0,0,0" Width="32" Height="32"
                                     Command="{Binding AddToCollectionCommand}" Theme="{StaticResource SolidButton}" >
@@ -208,4 +209,4 @@
             CloseCommand="{Binding CloseSingleGenerationCommand}"/>
     </Panel>
 
-</UserControl>
+</ContentPage>

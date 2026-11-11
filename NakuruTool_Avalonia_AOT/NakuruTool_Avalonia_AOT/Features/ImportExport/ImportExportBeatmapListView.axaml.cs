@@ -32,6 +32,23 @@ public partial class ImportExportBeatmapListView : UserControl
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        BindToDataContext();
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        // NavigationPage のページ切り替えで Detach → 再 Attach された場合は DataContext が変わらないため、
+        // OnDetachedFromVisualTree で解除した購読をここで張り直す
+        if (_propertySubscription is null && DataContext is not null)
+        {
+            BindToDataContext();
+        }
+    }
+
+    private void BindToDataContext()
+    {
         _propertySubscription?.Dispose();
         _propertySubscription = null;
 

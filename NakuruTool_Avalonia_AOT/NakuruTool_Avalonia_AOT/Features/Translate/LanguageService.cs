@@ -193,6 +193,12 @@ public class LanguageService : INotifyPropertyChanged
             return string.Empty;
         }
 
+        if (_resources.Count == 0 && !string.IsNullOrEmpty(_currentLanguage))
+        {
+            // Avalonia の初期化前（AssetLoader 未登録）にインスタンス化されて読み込みに失敗していた場合は再試行する
+            _resources = LoadLanguageResources(_currentLanguage);
+        }
+
         if (_resources.TryGetValue(key, out var value))
         {
             return value;
@@ -205,7 +211,8 @@ public class LanguageService : INotifyPropertyChanged
     private void ApplyLanguage(string languageCode, bool raiseEvent)
     {
         var normalizedLanguageCode = NormalizeLanguageCode(languageCode);
-        if (string.Equals(_currentLanguage, normalizedLanguageCode, StringComparison.Ordinal))
+        // 同じ言語でも、前回の読み込みに失敗して空の場合は読み込み直す
+        if (string.Equals(_currentLanguage, normalizedLanguageCode, StringComparison.Ordinal) && _resources.Count > 0)
         {
             return;
         }

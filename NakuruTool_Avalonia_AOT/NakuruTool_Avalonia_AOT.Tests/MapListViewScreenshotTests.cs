@@ -59,7 +59,7 @@ public class MapListViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_Empty.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -130,7 +130,7 @@ public class MapListViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_WithData.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -189,7 +189,7 @@ public class MapListViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, $"MapListView_{sizeName}_{width}x{height}.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -260,7 +260,7 @@ public class MapListViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, "MapListView_Pagination_Page2.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
@@ -324,7 +324,7 @@ public class MapListViewScreenshotTests
 
         // ファイルに保存
         var filePath = Path.Combine(ScreenshotsDirectory, $"MapListView_Pagination_{pageName}.png");
-        frame?.Save(filePath);
+        frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
 
         // ファイルが作成されたことを確認
         Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");

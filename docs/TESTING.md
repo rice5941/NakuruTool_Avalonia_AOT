@@ -2,22 +2,22 @@
 
 ## 1. テストフレームワーク
 
-xUnit をベースに、Avalonia のヘッドレステスト機能を組み合わせたスクリーンショットテスト環境を構築している。
+xUnit v3 をベースに、Avalonia のヘッドレステスト機能を組み合わせたスクリーンショットテスト環境を構築している。
+Avalonia.Headless.XUnit 12 は xUnit v3 が必須のため、テストプロジェクトは `<OutputType>Exe</OutputType>` でビルドする。
 
 ### NuGetパッケージ一覧
 
 | パッケージ | バージョン | 用途 |
 |---|---|---|
-| Microsoft.NET.Test.Sdk | 17.14.1 | テストSDK基盤 |
-| xunit | 2.9.3 | テストフレームワーク本体 |
-| xunit.runner.visualstudio | 3.1.0 | Visual Studio / dotnet test 連携 |
-| coverlet.collector | 6.0.4 | コードカバレッジ収集 |
-| Avalonia.Headless.XUnit | 11.3.10 | Avalonia ヘッドレステスト統合 |
-| Avalonia.Skia | 11.3.10 | Skia レンダラー（スクリーンショット撮影に必要） |
-| Semi.Avalonia | 11.3.7.1 | テーマ（ヘッドレス環境でも必要） |
-| Semi.Avalonia.DataGrid | 11.3.7.1 | DataGrid テーマ |
-| Irihi.Ursa.Themes.Semi | 1.14.0 | Ursa Semi テーマ |
-| Material.Icons.Avalonia | 2.4.1 | アイコン |
+| Microsoft.NET.Test.Sdk | 18.11.1 | テストSDK基盤 |
+| xunit.v3 | 3.2.2 | テストフレームワーク本体 |
+| xunit.runner.visualstudio | 4.0.1 | Visual Studio / dotnet test 連携 |
+| coverlet.collector | 10.1.0 | コードカバレッジ収集 |
+| Avalonia.Headless.XUnit | 12.1.6 | Avalonia ヘッドレステスト統合 |
+| Avalonia.Skia | 12.1.6 | Skia レンダラー（スクリーンショット撮影に必要） |
+| Semi.Avalonia | 12.1.0.1 | テーマ（ヘッドレス環境でも必要） |
+| Semi.Avalonia.DataGrid | 12.1.0.1 | DataGrid テーマ |
+| Material.Icons.Avalonia | 3.0.2 | アイコン |
 
 テストプロジェクトはメインプロジェクトを `ProjectReference` で参照している。
 
@@ -38,8 +38,7 @@ xUnit をベースに、Avalonia のヘッドレステスト機能を組み合�
 
 - `SemiTheme`（Locale: ja-JP）
 - `DataGridSemiTheme`
-- Ursa `SemiTheme`（Locale: ja-JP）
-- `MaterialIconStyles`
+- `MaterialIconStyles` と Material.Icons 3.x 互換スタイル（既定サイズ 16x16）
 - Window のフォントファミリー設定（Meiryo, Yu Gothic UI 等）
 
 これにより、本番アプリケーションと同等の見た目でスクリーンショットを撮影できる。
@@ -80,8 +79,10 @@ xUnit をベースに、Avalonia のヘッドレステスト機能を組み合�
 
 | テストメソッド | 属性 | 検証内容 |
 |---|---|---|
-| `CaptureMainWindowView_WithMapList` | `[AvaloniaFact]` | MapList タブを選択した状態の MainWindowView |
-| `CaptureMainWindowView_WithMapList_MenuCollapsed` | `[AvaloniaFact]` | サイドメニューを閉じた状態の MainWindowView |
+| `CaptureMainWindowView_WithMapList` | `[AvaloniaFact]` | MapList ページを表示した状態の MainWindowView |
+| `CaptureMainWindowView_WithMapList_MenuCollapsed` | `[AvaloniaFact]` | サイドメニュー(DrawerPage)を閉じた状態の MainWindowView |
+| `CaptureMainWindowView_Settings` | `[AvaloniaFact]` | 設定ページを表示した状態の MainWindowView |
+| `SidebarNavigation_ReusesPagesAndSyncsMenuSelection` | `[AvaloniaFact]` | サイドバー/ViewModel からのページ切り替えでページインスタンスが再利用され、メニュー選択・MapListView のバインドが維持されること |
 | `CaptureMainWindowView_LoadingOverlay` | `[AvaloniaFact]` | 読み込みオーバーレイ表示状態（各 DB の進捗表示あり） |
 | `CaptureMainWindowView_DifferentSizes` | `[AvaloniaTheory]` | 異なるウィンドウサイズ（800×600, 1280×720, 1920×1080） |
 

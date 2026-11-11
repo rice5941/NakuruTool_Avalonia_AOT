@@ -10,7 +10,7 @@ NakuruToolは、osu!のbeatmapを管理するためのデスクトップアプ�
 
 ## 技術スタック
 
-- **UI Framework**: Avalonia UI 11.3.12
+- **UI Framework**: Avalonia UI 12.1.6
 - **Runtime**: .NET 10.0 with NativeAOT
 - **Audio Playback**: nakuru_audio (Rust + rodio)
 - **Reactive Programming**: R3

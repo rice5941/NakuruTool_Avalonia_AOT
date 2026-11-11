@@ -30,14 +30,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public partial bool IsLoadingOverlayVisible { get; set; } = true;
 
     /// <summary>
-    /// 現在選択されているタブのインデックス
+    /// 現在表示しているページ（サイドバーの選択項目と同期する）
     /// </summary>
     [ObservableProperty]
-    public partial int SelectedTabIndex { get; set; } = 1;
-
-    // タブインデックス定数
-    private const int TabIndexMapList = 1;
-    private const int TabIndexSettings = 5;
+    public partial MainPageKind SelectedPage { get; set; } = MainPageKind.MapList;
 
     public MainWindowViewModel(
         ISettingsViewModel settingsViewModel, 
@@ -100,15 +96,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         IsLoadingOverlayVisible = false;
 
-        // 読み込み結果に応じてタブを切り替え
-        if (DatabaseLoadingViewModel.HasError)
-        {
-            SelectedTabIndex = TabIndexSettings;
-        }
-        else
-        {
-            SelectedTabIndex = TabIndexMapList;
-        }
+        // 読み込み結果に応じて表示ページを切り替え
+        SelectedPage = DatabaseLoadingViewModel.HasError
+            ? MainPageKind.Settings
+            : MainPageKind.MapList;
     }
 
     /// <summary>

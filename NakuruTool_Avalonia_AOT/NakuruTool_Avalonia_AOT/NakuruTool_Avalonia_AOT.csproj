@@ -50,37 +50,37 @@
     <InternalsVisibleTo Include="NakuruTool_Avalonia_AOT.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.12" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
-    <!-- Debug 限定で Avalonia.Markup.Xaml.Loader を 11.3.12 に固定し、HotAvalonia(11.0.0) と AvaloniaUI.DiagnosticsSupport(11.2.0) のバージョン衝突 (MSB3277) を解消する。 -->
-    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.3.12" Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Avalonia" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.6" />
+    <!-- Debug 限定で Avalonia.Markup.Xaml.Loader を Avalonia 本体と同じバージョンに固定し、HotAvalonia(11.0.0) と AvaloniaUI.DiagnosticsSupport(11.2.0) のバージョン衝突 (MSB3277) を解消する。 -->
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="12.1.6" Condition="'$(Configuration)' == 'Debug'">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <!--Condition below is needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration.-->
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1">
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <!--Condition below is needed to remove HotAvalonia package from build output in Release configuration.-->
-    <PackageReference Include="HotAvalonia" Version="3.1.0">
+    <PackageReference Include="HotAvalonia" Version="3.1.5">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
 
-	  <!--https://github.com/SKProCH/Material.Icons/pull/46おそらくこの変更によってUIが崩れるためver3.0.0には上げない.-->
-	  <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
-    <PackageReference Include="Pure.DI" Version="2.3.3">
+    <!-- 3.x で MaterialIcon の既定サイズ(16x16)が廃止されたため、App.axaml の互換スタイルで 2.x と同じ描画を維持している -->
+    <PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
+    <PackageReference Include="Pure.DI" Version="2.5.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="R3" Version="1.3.0" />
-    <PackageReference Include="R3Extensions.Avalonia" Version="1.3.0" />
-    <PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
-    <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.3.7.3" />
-    <PackageReference Include="ZLinq" Version="1.5.5" />
+    <PackageReference Include="R3" Version="1.3.1" />
+    <PackageReference Include="R3Extensions.Avalonia" Version="1.3.1" />
+    <PackageReference Include="Semi.Avalonia" Version="12.1.0.1" />
+    <PackageReference Include="Semi.Avalonia.DataGrid" Version="12.1.0.1" />
+    <PackageReference Include="ZLinq" Version="1.6.1" />
   </ItemGroup>
 
   <ItemGroup>

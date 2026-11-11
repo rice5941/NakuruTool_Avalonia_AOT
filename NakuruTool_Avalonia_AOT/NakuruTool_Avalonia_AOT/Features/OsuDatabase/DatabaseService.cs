@@ -23,6 +23,11 @@ public interface IDatabaseService : IDisposable
     Task ReloadDatabasesAsync();
     Task ReloadCollectionDbAsync();
     bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap);
+
+    /// <summary>
+    /// 指定譜面のローカルスコア（mania のみ、ReplayScore 降順）を返す。無ければ空。
+    /// </summary>
+    ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash);
 }
 
 /// <summary>
@@ -37,6 +42,7 @@ public class DatabaseService: IDatabaseService
     private List<OsuCollection> _osuCollections = new();
     private Beatmap[] _beatmaps = Array.Empty<Beatmap>();
     private Dictionary<string, int>? _beatmapIndex;
+    private LocalScoreStore _localScores = LocalScoreStore.Empty;
     private readonly object _lockObject = new object();
 
     // R3 Subjectによる進捗通知
@@ -74,6 +80,9 @@ public class DatabaseService: IDatabaseService
         var osuDbPath = Path.Combine(osuFolderPath, "osu!.db");
         var scoresDbPath = Path.Combine(osuFolderPath, "scores.db");
 
+        // 旧ストアは新しい譜面インデックスと対応しないため先に破棄
+        _localScores = LocalScoreStore.Empty;
+
         // collection.dbのバックアップを作成（起動時のみ）
         await CreateBackupAsync(collectionDbPath);
 
@@ -95,7 +104,12 @@ public class DatabaseService: IDatabaseService
         if (scoresDb != null && _beatmaps != null && _beatmaps.Length > 0)
         {
             // UIスレッドで進捗表示を更新するためにawaitを使用
-            await Task.Run(() => ApplyScoresToBeatmaps(scoresDb));
+            await Task.Run(() =>
+            {
+                var store = LocalScoreStore.Build(scoresDb, _beatmapIndex!, _beatmaps.Length);
+                ApplyScoresToBeatmaps(store);
+                _localScores = store;
+            });
         }
         else if (scoresDb == null)
         {
@@ -203,9 +217,9 @@ public class DatabaseService: IDatabaseService
 
 
     /// <summary>
-    /// scores.dbファイルを読み込んでScoresDatabaseオブジェクトを返す
+    /// scores.dbファイルを読み込んでパース結果を返す
     /// </summary>
-    private async Task<ScoresDatabase?> ReadScoresDbFileAsync(string filePath)
+    private async Task<ScoresDbParseResult?> ReadScoresDbFileAsync(string filePath)
     {
         return await Task.Run(() =>
         {
@@ -217,17 +231,10 @@ public class DatabaseService: IDatabaseService
                 }
 
                 using var parser = new ScoresDbParser();
-                var scoresDb = parser.ReadScoresDb(filePath, (message, progress) =>
+                return parser.ReadScoresDb(filePath, (message, progress) =>
                 {
                     OnScoresDbProgressChanged(message, progress);
                 });
-
-                if (scoresDb == null || scoresDb.Scores == null)
-                {
-                    return null;
-                }
-
-                return scoresDb;
             }
             catch (Exception)
             {
@@ -237,31 +244,29 @@ public class DatabaseService: IDatabaseService
     }
 
     /// <summary>
-    /// 読み込んだスコアデータをBeatmapに適用
+    /// ローカルスコアストアから譜面ごとのベスト値・プレイ回数を集計して Beatmap に適用
     /// </summary>
-    private void ApplyScoresToBeatmaps(ScoresDatabase scoresDb)
+    private void ApplyScoresToBeatmaps(LocalScoreStore store)
     {
-        if (scoresDb == null || scoresDb.Scores == null || _beatmaps == null || _beatmaps.Length == 0)
+        if (_beatmaps == null || _beatmaps.Length == 0)
             return;
 
-        var totalScores = scoresDb.Scores.Count;
-        var processedScores = 0;
+        var total = _beatmaps.Length;
+        var applied = 0;
 
-        OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresApplying"), 0, totalScores), 50);
+        OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresApplying"), 0, total), 50);
 
-        foreach (var scoreEntry in scoresDb.Scores)
+        for (int index = 0; index < total; index++)
         {
-            var md5Hash = scoreEntry.Key;
-            var scoreList = scoreEntry.Value;
-
-            if (scoreList != null && scoreList.Count > 0 && TryGetBeatmapIndex(md5Hash, out var index))
+            var scores = store.GetScores(index);
+            if (!scores.IsEmpty)
             {
+                applied++;
                 var beatmap = _beatmaps[index];
 
                 // 全体値
                 int bestScore = 0;
                 double bestAccuracy = 0;
-                int playCount = scoreList.Count;
 
                 // v1 (Default) Mod別値
                 int bestScoreNoMod = 0, bestScoreHT = 0, bestScoreDT = 0;
@@ -271,9 +276,9 @@ public class DatabaseService: IDatabaseService
                 int bestScoreV2NoMod = 0, bestScoreV2HT = 0, bestScoreV2DT = 0;
                 double bestAccV2NoMod = 0, bestAccV2HT = 0, bestAccV2DT = 0;
 
-                foreach (var score in scoreList)
+                foreach (ref readonly var score in scores)
                 {
-                    var acc = CalculateAccuracy(score);
+                    var acc = ScoreCalculator.CalculateAccuracy(score);
                     var replayScore = score.ReplayScore;
 
                     // 全体のベスト更新
@@ -327,38 +332,36 @@ public class DatabaseService: IDatabaseService
                 {
                     BestScore = bestScore,
                     BestAccuracy = bestAccuracy,
-                    PlayCount = playCount,
+                    PlayCount = scores.Length,
                     BestScoreNoMod = bestScoreNoMod,
                     BestAccuracyNoMod = bestAccNoMod,
-                    GradeNoMod = CalculateGradeFromAccuracy(bestAccNoMod),
+                    GradeNoMod = ScoreCalculator.CalculateGrade(bestAccNoMod),
                     BestScoreHT = bestScoreHT,
                     BestAccuracyHT = bestAccHT,
-                    GradeHT = CalculateGradeFromAccuracy(bestAccHT),
+                    GradeHT = ScoreCalculator.CalculateGrade(bestAccHT),
                     BestScoreDT = bestScoreDT,
                     BestAccuracyDT = bestAccDT,
-                    GradeDT = CalculateGradeFromAccuracy(bestAccDT),
+                    GradeDT = ScoreCalculator.CalculateGrade(bestAccDT),
                     BestScoreV2NoMod = bestScoreV2NoMod,
                     BestAccuracyV2NoMod = bestAccV2NoMod,
-                    GradeV2NoMod = CalculateGradeFromAccuracy(bestAccV2NoMod),
+                    GradeV2NoMod = ScoreCalculator.CalculateGrade(bestAccV2NoMod),
                     BestScoreV2HT = bestScoreV2HT,
                     BestAccuracyV2HT = bestAccV2HT,
-                    GradeV2HT = CalculateGradeFromAccuracy(bestAccV2HT),
+                    GradeV2HT = ScoreCalculator.CalculateGrade(bestAccV2HT),
                     BestScoreV2DT = bestScoreV2DT,
                     BestAccuracyV2DT = bestAccV2DT,
-                    GradeV2DT = CalculateGradeFromAccuracy(bestAccV2DT)
+                    GradeV2DT = ScoreCalculator.CalculateGrade(bestAccV2DT)
                 };
             }
 
-            processedScores++;
-
-            if (processedScores % 1000 == 0 || processedScores == totalScores)
+            if ((index + 1) % 5000 == 0 || index == total - 1)
             {
-                int progress = 50 + (int)((double)processedScores / totalScores * 50);
-                OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresApplying"), processedScores, totalScores), progress);
+                int progress = 50 + (int)((double)(index + 1) / total * 50);
+                OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresApplying"), index + 1, total), progress);
             }
         }
 
-        OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresCompleted"), totalScores), 100);
+        OnScoresDbProgressChanged(string.Format(LanguageService.Instance.GetString("Loading.ScoresCompleted"), applied), 100);
     }
 
     /// <summary>
@@ -419,61 +422,15 @@ public class DatabaseService: IDatabaseService
     }
 
     /// <summary>
-    /// スコアから精度を計算
+    /// 指定譜面のローカルスコア（mania のみ、ReplayScore 降順）を返す
     /// </summary>
-    internal static double CalculateAccuracy(ScoreData score)
+    public ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash)
     {
-        // Ruleset: 0 = osu!, 1 = Taiko, 2 = Catch, 3 = Mania
-        if (score.Ruleset == 3) // Mania
+        if (TryGetBeatmapIndex(md5Hash, out var index))
         {
-            var totalHits = score.Count300 + score.Count100 + score.Count50 +
-                           score.CountGeki + score.CountKatu + score.CountMiss;
-
-            if (totalHits == 0) return 0;
-
-            // ScoreV2 mania: CountGeki = レインボー300 (305点扱い)、分母も305基準
-            bool isScoreV2 = (score.Mods & OsuMods.ScoreV2) != 0;
-            if (isScoreV2)
-            {
-                var weightedScore = score.CountGeki * 305.0 +
-                                   score.Count300 * 300.0 +
-                                   score.CountKatu * 200.0 +
-                                   score.Count100 * 100.0 +
-                                   score.Count50 * 50.0;
-                var maxScore = totalHits * 305.0;
-                return maxScore > 0 ? weightedScore / maxScore * 100.0 : 0;
-            }
-
-            // ScoreV1 mania: CountGeki と Count300 は同等の300点扱い
-            var weightedScoreV1 = (score.Count300 + score.CountGeki) * 300.0 +
-                                 score.CountKatu * 200.0 +
-                                 score.Count100 * 100.0 +
-                                 score.Count50 * 50.0;
-            var maxScoreV1 = totalHits * 300.0;
-            return maxScoreV1 > 0 ? weightedScoreV1 / maxScoreV1 * 100.0 : 0;
+            return _localScores.GetScores(index);
         }
-
-        var totalHitsOther = score.Count300 + score.Count100 + score.Count50 + score.CountMiss;
-        if (totalHitsOther == 0) return 0;
-
-        var weightedScoreOther = score.Count300 * 300.0 + score.Count100 * 100.0 + score.Count50 * 50.0;
-        var maxScoreOther = totalHitsOther * 300.0;
-
-        return maxScoreOther > 0 ? weightedScoreOther / maxScoreOther * 100.0 : 0;
-    }
-
-    /// <summary>
-    /// 精度からグレード文字列を算出
-    /// </summary>
-    private static string CalculateGradeFromAccuracy(double accuracy)
-    {
-        if (accuracy >= 100.0) return "SS";
-        if (accuracy >= 95.0) return "S";
-        if (accuracy >= 90.0) return "A";
-        if (accuracy >= 80.0) return "B";
-        if (accuracy >= 70.0) return "C";
-        if (accuracy > 0.0) return "D";
-        return string.Empty;
+        return ReadOnlySpan<LocalScore>.Empty;
     }
 
     /// <summary>
@@ -510,6 +467,7 @@ public class DatabaseService: IDatabaseService
             _osuCollections?.Clear();
             _beatmaps = Array.Empty<Beatmap>();
             _beatmapIndex = null;
+            _localScores = LocalScoreStore.Empty;
         }
 
         await LoadDatabasesAsync();

@@ -463,14 +463,17 @@ osu!のDBファイル（`osu!.db`, `collection.db`, `scores.db`）の読み込�
 | `DatabaseLoadingView.axaml.cs` | CodeBehind | |
 | `OsuDbParser.cs` | パーサー | osu!.dbの高性能パース |
 | `CollectionDbParser.cs` | パーサー | collection.dbのパース |
-| `ScoresDbParser.cs` | パーサー | scores.dbのパース |
+| `ScoresDbParser.cs` | パーサー | scores.dbのパース（2パス・CSR形式の `ScoresDbParseResult` を返す） |
+| `LocalScoreStore.cs` | ストア | 譜面インデックス → ローカルスコア区間（ローカルランキング用に常駐） |
+| `ScoreCalculator.cs` | ヘルパー | mania 精度・グレード計算 |
 | `GenerateCollectionService.cs` | サービス | collection.dbへの書き込み（MapListPageからのコレクション生成） |
 | `CollectionDbWriter.cs` | ユーティリティ | collection.db バイナリ書き込み（GenerateCollectionService・ImportExportServiceから共用） |
 | `BinaryReaderHelper.cs` | ヘルパー | バイナリ読み取り共通処理 |
 | `UnmanagedBuffer.cs` | メモリ管理 | アンマネージドバッファ管理 |
 | `Beatmap.cs` | モデル | 譜面データ（record型） |
 | `OsuCollection.cs` | モデル | コレクションデータ |
-| `ScoreData.cs` | モデル | スコアデータ |
+| `LocalScore.cs` | モデル | mania スコア1件（32B の値型、文字列なし） |
+| `LocalRankingEntry.cs` | モデル | ローカルランキング1件の表示用モデル |
 
 ### 依存モジュール
 
@@ -501,14 +504,24 @@ osu!のDBファイル（`osu!.db`, `collection.db`, `scores.db`）の読み込�
    - `ReadCollectionDbAsync` → `CollectionDbParser`
    - `ReadOsuDbAsync` → `OsuDbParser`
    - `ReadScoresDbFileAsync` → `ScoresDbParser`
-4. 読み込み完了後、`ApplyScoresToBeatmaps` でスコアデータをBeatmapに統合
+4. 読み込み完了後、`LocalScoreStore.Build` でスコアを譜面インデックスに対応付け、`ApplyScoresToBeatmaps` でベスト値をBeatmapに統合
 
 #### スコアデータ統合（MD5マッチング）
 
 - `BuildBeatmapIndex()` でMD5Hash→配列インデックスの辞書を構築
-- `ApplyScoresToBeatmaps()` でスコアDBの各エントリをMD5で照合
-- マッチしたBeatmapに `BestScore`, `BestAccuracy`, `PlayCount` を `with` 式で適用
-- 精度計算は `CalculateAccuracy()` で行い、Maniaモードとその他モードで計算式が異なる
+- `LocalScoreStore.Build()` でパース結果の各エントリをMD5で照合し、譜面インデックス → エントリの対応表 (`int[]`) を作る
+- `ApplyScoresToBeatmaps()` はストアの区間から `BestScore`, `BestAccuracy`, `PlayCount`, Mod/ScoreSystem 別ベスト値を集計し `with` 式で適用
+- 精度計算は `ScoreCalculator.CalculateAccuracy()`（mania の v1 / ScoreV2 で計算式が異なる）
+- ストアは破棄せず `_localScores` として保持し、`GetLocalScores(md5)` でローカルランキング表示に提供する
+
+#### ローカルスコアのメモリ設計
+
+- `LocalScore` は文字列を持たない 32B の `readonly record struct`（日時 ticks・スコア・Mods・判定数6種）
+- プレイヤー名・譜面MD5・リプレイMD5 はスコア内で `BinaryReaderHelper.SkipString` で読み飛ばし、string を確保しない
+- 全スコアを1本の `LocalScore[]` に連続配置し、譜面ごとの区間は CSR (`int[] EntryStarts`) で表す
+- 譜面配列と同じ並びの `int[] _beatmapToEntry`（4B/譜面）で O(1) 参照。エントリの MD5 文字列は対応付け後に破棄
+- mania 以外のスコアは保持しない。各区間は ReplayScore 降順に整列済み
+- 表示用の `LocalRankingEntry` は、選択譜面のランキングと表示中ページ各行の最高スコア (`BestPlay`) についてのみ生成する
 
 #### 進捗通知
 
@@ -558,9 +571,11 @@ scores.dbファイルのパーサー。
 
 - ファイル全体をアンマネージドバッファに一括読み込み
 - ヘッダー（osuVersion + ビートマップ数）を読み取り
-- 各ビートマップ: MD5ハッシュ + スコアリストを読み込み
-- 各スコア: Ruleset, 各種ヒットカウント, スコア, コンボ, Mods, タイムスタンプ等を読み取り
-- 結果を `ScoresDatabase`（`Dictionary<string, List<ScoreData>>`）として返却
+- パス1: スキップのみで mania スコアを含むエントリ数と mania スコア総数を数え、配列をちょうどの長さで確保
+- パス2: mania スコアのみ `LocalScore`（判定数・スコア・Mods・タイムスタンプ）として詰め、エントリごとに ReplayScore 降順に整列
+- スコア内の文字列はデコードせず読み飛ばす。MD5 はスコアを持つエントリのみ文字列化
+- Target Practice の追加情報 (double) も読み飛ばす
+- 結果を `ScoresDbParseResult`（`BeatmapMd5s` / `EntryStarts` / `Scores`）として返却
 
 ---
 
@@ -622,6 +637,7 @@ collection.dbのバイナリフォーマットに準拠して書き込み（`Col
 | `BestAccuracy` | `double` | 最高精度（scores.dbから適用） |
 | `PlayCount` | `int` | プレイ回数（scores.dbから適用） |
 | `Grade` | `string` (required) | グレード |
+| `BestPlay` | `LocalRankingEntry?` | 選択中 ScoreSystem / Mod での最高スコアのプレイ（スコアセルの判定内訳ツールチップ用）。表示ページの行コピーにのみ設定 |
 
 #### BeatmapStatus（enum）
 
@@ -641,34 +657,22 @@ collection.dbのバイナリフォーマットに準拠して書き込み（`Col
 | `Name` | `string` | コレクション名 |
 | `BeatmapMd5s` | `string[]` | 含まれる譜面のMD5ハッシュ配列 |
 
-#### ScoreData（record型）
+#### LocalScore（readonly record struct）
 
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
-| `Ruleset` | `byte` | ルールセット（0=Standard, 1=Taiko, 2=Catch, 3=Mania） |
-| `OsuVersion` | `int` | osu!バージョン |
-| `BeatmapMD5Hash` | `string` | 譜面のMD5ハッシュ |
-| `PlayerName` | `string` | プレイヤー名 |
-| `ReplayMD5Hash` | `string` | リプレイのMD5ハッシュ |
-| `Count300` | `ushort` | 300判定数 |
-| `Count100` | `ushort` | 100判定数 |
-| `Count50` | `ushort` | 50判定数 |
-| `CountGeki` | `ushort` | 激判定数 |
-| `CountKatu` | `ushort` | 可判定数 |
-| `CountMiss` | `ushort` | ミス数 |
+| `TimestampTicks` | `long` | プレイ日時 (UTC ticks) |
 | `ReplayScore` | `int` | スコア |
-| `Combo` | `ushort` | 最大コンボ |
-| `PerfectCombo` | `bool` | フルコンボか |
-| `Mods` | `int` | Modsビットフラグ |
-| `ScoreTimestamp` | `DateTime` | スコア記録日時 |
-| `ScoreId` | `long` | スコアID |
+| `Mods` | `int` | Modsビットフラグ（絞り込み用） |
+| `CountGeki` / `Count300` / `CountKatu` / `Count100` / `Count50` / `CountMiss` | `ushort` | 判定数 (320/300/200/100/50/0) |
 
-#### ScoresDatabase
+#### LocalRankingEntry
 
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
-| `OsuVersion` | `int` | osu!バージョン |
-| `Scores` | `Dictionary<string, List<ScoreData>>` | MD5ハッシュをキーとしたスコア辞書 |
+| `PlayedAt` | `DateTime?` | 登録日時（ローカル時刻） |
+| `Score` / `Accuracy` / `Grade` | `int` / `double` / `string` | スコア列の表示値 |
+| `Count320` ～ `Count0` | `int` | 判定内訳（ツールチップ） |
 
 #### DatabaseLoadingViewModel
 

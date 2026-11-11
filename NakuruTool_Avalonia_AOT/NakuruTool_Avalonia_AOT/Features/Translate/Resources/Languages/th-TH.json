@@ -75,7 +75,10 @@
     "Sort.Descending": "มากไปน้อย",
     "Sort.Reset": "รีเซ็ต",
     "Sort.Close": "ปิด",
-    "Sort.Field.None": "(ไม่ระบุ)"
+    "Sort.Field.None": "(ไม่ระบุ)",
+    "LocalRanking.Toggle": "สลับการแสดงอันดับในเครื่อง",
+    "LocalRanking.PlayedAt": "วันที่บันทึก",
+    "LocalRanking.Empty": "ไม่มีคะแนน"
   },
   "MapFilter": {
     "Title": "เงื่อนไขการกรอง",

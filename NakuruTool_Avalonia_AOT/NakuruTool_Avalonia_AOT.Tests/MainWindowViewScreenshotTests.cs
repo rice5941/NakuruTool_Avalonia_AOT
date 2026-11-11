@@ -906,6 +906,9 @@ public class MockMapListViewModel : ObservableObject, IMapListViewModel
     public Beatmap? SelectedBeatmap { get; set; }
     public ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
     public ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
+    public bool IsLocalRankingMode { get; set; }
+    public IAvaloniaReadOnlyList<LocalRankingEntry> LocalRanking { get; } = new AvaloniaList<LocalRankingEntry>();
+    public bool HasLocalRanking => false;
 
     public IRelayCommand PreviousPageCommand { get; }
     public IRelayCommand NextPageCommand { get; }
@@ -1011,6 +1014,7 @@ public class MockDatabaseService : IDatabaseService
     public Task ReloadDatabasesAsync() => Task.CompletedTask;
     public Task ReloadCollectionDbAsync() => Task.CompletedTask;
     public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap) { beatmap = null; return false; }
+    public ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash) => ReadOnlySpan<LocalScore>.Empty;
     public void Dispose() { }
 }
 

@@ -54,7 +54,7 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         AudioPlayerViewModel audioPlayerViewModel,
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService)
-        : base(settingsService)
+        : base(settingsService, databaseService)
     {
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;

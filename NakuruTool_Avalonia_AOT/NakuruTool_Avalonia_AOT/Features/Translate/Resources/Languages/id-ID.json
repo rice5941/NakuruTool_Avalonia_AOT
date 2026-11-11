@@ -75,7 +75,10 @@
     "Sort.Descending": "Turun",
     "Sort.Reset": "Atur ulang",
     "Sort.Close": "Tutup",
-    "Sort.Field.None": "(Tidak ditentukan)"
+    "Sort.Field.None": "(Tidak ditentukan)",
+    "LocalRanking.Toggle": "Tampilkan Peringkat Lokal",
+    "LocalRanking.PlayedAt": "Tanggal Tercatat",
+    "LocalRanking.Empty": "Belum ada skor"
   },
   "MapFilter": {
     "Title": "Kondisi filter",

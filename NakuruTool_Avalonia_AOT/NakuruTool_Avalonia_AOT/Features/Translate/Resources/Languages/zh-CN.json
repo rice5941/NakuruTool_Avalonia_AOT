@@ -75,7 +75,10 @@
     "Sort.Descending": "降序",
     "Sort.Reset": "重置",
     "Sort.Close": "关闭",
-    "Sort.Field.None": "(未指定)"
+    "Sort.Field.None": "(未指定)",
+    "LocalRanking.Toggle": "切换本地排行榜",
+    "LocalRanking.PlayedAt": "记录时间",
+    "LocalRanking.Empty": "暂无成绩"
   },
   "MapFilter": {
     "Title": "筛选条件",

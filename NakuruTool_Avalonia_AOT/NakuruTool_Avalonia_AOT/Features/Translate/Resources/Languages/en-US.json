@@ -75,7 +75,10 @@
     "Sort.Descending": "Descending",
     "Sort.Reset": "Reset",
     "Sort.Close": "Close",
-    "Sort.Field.None": "(Unspecified)"
+    "Sort.Field.None": "(Unspecified)",
+    "LocalRanking.Toggle": "Toggle Local Ranking",
+    "LocalRanking.PlayedAt": "Date Set",
+    "LocalRanking.Empty": "No scores"
   },
   "MapFilter": {
     "Title": "Filter Conditions",

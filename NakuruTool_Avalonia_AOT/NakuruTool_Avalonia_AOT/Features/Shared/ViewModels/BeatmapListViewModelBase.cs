@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,7 +22,14 @@ namespace NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmapListViewModel
 {
     private readonly ISettingsService _settingsService;
+    private readonly IDatabaseService? _databaseService;
     private readonly AvaloniaList<Beatmap> _showBeatmapsList = new();
+    private readonly AvaloniaList<LocalRankingEntry> _localRankingList = new();
+    /// <summary>
+    /// ローカルランキング対象譜面の MD5。ページ再投影で SelectedBeatmap が一時的に null になっても
+    /// Mod / ScoreSystem 切替に追従できるよう、最後に選択された譜面を保持する。
+    /// </summary>
+    private string? _localRankingTargetMd5;
     private Beatmap[] _sourceBeatmaps = Array.Empty<Beatmap>();
     /// <summary>SetSourceBeatmaps で受け取った未ソートの基準配列。ApplyCurrentSort はここからコピーして再ソートする。</summary>
     private Beatmap[] _unsortedBeatmaps = Array.Empty<Beatmap>();
@@ -38,6 +46,19 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     [ObservableProperty]
     public partial ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
+
+    /// <summary>
+    /// ローカルランキング表示モード。ON の間だけ選択譜面のランキングを生成する（永続化しない）。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsLocalRankingMode { get; set; }
+
+    /// <summary>選択譜面のローカルランキング（選択中 ScoreSystem / Mod で絞り込み、スコア降順）。</summary>
+    public IAvaloniaReadOnlyList<LocalRankingEntry> LocalRanking => _localRankingList;
+
+    /// <summary><see cref="LocalRanking"/> が1件以上あるか。</summary>
+    [ObservableProperty]
+    public partial bool HasLocalRanking { get; set; }
 
     [ObservableProperty]
     public partial int CurrentPage { get; set; } = 1;
@@ -59,12 +80,15 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     /// <summary>ソート設定 ViewModel。Dispose は基底の <c>Disposables</c> 経由で連鎖する。</summary>
     internal MapListSortViewModel SortViewModel { get; }
 
-    protected BeatmapListViewModelBase(ISettingsService settingsService)
+    /// <param name="settingsService">設定サービス</param>
+    /// <param name="databaseService">ローカルスコア参照用。null の場合は BestPlay / ローカルランキングを生成しない。</param>
+    protected BeatmapListViewModelBase(ISettingsService settingsService, IDatabaseService? databaseService = null)
     {
         SortViewModel = new MapListSortViewModel();
         Disposables.Add(SortViewModel);
 
         _settingsService = settingsService;
+        _databaseService = databaseService;
         ShowBeatmaps = _showBeatmapsList;
 
         _settingsService.SettingsData.ObservePropertyAndSubscribe(
@@ -167,12 +191,75 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
                 {
                     BestScore = beatmap.GetBestScore(scoreSystem, mod),
                     BestAccuracy = beatmap.GetBestAccuracy(scoreSystem, mod),
-                    Grade = beatmap.GetGrade(scoreSystem, mod)
+                    Grade = beatmap.GetGrade(scoreSystem, mod),
+                    BestPlay = _databaseService is null
+                        ? null
+                        : FindBestPlay(_databaseService.GetLocalScores(beatmap.MD5Hash), scoreSystem, mod)
                 };
                 _showBeatmapsList.Add(displayed);
             }
         }
     }
+
+    /// <summary>
+    /// ReplayScore 降順のローカルスコアから、指定 ScoreSystem / Mod に一致する最初の1件（=最高スコア）を返す。
+    /// </summary>
+    internal static LocalRankingEntry? FindBestPlay(
+        ReadOnlySpan<LocalScore> scores,
+        ScoreSystemCategory scoreSystem,
+        ModCategory mod)
+    {
+        foreach (ref readonly var score in scores)
+        {
+            if (IsMatch(score, scoreSystem, mod))
+                return new LocalRankingEntry(score);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// ReplayScore 降順のローカルスコアから、指定 ScoreSystem / Mod に一致するものを順序を保って <paramref name="destination"/> に追加する。
+    /// </summary>
+    internal static void FillLocalRanking(
+        ReadOnlySpan<LocalScore> scores,
+        ScoreSystemCategory scoreSystem,
+        ModCategory mod,
+        IList<LocalRankingEntry> destination)
+    {
+        foreach (ref readonly var score in scores)
+        {
+            if (IsMatch(score, scoreSystem, mod))
+                destination.Add(new LocalRankingEntry(score));
+        }
+    }
+
+    /// <summary>
+    /// 選択譜面のローカルランキングを再構築する。モード OFF の間は空にして生成しない。
+    /// AvaloniaList インスタンスは差し替えず Clear/AddRange でのみ更新する。
+    /// </summary>
+    private void UpdateLocalRanking()
+    {
+        _localRankingList.Clear();
+
+        if (IsLocalRankingMode &&
+            _databaseService is not null &&
+            !string.IsNullOrEmpty(_localRankingTargetMd5))
+        {
+            var buffer = new List<LocalRankingEntry>();
+            FillLocalRanking(
+                _databaseService.GetLocalScores(_localRankingTargetMd5),
+                SelectedScoreSystemCategory,
+                SelectedModCategory,
+                buffer);
+            _localRankingList.AddRange(buffer);
+        }
+
+        HasLocalRanking = _localRankingList.Count > 0;
+    }
+
+    private static bool IsMatch(in LocalScore score, ScoreSystemCategory scoreSystem, ModCategory mod)
+        => OsuMods.CategorizeScoreSystem(score.Mods) == scoreSystem
+           && OsuMods.Categorize(score.Mods) == mod;
 
     /// <summary>
     /// PageCount を再計算する (PageSize / FilteredCount から算出のみ)。
@@ -188,9 +275,29 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     // ---- partial メソッド (基底内に閉じる) ----
 
-    partial void OnSelectedModCategoryChanged(ModCategory value) => ApplyCurrentSort();
+    partial void OnSelectedModCategoryChanged(ModCategory value)
+    {
+        ApplyCurrentSort();
+        UpdateLocalRanking();
+    }
 
-    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value) => ApplyCurrentSort();
+    partial void OnSelectedScoreSystemCategoryChanged(ScoreSystemCategory value)
+    {
+        ApplyCurrentSort();
+        UpdateLocalRanking();
+    }
+
+    partial void OnIsLocalRankingModeChanged(bool value) => UpdateLocalRanking();
+
+    partial void OnSelectedBeatmapChanged(Beatmap? value)
+    {
+        // ページ再投影による一時的な null では対象を維持する
+        if (value is null || value.MD5Hash == _localRankingTargetMd5)
+            return;
+
+        _localRankingTargetMd5 = value.MD5Hash;
+        UpdateLocalRanking();
+    }
 
     partial void OnCurrentPageChanged(int value)
     {

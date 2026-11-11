@@ -75,7 +75,10 @@
     "Sort.Descending": "Pababa",
     "Sort.Reset": "I-reset",
     "Sort.Close": "Isara",
-    "Sort.Field.None": "(Hindi tinukoy)"
+    "Sort.Field.None": "(Hindi tinukoy)",
+    "LocalRanking.Toggle": "I-toggle ang Lokal na Ranggo",
+    "LocalRanking.PlayedAt": "Petsa ng Pagtala",
+    "LocalRanking.Empty": "Walang score"
   },
   "MapFilter": {
     "Title": "Mga kondisyon ng filter",

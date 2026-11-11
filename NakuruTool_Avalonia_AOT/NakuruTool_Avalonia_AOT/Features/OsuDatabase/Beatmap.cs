@@ -73,6 +73,12 @@ public sealed record Beatmap
     public double BestAccuracyV2DT { get; init; }
     public string GradeV2DT { get; init; } = string.Empty;
 
+    /// <summary>
+    /// 選択中の ScoreSystem / Mod での最高スコアのプレイ（スコアセルの判定内訳ツールチップ用）。
+    /// DB 上の譜面では常に null で、表示ページの行コピーにのみ設定される。
+    /// </summary>
+    public LocalRankingEntry? BestPlay { get; init; }
+
     /// <summary>スコアシステム・mod 2軸で最高スコアを取得</summary>
     public int GetBestScore(ScoreSystemCategory system, ModCategory mod) => (system, mod) switch
     {

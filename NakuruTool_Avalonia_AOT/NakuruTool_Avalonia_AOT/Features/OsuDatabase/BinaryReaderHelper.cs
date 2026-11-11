@@ -34,6 +34,20 @@ public static class BinaryReaderHelper
     }
 
     /// <summary>
+    /// osu!形式の文字列をデコードせずに読み飛ばす（string を確保しない）
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void SkipString(ReadOnlySpan<byte> buffer, ref int pos)
+    {
+        byte prefix = buffer[pos++];
+        if (prefix == 0x0b)
+        {
+            uint length = ReadULEB128FromSpan(buffer, ref pos);
+            pos += (int)length;
+        }
+    }
+
+    /// <summary>
     /// ULEB128形式の整数を読み込む
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -83,11 +83,14 @@ sequenceDiagram
         OP-->>DS: Beatmap[]
     and
         DS->>SP: ReadScoresDb()
-        SP-->>DS: ScoresDatabase
+        SP-->>DS: ScoresDbParseResult
     end
 
     DS->>DS: BuildBeatmapIndex(Beatmap[])
     Note over DS: MD5 → Index辞書構築
+
+    DS->>DS: LocalScoreStore.Build()
+    Note over DS: 譜面インデックス → スコア区間 (常駐)
 
     DS->>DS: ApplyScoresToBeatmaps()
     Note over DS: MD5マッチングで<br/>BestScore/BestAccuracy/PlayCount統合
@@ -119,12 +122,18 @@ sequenceDiagram
 |-----------|---------|------|
 | collection.db | `CollectionDbParser` | `List<OsuCollection>` |
 | osu!.db | `OsuDbParser` | `Beatmap[]` |
-| scores.db | `ScoresDbParser` | `ScoresDatabase` |
+| scores.db | `ScoresDbParser` | `ScoresDbParseResult`（CSR形式・mania のみ） |
 
 #### スコアデータ統合
 1. `Beatmap[]` からMD5ハッシュ → インデックスの辞書を構築
-2. `ScoresDatabase` の各エントリのMD5ハッシュで辞書を検索
-3. マッチしたBeatmapに `BestScore` / `BestAccuracy` / `PlayCount` を統合（recordの `with` 式で更新）
+2. `ScoresDbParseResult` の各エントリのMD5ハッシュで辞書を検索し、`LocalScoreStore` を構築（ローカルランキング用に保持）
+3. ストアの区間から集計した `BestScore` / `BestAccuracy` / `PlayCount` 等をBeatmapに統合（recordの `with` 式で更新）
+
+#### ローカルランキング表示
+1. `BeatmapListViewModelBase.UpdateShowBeatmaps()` は表示ページの各行で `IDatabaseService.GetLocalScores(md5)` を参照し、選択中 ScoreSystem / Mod の最高スコアのプレイを行コピーの `BestPlay` に設定（スコアセルの判定内訳ツールチップ）
+2. `SelectedBeatmap` 変更時に対象譜面の MD5 を保持し、`IsLocalRankingMode` が ON の間だけ `LocalRanking`（`AvaloniaList<LocalRankingEntry>`）を再構築
+   - ScoreSystem / Mod 切替・モード切替でも再構築。ページ再投影で `SelectedBeatmap` が一時的に null になっても対象は維持
+3. `MapListView` は `IsLocalRankingMode` を購読して BPM / LN率 / 履歴 / プレイ済み列を隠し、空いた幅に別 DataGrid（`LocalRankingDataGrid`: 登録日時・スコア列）を表示
 
 #### 進捗通知（3系統）
 `DatabaseService` は3つの `Subject<DatabaseLoadProgress>` を持ち、各パーサーの進捗を `Dispatcher.UIThread.Post` 経由でUIスレッドに通知する。

@@ -75,7 +75,10 @@
     "Sort.Descending": "Giảm dần",
     "Sort.Reset": "Đặt lại",
     "Sort.Close": "Đóng",
-    "Sort.Field.None": "(Chưa chỉ định)"
+    "Sort.Field.None": "(Chưa chỉ định)",
+    "LocalRanking.Toggle": "Bật/tắt bảng xếp hạng cục bộ",
+    "LocalRanking.PlayedAt": "Thời điểm ghi",
+    "LocalRanking.Empty": "Chưa có điểm"
   },
   "MapFilter": {
     "Title": "Điều kiện lọc",

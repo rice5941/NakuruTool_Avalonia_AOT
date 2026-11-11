@@ -75,7 +75,10 @@
     "Sort.Descending": "내림차순",
     "Sort.Reset": "초기화",
     "Sort.Close": "닫기",
-    "Sort.Field.None": "(미지정)"
+    "Sort.Field.None": "(미지정)",
+    "LocalRanking.Toggle": "로컬 랭킹 표시",
+    "LocalRanking.PlayedAt": "등록 일시",
+    "LocalRanking.Empty": "기록 없음"
   },
   "MapFilter": {
     "Title": "필터 조건",

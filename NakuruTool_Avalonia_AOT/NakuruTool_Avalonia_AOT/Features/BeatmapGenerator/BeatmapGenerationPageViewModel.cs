@@ -58,7 +58,7 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
         IBeatmapRateGenerator beatmapRateGenerator,
         ISettingsService settingsService,
         IRateGenerationCollectionJsonWriter collectionJsonWriter)
-        : base(settingsService)
+        : base(settingsService, databaseService)
     {
         _databaseService = databaseService;
         _beatmapRateGenerator = beatmapRateGenerator;

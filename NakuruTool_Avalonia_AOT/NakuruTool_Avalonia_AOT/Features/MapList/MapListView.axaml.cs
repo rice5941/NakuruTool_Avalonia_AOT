@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 
@@ -45,6 +46,9 @@ public partial class MapListView : UserControl
 
     public static readonly StyledProperty<bool> ShowSortButtonProperty =
         AvaloniaProperty.Register<MapListView, bool>(nameof(ShowSortButton), defaultValue: false);
+
+    public static readonly StyledProperty<bool> ShowLocalRankingButtonProperty =
+        AvaloniaProperty.Register<MapListView, bool>(nameof(ShowLocalRankingButton), defaultValue: true);
 
     public static readonly StyledProperty<ICommand?> SortCommandProperty =
         AvaloniaProperty.Register<MapListView, ICommand?>(nameof(SortCommand), defaultValue: null);
@@ -109,6 +113,13 @@ public partial class MapListView : UserControl
         set => SetValue(ShowSortButtonProperty, value);
     }
 
+    /// <summary>ローカルランキング切替ボタンを表示するか（beatmap 生成ページでは非表示）。</summary>
+    public bool ShowLocalRankingButton
+    {
+        get => GetValue(ShowLocalRankingButtonProperty);
+        set => SetValue(ShowLocalRankingButtonProperty, value);
+    }
+
     public ICommand? SortCommand
     {
         get => GetValue(SortCommandProperty);
@@ -118,6 +129,8 @@ public partial class MapListView : UserControl
     private Beatmap? _rightClickTarget;
     private IBeatmapListViewModel? _boundViewModel;
     private IDisposable? _scrollRequestSubscription;
+    private IDisposable? _localRankingModeSubscription;
+    private bool _isLocalRankingMode;
 
     public MapListView()
     {
@@ -128,36 +141,36 @@ public partial class MapListView : UserControl
             OnDataGridPointerPressed,
             RoutingStrategies.Tunnel);
 
-        ApplyHistoryColumnVisibility(ShowHistoryColumn);
-        ApplyIsPlayedColumnVisibility(ShowIsPlayedColumn);
+        ApplyColumnVisibility();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == ShowHistoryColumnProperty)
+        if (change.Property == ShowHistoryColumnProperty ||
+            change.Property == ShowIsPlayedColumnProperty)
         {
-            ApplyHistoryColumnVisibility(change.GetNewValue<bool>());
-        }
-        else if (change.Property == ShowIsPlayedColumnProperty)
-        {
-            ApplyIsPlayedColumnVisibility(change.GetNewValue<bool>());
+            ApplyColumnVisibility();
         }
     }
 
-    private void ApplyHistoryColumnVisibility(bool visible)
+    /// <summary>
+    /// DataGrid 列はビジュアルツリー外でバインドできないため、Tag で引いて IsVisible を直接設定する。
+    /// ローカルランキングモード中は BPM / LN率 / 履歴 / プレイ済み を隠し、空いた幅にランキング用 DataGrid を出す。
+    /// </summary>
+    private void ApplyColumnVisibility()
     {
-        var column = FindColumnByTag("HistoryColumn");
-        if (column is not null)
-        {
-            column.IsVisible = visible;
-        }
+        var ranking = _isLocalRankingMode;
+        SetColumnVisible("BpmColumn", !ranking);
+        SetColumnVisible("LongNoteRateColumn", !ranking);
+        SetColumnVisible("HistoryColumn", ShowHistoryColumn && !ranking);
+        SetColumnVisible("IsPlayedColumn", ShowIsPlayedColumn && !ranking);
     }
 
-    private void ApplyIsPlayedColumnVisibility(bool visible)
+    private void SetColumnVisible(string tag, bool visible)
     {
-        var column = FindColumnByTag("IsPlayedColumn");
+        var column = FindColumnByTag(tag);
         if (column is not null)
         {
             column.IsVisible = visible;
@@ -211,7 +224,14 @@ public partial class MapListView : UserControl
                 OpenMenuItem.Command = _boundViewModel.OpenInExplorerCommand;
             if (GenerateMenuItem is not null)
                 GenerateMenuItem.Command = _boundViewModel.GenerateBeatmapCommand;
+
+            var vm = _boundViewModel;
+            _localRankingModeSubscription = vm
+                .ObserveProperty(nameof(IBeatmapListViewModel.IsLocalRankingMode))
+                .Subscribe(_ => UpdateLocalRankingMode(vm.IsLocalRankingMode));
         }
+
+        UpdateLocalRankingMode(_boundViewModel?.IsLocalRankingMode ?? false);
 
         // AudioPlayerHost は MapListViewModel 固有 (AudioPlayerPanel) のためここで個別分岐
         if (DataContext is MapListViewModel mapListVm)
@@ -223,6 +243,15 @@ public partial class MapListView : UserControl
             _scrollRequestSubscription = mapListVm.ScrollToBeatmapRequested
                 .Subscribe(ScheduleScrollIntoView);
         }
+    }
+
+    private void UpdateLocalRankingMode(bool isLocalRankingMode)
+    {
+        if (_isLocalRankingMode == isLocalRankingMode)
+            return;
+
+        _isLocalRankingMode = isLocalRankingMode;
+        ApplyColumnVisibility();
     }
 
     /// <summary>
@@ -257,6 +286,8 @@ public partial class MapListView : UserControl
     {
         _scrollRequestSubscription?.Dispose();
         _scrollRequestSubscription = null;
+        _localRankingModeSubscription?.Dispose();
+        _localRankingModeSubscription = null;
 
         if (AudioPlayerHost is not null)
             AudioPlayerHost.DataContext = null;

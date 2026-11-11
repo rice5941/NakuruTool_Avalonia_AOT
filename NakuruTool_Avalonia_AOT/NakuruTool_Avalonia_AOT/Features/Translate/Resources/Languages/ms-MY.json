@@ -75,7 +75,10 @@
     "Sort.Descending": "Menurun",
     "Sort.Reset": "Set semula",
     "Sort.Close": "Tutup",
-    "Sort.Field.None": "(Tidak ditetapkan)"
+    "Sort.Field.None": "(Tidak ditetapkan)",
+    "LocalRanking.Toggle": "Togol Kedudukan Tempatan",
+    "LocalRanking.PlayedAt": "Tarikh Direkod",
+    "LocalRanking.Empty": "Tiada skor"
   },
   "MapFilter": {
     "Title": "Syarat penapis",

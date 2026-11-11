@@ -30,6 +30,40 @@
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
+    <UserControl.DataTemplates>
+        <!-- 判定内訳ツールチップ (ToolTip.Tip に LocalRankingEntry を渡すと適用される) -->
+        <DataTemplate DataType="osu:LocalRankingEntry">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                <Grid.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="Margin" Value="6,0"/>
+                    </Style>
+                    <Style Selector="TextBlock.judge-label">
+                        <Setter Property="FontSize" Value="11"/>
+                        <Setter Property="Opacity" Value="0.7"/>
+                    </Style>
+                    <Style Selector="TextBlock.judge-value">
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                    </Style>
+                </Grid.Styles>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="320" Classes="judge-label"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="300" Classes="judge-label"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="200" Classes="judge-label"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="100" Classes="judge-label"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="50" Classes="judge-label"/>
+                <TextBlock Grid.Row="0" Grid.Column="5" Text="0" Classes="judge-label"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Count320}" Classes="judge-value"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Count300}" Classes="judge-value"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Count200}" Classes="judge-value"/>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Count100}" Classes="judge-value"/>
+                <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Count50}" Classes="judge-value"/>
+                <TextBlock Grid.Row="1" Grid.Column="5" Text="{Binding Count0}" Classes="judge-value"/>
+            </Grid>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
     <UserControl.Styles>
         <!-- DataGrid全体のスタイル -->
         <Style Selector="DataGrid">
@@ -214,6 +248,20 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- ローカルランキング表示切替 (区切りとセットで出し入れ) -->
+                        <StackPanel Orientation="Horizontal" Spacing="4"
+                                    IsVisible="{Binding ShowLocalRankingButton, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}">
+                            <!-- 区切り -->
+                            <Border Width="1" Background="{DynamicResource SemiGrey4}" Margin="4,2"/>
+
+                            <ToggleButton x:Name="LocalRankingToggleButton"
+                                          Width="32" Height="32" Padding="0"
+                                          IsChecked="{Binding IsLocalRankingMode, Mode=TwoWay}"
+                                          ToolTip.Tip="{translate:Translate 'MapList.LocalRanking.Toggle'}">
+                                <mi:MaterialIcon Kind="Podium" Width="20" Height="20"/>
+                            </ToggleButton>
+                        </StackPanel>
+
                         <!-- 区切り -->
                         <Border Width="1" Background="{DynamicResource SemiGrey4}" Margin="4,2"/>
                         
@@ -229,7 +277,8 @@
                 </Grid>
             </Border>
 
-            <DataGrid Grid.Row="1"
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+            <DataGrid Grid.Column="0"
                       x:Name="MapListDataGrid"
                       ItemsSource="{Binding ShowBeatmaps}"
                       SelectedItem="{Binding SelectedBeatmap, Mode=TwoWay}"
@@ -301,7 +350,7 @@
                     </DataGridTemplateColumn>
                 
                     <!-- BPM -->
-                    <DataGridTemplateColumn Width="80">
+                    <DataGridTemplateColumn Tag="BpmColumn" Width="80">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="{translate:Translate 'MapList.BPM'}" />
                         </DataGridTemplateColumn.Header>
@@ -314,7 +363,7 @@
                     </DataGridTemplateColumn>
                 
                     <!-- LN率 -->
-                    <DataGridTemplateColumn Width="105">
+                    <DataGridTemplateColumn Tag="LongNoteRateColumn" Width="105">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="{translate:Translate 'MapList.LongNoteRate'}" 
                                        HorizontalAlignment="Center"/>
@@ -336,7 +385,10 @@
                         </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="osu:Beatmap">
-                                <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0">
+                                <!-- ToolTip: 最高スコアのプレイの判定内訳 (スコアが無い行は null で非表示) -->
+                                <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0"
+                                      Background="Transparent"
+                                      ToolTip.Tip="{Binding BestPlay}">
                                     <!-- グレード -->
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
                                                Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}" 
@@ -358,7 +410,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                
+
                     <!-- 履歴グループ -->
                     <DataGridTemplateColumn Tag="HistoryColumn" Width="205">
                         <DataGridTemplateColumn.Header>
@@ -409,6 +461,75 @@
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <!-- ローカルランキング (ランキングモード時のみ。BPM/LN率/履歴/プレイ済み列を隠して空いた幅に表示) -->
+            <Grid Grid.Column="1" Width="485" Margin="8,0,0,0"
+                  IsVisible="{Binding IsLocalRankingMode}">
+                <DataGrid x:Name="LocalRankingDataGrid"
+                          ItemsSource="{Binding LocalRanking}"
+                          RowHeight="72"
+                          IsReadOnly="True"
+                          CanUserReorderColumns="False"
+                          CanUserResizeColumns="True"
+                          CanUserSortColumns="False"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <!-- 登録日時 -->
+                        <DataGridTemplateColumn Width="*">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{translate:Translate 'MapList.LocalRanking.PlayedAt'}" VerticalAlignment="Center"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:LocalRankingEntry">
+                                    <TextBlock Text="{Binding PlayedAt, Converter={StaticResource NullableDateTimeConverter}, ConverterParameter='yyyy/MM/dd HH:mm'}"
+                                               Classes="primary-value"
+                                               VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- スコア (既存スコア列と同じ表示。ToolTip で判定内訳) -->
+                        <DataGridTemplateColumn Width="180">
+                            <DataGridTemplateColumn.Header>
+                                <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
+                            </DataGridTemplateColumn.Header>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="osu:LocalRankingEntry">
+                                    <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,8"
+                                          RowSpacing="4"
+                                          VerticalAlignment="Center"
+                                          Background="Transparent"
+                                          ToolTip.Tip="{Binding}">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                                                   Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}"
+                                                   Classes="grade-value"
+                                                   Foreground="{Binding Grade, Converter={StaticResource GradeToBrushConverter}}"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2"
+                                                   Text="{Binding Score, Converter={StaticResource ScoreConverter}}"
+                                                   Classes="primary-value"
+                                                   HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="2"
+                                                   Text="{Binding Accuracy, Converter={StaticResource AccuracyConverter}}"
+                                                   Classes="primary-value"
+                                                   HorizontalAlignment="Left"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- 選択譜面にスコアが無い場合 -->
+                <TextBlock Text="{translate:Translate 'MapList.LocalRanking.Empty'}"
+                           Classes="secondary-value"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsHitTestVisible="False"
+                           IsVisible="{Binding !HasLocalRanking}"/>
+            </Grid>
+            </Grid>
         
             <!-- ページネーション -->
             <Border Grid.Row="2"

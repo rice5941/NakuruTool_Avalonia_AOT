@@ -75,7 +75,10 @@
     "Sort.Descending": "Absteigend",
     "Sort.Reset": "Zurücksetzen",
     "Sort.Close": "Schließen",
-    "Sort.Field.None": "(Nicht festgelegt)"
+    "Sort.Field.None": "(Nicht festgelegt)",
+    "LocalRanking.Toggle": "Lokale Rangliste umschalten",
+    "LocalRanking.PlayedAt": "Erzielt am",
+    "LocalRanking.Empty": "Keine Scores"
   },
   "MapFilter": {
     "Title": "Filterbedingungen",

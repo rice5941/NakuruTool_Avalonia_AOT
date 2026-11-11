@@ -75,7 +75,10 @@
     "Sort.Descending": "По убыванию",
     "Sort.Reset": "Сброс",
     "Sort.Close": "Закрыть",
-    "Sort.Field.None": "(Не указано)"
+    "Sort.Field.None": "(Не указано)",
+    "LocalRanking.Toggle": "Показать локальный рейтинг",
+    "LocalRanking.PlayedAt": "Дата записи",
+    "LocalRanking.Empty": "Нет результатов"
   },
   "MapFilter": {
     "Title": "Условия фильтра",

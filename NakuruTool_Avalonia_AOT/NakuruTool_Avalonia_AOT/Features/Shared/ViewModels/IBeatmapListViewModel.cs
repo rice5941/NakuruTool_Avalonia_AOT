@@ -30,6 +30,15 @@ public interface IBeatmapListViewModel : INotifyPropertyChanged
     ModCategory SelectedModCategory { get; set; }
     ScoreSystemCategory SelectedScoreSystemCategory { get; set; }
 
+    /// <summary>ローカルランキング表示モード（BPM / LN率 / 履歴 / プレイ済み列を隠し、ランキング用 DataGrid を表示）。</summary>
+    bool IsLocalRankingMode { get; set; }
+
+    /// <summary>選択譜面のローカルランキング（選択中 ScoreSystem / Mod で絞り込み、スコア降順）。</summary>
+    IAvaloniaReadOnlyList<LocalRankingEntry> LocalRanking { get; }
+
+    /// <summary><see cref="LocalRanking"/> が1件以上あるか。</summary>
+    bool HasLocalRanking { get; }
+
     // ---- ContextMenu (OfficialPage / Open / Generate) 共通契約 ----
     /// <summary>選択譜面の公式 beatmapset ページを既定のブラウザで開くコマンド。</summary>
     IRelayCommand OpenOfficialPageCommand { get; }

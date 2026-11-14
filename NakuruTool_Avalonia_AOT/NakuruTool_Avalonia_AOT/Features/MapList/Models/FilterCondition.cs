@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Shared.Converters;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Models;
@@ -62,7 +64,25 @@ public enum FilterTarget
     Collection,
     OD,
     HP,
-    DrainTime
+    DrainTime,
+    /// <summary>7K Prism の Reg 基準Overall（精度 96.5%、等速）</summary>
+    ManiaPrismOverall,
+    /// <summary>7K Prism の LN 基準Overall（測定不能の譜面は一致しない）</summary>
+    ManiaPrismLnOverall,
+    /// <summary>7K Prism の基準スキル値が最大の軸（5ジャンルと LN から選択）</summary>
+    ManiaPrismTopGenre,
+    /// <summary>7K Prism の基準スキル値（比較対象で 5ジャンルか LN を選び、範囲で絞り込む）</summary>
+    ManiaPrismGenreSkill,
+    /// <summary>7K Prism のジャンル濃度（%。比較対象で 5ジャンルから選び、範囲で絞り込む）</summary>
+    ManiaPrismGenreConcentration,
+    /// <summary>7K 段位推定の Regular 段位</summary>
+    ManiaDanRegular,
+    /// <summary>7K 段位推定の LN 段位（測定不能の譜面は一致しない）</summary>
+    ManiaDanLn,
+    /// <summary>7K 段位推定の Regular ジャンル（Jack / Tech / Speed / Stream から選択）</summary>
+    ManiaDanRegularGenre,
+    /// <summary>7K 段位推定の LN ジャンル（General / Tech / Inverse / Release から選択）</summary>
+    ManiaDanLnGenre
 }
 
 /// <summary>
@@ -95,6 +115,12 @@ public static class FilterTargetInfo
         FilterTarget.OD => true,
         FilterTarget.HP => true,
         FilterTarget.DrainTime => true,
+        FilterTarget.ManiaPrismOverall => true,
+        FilterTarget.ManiaPrismLnOverall => true,
+        FilterTarget.ManiaPrismGenreSkill => true,
+        FilterTarget.ManiaPrismGenreConcentration => true,
+        FilterTarget.ManiaDanRegular => true,
+        FilterTarget.ManiaDanLn => true,
         _ => false
     };
 
@@ -123,6 +149,12 @@ public static class FilterTargetInfo
         FilterTarget.OD => true,
         FilterTarget.HP => true,
         FilterTarget.DrainTime => true,
+        FilterTarget.ManiaPrismOverall => false,
+        FilterTarget.ManiaPrismLnOverall => false,
+        FilterTarget.ManiaPrismGenreSkill => false,
+        FilterTarget.ManiaPrismGenreConcentration => false,
+        FilterTarget.ManiaDanRegular => false,
+        FilterTarget.ManiaDanLn => false,
         _ => true
     };
 
@@ -155,6 +187,12 @@ public static class FilterTargetInfo
         FilterTarget.PlayCount => true,
         FilterTarget.OD => true,
         FilterTarget.HP => true,
+        FilterTarget.ManiaPrismOverall => true,
+        FilterTarget.ManiaPrismLnOverall => true,
+        FilterTarget.ManiaPrismGenreSkill => true,
+        FilterTarget.ManiaPrismGenreConcentration => true,
+        FilterTarget.ManiaDanRegular => true,
+        FilterTarget.ManiaDanLn => true,
         _ => false
     };
 
@@ -197,6 +235,53 @@ public static class FilterTargetInfo
         FilterTarget.DrainTime => true,
         _ => false
     };
+
+    private static readonly string[] s_prismGenreChoices = Enum.GetNames<PrismGenre>();
+    private static readonly string[] s_prismSkillAxisChoices = ManiaChartAnalysis.SkillAxes;
+    private static readonly string[] s_regularDanGenreChoices = ["Jack", "Tech", "Speed", "Stream"];
+    private static readonly string[] s_lnDanGenreChoices = ["General", "Tech", "Inverse", "Release"];
+
+    /// <summary>
+    /// 固定の選択肢から1つ選ぶフィルタ対象かどうか
+    /// </summary>
+    public static bool IsChoiceType(FilterTarget target) => target is
+        FilterTarget.ManiaPrismTopGenre or FilterTarget.ManiaDanRegularGenre or FilterTarget.ManiaDanLnGenre;
+
+    /// <summary>
+    /// 選択式のフィルタ対象の選択肢（ジャンル名。表示とプリセット保存の両方に使う）
+    /// </summary>
+    public static IReadOnlyList<string> ChoiceOptions(FilterTarget target) => target switch
+    {
+        FilterTarget.ManiaPrismTopGenre => s_prismSkillAxisChoices,
+        FilterTarget.ManiaDanRegularGenre => s_regularDanGenreChoices,
+        FilterTarget.ManiaDanLnGenre => s_lnDanGenreChoices,
+        _ => [],
+    };
+
+    /// <summary>
+    /// 比較対象（ジャンル）を選んでから範囲で絞り込むフィルタ対象かどうか
+    /// </summary>
+    public static bool HasCompareTarget(FilterTarget target) => target is
+        FilterTarget.ManiaPrismGenreSkill or FilterTarget.ManiaPrismGenreConcentration;
+
+    /// <summary>
+    /// 比較対象の選択肢（基準スキル値は 5ジャンル＋LN、ジャンル濃度は 5ジャンル）
+    /// </summary>
+    public static IReadOnlyList<string> CompareOptions(FilterTarget target) => target switch
+    {
+        FilterTarget.ManiaPrismGenreSkill => s_prismSkillAxisChoices,
+        FilterTarget.ManiaPrismGenreConcentration => s_prismGenreChoices,
+        _ => [],
+    };
+
+    /// <summary>
+    /// 7K 解析の値を使うフィルタ対象かどうか（解析結果が更新されたら絞り込み直す）
+    /// </summary>
+    public static bool IsAnalyze7k(FilterTarget target) => target is
+        FilterTarget.ManiaPrismOverall or FilterTarget.ManiaPrismLnOverall or FilterTarget.ManiaPrismTopGenre or
+        FilterTarget.ManiaPrismGenreSkill or FilterTarget.ManiaPrismGenreConcentration or
+        FilterTarget.ManiaDanRegular or FilterTarget.ManiaDanLn or
+        FilterTarget.ManiaDanRegularGenre or FilterTarget.ManiaDanLnGenre;
 }
 
 /// <summary>
@@ -242,6 +327,18 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     [ObservableProperty]
     private BeatmapStatus _statusValue = BeatmapStatus.Ranked;
+
+    /// <summary>
+    /// 選択式の対象の選択値（ジャンル名）
+    /// </summary>
+    [ObservableProperty]
+    private string _choiceValue = string.Empty;
+
+    /// <summary>
+    /// 比較対象（ジャンル別の基準スキル値・ジャンル濃度で、どのジャンルの値を比べるか）
+    /// </summary>
+    [ObservableProperty]
+    private string _compareValue = string.Empty;
 
     /// <summary>
     /// NOT条件（チェック時にマッチ結果を反転）
@@ -400,6 +497,26 @@ public partial class FilterCondition : ObservableObject
     public bool IsEnumType => FilterTargetInfo.IsEnumType(Target);
 
     /// <summary>
+    /// 選択式（固定の選択肢から1つ選ぶ）かどうか
+    /// </summary>
+    public bool IsChoiceType => FilterTargetInfo.IsChoiceType(Target);
+
+    /// <summary>
+    /// 選択式の対象の選択肢（ComboBoxのItemsSource用）
+    /// </summary>
+    public IReadOnlyList<string> ChoiceOptions => FilterTargetInfo.ChoiceOptions(Target);
+
+    /// <summary>
+    /// 比較対象（ジャンル）を選ぶかどうか
+    /// </summary>
+    public bool HasCompareTarget => FilterTargetInfo.HasCompareTarget(Target);
+
+    /// <summary>
+    /// 比較対象の選択肢（ComboBoxのItemsSource用）
+    /// </summary>
+    public IReadOnlyList<string> CompareOptions => FilterTargetInfo.CompareOptions(Target);
+
+    /// <summary>
     /// Collection型かどうか
     /// </summary>
     public bool IsCollectionType => FilterTargetInfo.IsCollectionType(Target);
@@ -428,6 +545,10 @@ public partial class FilterCondition : ObservableObject
         OnPropertyChanged(nameof(IsStringType));
         OnPropertyChanged(nameof(IsBoolType));
         OnPropertyChanged(nameof(IsEnumType));
+        OnPropertyChanged(nameof(IsChoiceType));
+        OnPropertyChanged(nameof(ChoiceOptions));
+        OnPropertyChanged(nameof(HasCompareTarget));
+        OnPropertyChanged(nameof(CompareOptions));
         OnPropertyChanged(nameof(IsCollectionType));
         OnPropertyChanged(nameof(IsDurationType));
         OnPropertyChanged(nameof(IsNonCollectionEqual));
@@ -448,6 +569,8 @@ public partial class FilterCondition : ObservableObject
         Value = string.Empty;
         ValueMax = string.Empty;
         CollectionValue = string.Empty;
+        ChoiceValue = ChoiceOptions.Count > 0 ? ChoiceOptions[0] : string.Empty;
+        CompareValue = CompareOptions.Count > 0 ? CompareOptions[0] : string.Empty;
         MinBoundaryType = RangeBoundaryType.Inclusive;
         MaxBoundaryType = RangeBoundaryType.Inclusive;
     }
@@ -503,9 +626,46 @@ public partial class FilterCondition : ObservableObject
             FilterTarget.OD => MatchesDouble(beatmap.OD),
             FilterTarget.HP => MatchesDouble(beatmap.HP),
             FilterTarget.DrainTime => MatchesDuration(beatmap.DrainTimeSeconds),
+            FilterTarget.ManiaPrismOverall => MatchesNullableDouble(beatmap.ChartAnalysis?.PrismOverall),
+            FilterTarget.ManiaPrismLnOverall => MatchesNullableDouble(beatmap.ChartAnalysis?.PrismLnOverall),
+            FilterTarget.ManiaPrismTopGenre => MatchesPrismTopGenre(beatmap.ChartAnalysis),
+            FilterTarget.ManiaPrismGenreSkill => MatchesNullableDouble(beatmap.ChartAnalysis?.SkillValueOf(CompareValue)),
+            FilterTarget.ManiaPrismGenreConcentration => MatchesNullableDouble(beatmap.ChartAnalysis?.ConcentrationOf(CompareValue)),
+            FilterTarget.ManiaDanRegular => MatchesNullableDouble(beatmap.ChartAnalysis?.RegularDan),
+            FilterTarget.ManiaDanLn => MatchesNullableDouble(beatmap.ChartAnalysis?.LnDan),
+            FilterTarget.ManiaDanRegularGenre => MatchesRegularDanGenre(beatmap.ChartAnalysis),
+            FilterTarget.ManiaDanLnGenre => MatchesLnDanGenre(beatmap.ChartAnalysis),
             FilterTarget.Collection => true, // CollectionフィルタはViewModelで処理
             _ => true
         };
+    }
+
+    /// <summary>
+    /// 値がない譜面（7K 以外・未解析・測定不能）は、条件が入力されていれば一致しない
+    /// </summary>
+    private bool MatchesNullableDouble(double? value)
+    {
+        if (string.IsNullOrEmpty(Value)) return true;
+        return value is { } v && MatchesDouble(v);
+    }
+
+    /// <summary>基準スキル値（5ジャンルと LN）が最大の軸が選んだものと一致するか</summary>
+    private bool MatchesPrismTopGenre(ManiaChartAnalysis? analysis)
+    {
+        if (string.IsNullOrEmpty(ChoiceValue)) return true;
+        return analysis?.TopSkillAxis == ChoiceValue;
+    }
+
+    private bool MatchesRegularDanGenre(ManiaChartAnalysis? analysis)
+    {
+        if (!Enum.TryParse<RegularDanGenre>(ChoiceValue, out var genre) || genre == RegularDanGenre.None) return true;
+        return analysis is not null && analysis.HasRegularGenre(genre);
+    }
+
+    private bool MatchesLnDanGenre(ManiaChartAnalysis? analysis)
+    {
+        if (!Enum.TryParse<LnDanGenre>(ChoiceValue, out var genre) || genre == LnDanGenre.None) return true;
+        return analysis is not null && analysis.HasLnGenre(genre);
     }
 
     private bool MatchesString(string value)

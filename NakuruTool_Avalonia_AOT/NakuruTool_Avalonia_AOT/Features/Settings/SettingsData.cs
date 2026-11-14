@@ -13,6 +13,9 @@ public interface ISettingsData : INotifyPropertyChanged
     bool IsDarkTheme { get; set; }
     string BeatmapMirrorUrl { get; set; }
     bool AutoBatchGenerateOnStartup { get; set; }
+    bool Analyze7kEnabled { get; set; }
+    int Analyze7kParallelism { get; set; }
+    bool Analyze7kShowConcentration { get; set; }
 }
 
 public partial class SettingsData : ObservableObject, ISettingsData
@@ -26,6 +29,9 @@ public partial class SettingsData : ObservableObject, ISettingsData
     private bool _isDarkTheme = true;
     private string _beatmapMirrorUrl = BeatmapMirrors.Default;
     private bool _autoBatchGenerateOnStartup = false;
+    private bool _analyze7kEnabled = true;
+    private int _analyze7kParallelism;
+    private bool _analyze7kShowConcentration;
 
     public string OsuFolderPath
     {
@@ -75,6 +81,27 @@ public partial class SettingsData : ObservableObject, ISettingsData
         set => SetProperty(ref _autoBatchGenerateOnStartup, value);
     }
 
+    /// <summary>7K 譜面の解析（Prism・段位推定）を有効にする</summary>
+    public bool Analyze7kEnabled
+    {
+        get => _analyze7kEnabled;
+        set => SetProperty(ref _analyze7kEnabled, value);
+    }
+
+    /// <summary>7K 解析の並列数（0 は自動）。設定ファイルでのみ変更する。</summary>
+    public int Analyze7kParallelism
+    {
+        get => _analyze7kParallelism;
+        set => SetProperty(ref _analyze7kParallelism, value);
+    }
+
+    /// <summary>Prism 列をジャンル濃度の五角形で表示する（既定の false は基準スキル値の横棒）</summary>
+    public bool Analyze7kShowConcentration
+    {
+        get => _analyze7kShowConcentration;
+        set => SetProperty(ref _analyze7kShowConcentration, value);
+    }
+
     public void Update(SettingsData newData)
     {
         OsuFolderPath = newData.OsuFolderPath;
@@ -85,6 +112,9 @@ public partial class SettingsData : ObservableObject, ISettingsData
         IsDarkTheme = newData.IsDarkTheme;
         BeatmapMirrorUrl = newData.BeatmapMirrorUrl;
         AutoBatchGenerateOnStartup = newData.AutoBatchGenerateOnStartup;
+        Analyze7kEnabled = newData.Analyze7kEnabled;
+        Analyze7kParallelism = newData.Analyze7kParallelism;
+        Analyze7kShowConcentration = newData.Analyze7kShowConcentration;
     }
 }
 

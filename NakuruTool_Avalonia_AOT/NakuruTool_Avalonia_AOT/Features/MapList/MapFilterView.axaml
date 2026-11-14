@@ -165,6 +165,16 @@
                                     </ComboBox>
                                 </StackPanel>
 
+                                <!-- 比較対象（7K のジャンル別の基準スキル値・ジャンル濃度のみ表示） -->
+                                <StackPanel Grid.Row="2" Margin="0,0,0,8"
+                                            IsVisible="{Binding HasCompareTarget}">
+                                    <TextBlock Classes="filter-label" Text="{translate:Translate 'MapFilter.CompareTarget'}"/>
+                                    <ComboBox Classes="filter-combobox"
+                                              ItemsSource="{Binding CompareOptions}"
+                                              SelectedItem="{Binding CompareValue}"
+                                              HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+
                                 <!-- 値入力エリア -->
                                 <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
                                     
@@ -209,6 +219,11 @@
                                                   ItemsSource="{x:Static MapList:MapFilterViewModel.StatusOptions}"
                                                   SelectedItem="{Binding StatusValue}"
                                                   IsVisible="{Binding IsEnumType}"/>
+                                        <!-- 選択式（7K のジャンル） -->
+                                        <ComboBox Classes="filter-combobox"
+                                                  ItemsSource="{Binding ChoiceOptions}"
+                                                  SelectedItem="{Binding ChoiceValue}"
+                                                  IsVisible="{Binding IsChoiceType}"/>
                                         <!-- DrainTime入力（mm:ss形式） -->
                                         <TextBox Classes="filter-input"
                                                  Text="{Binding Value}"

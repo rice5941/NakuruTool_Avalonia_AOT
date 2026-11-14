@@ -121,11 +121,17 @@
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <RustBuildFlag Condition="'$(Configuration)' == 'Release'">--release</RustBuildFlag>
       <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathAnalyze7k>$(ProjectDir)..\..\native\nakuru_7k_analyze\target\release\analyze_7k.dll</NativeLibPathAnalyze7k>
     </PropertyGroup>
 
     <!-- Build nakuru_audio -->
     <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build $(RustBuildFlag) --manifest-path &quot;$(ProjectDir)..\..\native\nakuru_audio\Cargo.toml&quot;" />
     <Copy SourceFiles="$(NativeLibPathAudio)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAudio)')" />
+
+    <!-- Build nakuru_7k_analyze → analyze_7k.dll（Mania Tracker の計算は Debug では遅すぎるため常に release でビルドする）。
+         rust-toolchain.toml（Rust 1.96.0）を効かせるため、クレートのディレクトリで実行する。 -->
+    <Exec Command="&quot;%USERPROFILE%\.cargo\bin\cargo&quot; build --release" WorkingDirectory="$(ProjectDir)..\..\native\nakuru_7k_analyze" />
+    <Copy SourceFiles="$(NativeLibPathAnalyze7k)" DestinationFolder="$(OutDir)" Condition="Exists('$(NativeLibPathAnalyze7k)')" />
   </Target>
 
   <!-- Copy native library to publish directory for NativeAOT -->
@@ -134,11 +140,16 @@
       <RustProfile Condition="'$(Configuration)' == 'Debug'">debug</RustProfile>
       <RustProfile Condition="'$(Configuration)' == 'Release'">release</RustProfile>
       <NativeLibPathAudio>$(ProjectDir)..\..\native\nakuru_audio\target\$(RustProfile)\nakuru_audio.dll</NativeLibPathAudio>
+      <NativeLibPathAnalyze7k>$(ProjectDir)..\..\native\nakuru_7k_analyze\target\release\analyze_7k.dll</NativeLibPathAnalyze7k>
     </PropertyGroup>
 
     <ItemGroup>
       <ResolvedFileToPublish Include="$(NativeLibPathAudio)" Condition="Exists('$(NativeLibPathAudio)')">
         <RelativePath>nakuru_audio.dll</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+      <ResolvedFileToPublish Include="$(NativeLibPathAnalyze7k)" Condition="Exists('$(NativeLibPathAnalyze7k)')">
+        <RelativePath>analyze_7k.dll</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>

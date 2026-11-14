@@ -85,6 +85,12 @@
 
         <HeaderedContentControl
             Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.Analyze7kEnabled'}">
+            <ToggleSwitch IsChecked="{Binding Analyze7kEnabled}" />
+        </HeaderedContentControl>
+
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.BeatmapMirror'}">
             <ComboBox MinWidth="280" ItemsSource="{Binding MirrorUrls}" SelectedItem="{Binding SelectedMirrorUrl}" />
         </HeaderedContentControl>

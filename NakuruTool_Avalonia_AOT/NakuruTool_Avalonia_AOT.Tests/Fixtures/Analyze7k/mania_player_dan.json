@@ -1,0 +1,5258 @@
+{
+  "source": "1339369851234d6ed928aa1bd8149a4b558378e6",
+  "rice": [
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.007140940008684992,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 55,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 4,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 8,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.008273924118839204,
+          "techSections": 0.5431557944975793,
+          "motifRepeat": 0.6349040560889989,
+          "speedPeak": 0.9100295137614012,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.4602941742632538
+          },
+          {
+            "id": "jack",
+            "score": 0.39648351538926363
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3358324504108168,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 29,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 16,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 32,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.20306265051476657,
+          "techSections": 0.9527641565073282,
+          "motifRepeat": 0.9936783332377672,
+          "speedPeak": 0.6637005673255771,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.46266716066747904
+          },
+          {
+            "id": "jack",
+            "score": 0.29167800839059055
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2005445122020319,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 55,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 63,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 77,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.48113839665893465,
+          "techSections": 0.015465399250388145,
+          "motifRepeat": 0.7797552251722664,
+          "speedPeak": 0.3022478395141661,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.7256797559093684
+          },
+          {
+            "id": "jack",
+            "score": 0.3317730142734945
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2494280464365147,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 53,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 93,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 69,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2880264716222882,
+          "techSections": 0.7614221514668316,
+          "motifRepeat": 0.44273830065503716,
+          "speedPeak": 0.20596579858101904,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.358226855751127
+          },
+          {
+            "id": "jack",
+            "score": 0.7931371175218374
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2788138532079756,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 25,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 82,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 70,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.08804970874916762,
+          "techSections": 0.11897938931360841,
+          "motifRepeat": 0.4040652068797499,
+          "speedPeak": 0.8745494885370135,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.8955211818683892
+          },
+          {
+            "id": "jack",
+            "score": 0.6313174534589052
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.32210032996954396,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 12,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 10,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 74,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.19195192237384617,
+          "techSections": 0.7832466254476458,
+          "motifRepeat": 0.825291215442121,
+          "speedPeak": 0.09645176935009658,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.17985794506967068
+          },
+          {
+            "id": "jack",
+            "score": 0.282085066428408
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3084426515502855,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 56,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 40,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 83,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1959936135681346,
+          "techSections": 0.7753169713541865,
+          "motifRepeat": 0.7178113001864403,
+          "speedPeak": 0.0905108074657619,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.0036974044051021338
+          },
+          {
+            "id": "jack",
+            "score": 0.6581353754736483
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.007674886554013937,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 34,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 19,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 42,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.17595015792176127,
+          "techSections": 0.10929741221480072,
+          "motifRepeat": 0.5111348140053451,
+          "speedPeak": 0.9123502199072391,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.9774094917811453
+          },
+          {
+            "id": "jack",
+            "score": 0.7703749837819487
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.22958166734315452,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 39,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 67,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 15,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2249402211746201,
+          "techSections": 0.47936934186145663,
+          "motifRepeat": 0.4898299139458686,
+          "speedPeak": 0.3735787197947502,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.6027967969421297
+          },
+          {
+            "id": "jack",
+            "score": 0.5744980713352561
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.22339005150133742,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 31,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 1,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 25,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2258557917084545,
+          "techSections": 0.4594550032634288,
+          "motifRepeat": 0.5753750316798687,
+          "speedPeak": 0.36067490628920496,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.09322366397827864
+          },
+          {
+            "id": "jack",
+            "score": 0.3553514170926064
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.1937614152440801,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 34,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 68,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 10,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.0033327756682410836,
+          "techSections": 0.21290633082389832,
+          "motifRepeat": 0.14638262218795717,
+          "speedPeak": 0.7702653822489083,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.1268128480296582
+          },
+          {
+            "id": "jack",
+            "score": 0.39193453965708613
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.026491739449556916,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 74,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 65,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 25,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.13604437746107578,
+          "techSections": 0.7708547671791166,
+          "motifRepeat": 0.2674067919142544,
+          "speedPeak": 0.5263790471944958,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.8675362016074359
+          },
+          {
+            "id": "jack",
+            "score": 0.9320485901553184
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.14545868895947933,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 86,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 40,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 54,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2955200969008729,
+          "techSections": 0.414655823726207,
+          "motifRepeat": 0.22105583758093417,
+          "speedPeak": 0.20411737728863955,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.7250465203542262
+          },
+          {
+            "id": "jack",
+            "score": 0.29536059126257896
+          }
+        ]
+      },
+      "expected": [
+        "speed",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.1134837609832175,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 75,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 47,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 68,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3426776865962893,
+          "techSections": 0.3886313496623188,
+          "motifRepeat": 0.833364644087851,
+          "speedPeak": 0.5202683031093329,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.8650713413953781
+          },
+          {
+            "id": "jack",
+            "score": 0.11060411459766328
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.19247152691241354,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 15,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 47,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 52,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.28708239377010614,
+          "techSections": 0.8790483446791768,
+          "motifRepeat": 0.18199507961980999,
+          "speedPeak": 0.5959721370600164,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.5756381263490766
+          },
+          {
+            "id": "jack",
+            "score": 0.28832916961982846
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.12149529623566195,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 33,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 21,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 28,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.41512922244146466,
+          "techSections": 0.1740367307793349,
+          "motifRepeat": 0.7253684452734888,
+          "speedPeak": 0.14743682672269642,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.8026407700963318
+          },
+          {
+            "id": "jack",
+            "score": 0.8639125695917755
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10708870305679738,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 14,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 29,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 85,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.08011343737598509,
+          "techSections": 0.8747644959948957,
+          "motifRepeat": 0.6087638766039163,
+          "speedPeak": 0.927772106602788,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.43031563446857035
+          },
+          {
+            "id": "jack",
+            "score": 0.36753176990896463
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0193814922706224,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 18,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 71,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 76,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.23006506892852485,
+          "techSections": 0.35378447850234807,
+          "motifRepeat": 0.345147093757987,
+          "speedPeak": 0.20230548619292676,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.8311889888718724
+          },
+          {
+            "id": "jack",
+            "score": 0.08776992629282176
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.16542068619746714,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 60,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 95,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 6,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.28616661357227713,
+          "techSections": 0.20098076201975346,
+          "motifRepeat": 0.7389689029660076,
+          "speedPeak": 0.4492774666287005,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.8616728826891631
+          },
+          {
+            "id": "jack",
+            "score": 0.29112615203484893
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.34799932291498403,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 22,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 83,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 88,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2222840776666999,
+          "techSections": 0.04482430010102689,
+          "motifRepeat": 0.40419363463297486,
+          "speedPeak": 0.6457554253283888,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.49467278411611915
+          },
+          {
+            "id": "jack",
+            "score": 0.4520488560665399
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3003742455504834,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 86,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 51,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 31,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3909981556935236,
+          "techSections": 0.6462794975377619,
+          "motifRepeat": 0.6167070160154253,
+          "speedPeak": 0.48190104868263006,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.4430802382994443
+          },
+          {
+            "id": "jack",
+            "score": 0.36972335539758205
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0014738965895958243,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 79,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 5,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 25,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3862065535504371,
+          "techSections": 0.16316505544818938,
+          "motifRepeat": 0.5499878702685237,
+          "speedPeak": 0.7958266872446984,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.364920312538743
+          },
+          {
+            "id": "jack",
+            "score": 0.21929652406834066
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2739774896530434,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 46,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 97,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 72,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.23369788948912174,
+          "techSections": 0.19507173355668783,
+          "motifRepeat": 0.013366418657824397,
+          "speedPeak": 0.974084387999028,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.45168180554173887
+          },
+          {
+            "id": "jack",
+            "score": 0.8934373357333243
+          }
+        ]
+      },
+      "expected": [
+        "speed",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.006065319560002535,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 88,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 20,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 52,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2980920053087175,
+          "techSections": 0.4263409588020295,
+          "motifRepeat": 0.4205179209820926,
+          "speedPeak": 0.8284906905610114,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.34868562081828713
+          },
+          {
+            "id": "jack",
+            "score": 0.16906053223647177
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.25147111010737716,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 26,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 95,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 3,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4745361035456881,
+          "techSections": 0.6515767457894981,
+          "motifRepeat": 0.018853237153962255,
+          "speedPeak": 0.9206416718661785,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.709347345167771
+          },
+          {
+            "id": "jack",
+            "score": 0.6257833568379283
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.09733801890397444,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 58,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 24,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 29,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.49791418365202844,
+          "techSections": 0.44915475812740624,
+          "motifRepeat": 0.5598399937152863,
+          "speedPeak": 0.9016069096978754,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.7929972326382995
+          },
+          {
+            "id": "jack",
+            "score": 0.9547252382617444
+          }
+        ]
+      },
+      "expected": [
+        "stream",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.09214996101800352,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 84,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 54,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 64,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.35212468972895294,
+          "techSections": 0.9344101436436176,
+          "motifRepeat": 0.28041636548005044,
+          "speedPeak": 0.2868186538107693,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.4274236324708909
+          },
+          {
+            "id": "jack",
+            "score": 0.5579065824858844
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2415981013677083,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 4,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 77,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 74,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.01757553592324257,
+          "techSections": 0.07393324351869524,
+          "motifRepeat": 0.968235929030925,
+          "speedPeak": 0.1458381733391434,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.09009474841877818
+          },
+          {
+            "id": "jack",
+            "score": 0.19717973959632218
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.29474183935672044,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 23,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 71,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 47,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.13254147942643613,
+          "techSections": 0.4481525500304997,
+          "motifRepeat": 0.3594074903521687,
+          "speedPeak": 0.9889464164152741,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.4611690428573638
+          },
+          {
+            "id": "jack",
+            "score": 0.6371301263570786
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0908748711575754,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 68,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 80,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 12,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3250533624086529,
+          "techSections": 0.13219449878670275,
+          "motifRepeat": 0.28416090924292803,
+          "speedPeak": 0.17352555762045085,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.31625521555542946
+          },
+          {
+            "id": "jack",
+            "score": 0.948740374064073
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10752244086470454,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 85,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 31,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 82,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.46214873262215406,
+          "techSections": 0.47440375480800867,
+          "motifRepeat": 0.1460397734772414,
+          "speedPeak": 0.09001517808064818,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.7713567165192217
+          },
+          {
+            "id": "jack",
+            "score": 0.7746321302838624
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2739550515892915,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 57,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 82,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 86,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3783863657154143,
+          "techSections": 0.3668528727721423,
+          "motifRepeat": 0.014119022991508245,
+          "speedPeak": 0.7028129131067544,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.8421313394792378
+          },
+          {
+            "id": "jack",
+            "score": 0.9039146511349827
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2697619504760951,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 5,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 51,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 69,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.13320001808460802,
+          "techSections": 0.7562725371681154,
+          "motifRepeat": 0.7809977300930768,
+          "speedPeak": 0.4827511515468359,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.19619571627117693
+          },
+          {
+            "id": "jack",
+            "score": 0.9106942536309361
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2060075523913838,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 66,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 53,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 99,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.00538294087164104,
+          "techSections": 0.31537670944817364,
+          "motifRepeat": 0.6533621940761805,
+          "speedPeak": 0.9421626271214336,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.6383564183488488
+          },
+          {
+            "id": "jack",
+            "score": 0.4533200904261321
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3008545856224373,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 58,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 71,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 87,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.08822425419930369,
+          "techSections": 0.1895101647824049,
+          "motifRepeat": 0.6431024053599685,
+          "speedPeak": 0.2673497744835913,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.4189461551140994
+          },
+          {
+            "id": "jack",
+            "score": 0.5849092691205442
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.11803779633482918,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 78,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 48,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 92,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.35081146005541086,
+          "techSections": 0.12716543837450445,
+          "motifRepeat": 0.2873782948590815,
+          "speedPeak": 0.5923182854894549,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.4816161966882646
+          },
+          {
+            "id": "jack",
+            "score": 0.4358605064917356
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3309726451523602,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 96,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 62,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 46,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.10685146122705191,
+          "techSections": 0.09306589001789689,
+          "motifRepeat": 0.7366500126663595,
+          "speedPeak": 0.5984014449641109,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.33789333258755505
+          },
+          {
+            "id": "jack",
+            "score": 0.13549327291548252
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.06165866573574021,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 32,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 73,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 91,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.318867962108925,
+          "techSections": 0.6253266895655543,
+          "motifRepeat": 0.14401707705110312,
+          "speedPeak": 0.2612464602570981,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.2556456457823515
+          },
+          {
+            "id": "jack",
+            "score": 0.804613841464743
+          }
+        ]
+      },
+      "expected": [
+        "speed",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.03168622597586363,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 13,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 35,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 53,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.06845180701930076,
+          "techSections": 0.7242255760356784,
+          "motifRepeat": 0.8130187604110688,
+          "speedPeak": 0.2882412071339786,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.46819748147390783
+          },
+          {
+            "id": "jack",
+            "score": 0.6489183292724192
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0063350512529723344,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 67,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 88,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 96,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.19115806324407458,
+          "techSections": 0.9865106593351811,
+          "motifRepeat": 0.8912978651933372,
+          "speedPeak": 0.8151289124507457,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.3511789911426604
+          },
+          {
+            "id": "jack",
+            "score": 0.44629970961250365
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.09107375391758978,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 13,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 13,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 65,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.24694780947174877,
+          "techSections": 0.8411898980848491,
+          "motifRepeat": 0.8511776563245803,
+          "speedPeak": 0.7244616448879242,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.5920497889164835
+          },
+          {
+            "id": "jack",
+            "score": 0.9109641825780272
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3122257822775282,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 77,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 100,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 42,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.07552756159566343,
+          "techSections": 0.2649980161804706,
+          "motifRepeat": 0.058950770646333694,
+          "speedPeak": 0.2675780614372343,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.6112641198560596
+          },
+          {
+            "id": "jack",
+            "score": 0.6451713803689927
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.044791834638454014,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 98,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 58,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 6,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3016790902474895,
+          "techSections": 0.011456377804279327,
+          "motifRepeat": 0.6633326408918947,
+          "speedPeak": 0.00014855386689305305,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.1870419185142964
+          },
+          {
+            "id": "jack",
+            "score": 0.1854829820804298
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10388539008563384,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 90,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 65,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 77,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4450801145285368,
+          "techSections": 0.19133919826708734,
+          "motifRepeat": 0.11506349639967084,
+          "speedPeak": 0.30241263494826853,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.65604781312868
+          },
+          {
+            "id": "jack",
+            "score": 0.2222159889061004
+          }
+        ]
+      },
+      "expected": [
+        "speed",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10675066486001014,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 94,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 60,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 60,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.26149985555093735,
+          "techSections": 0.33018982084468007,
+          "motifRepeat": 0.44760946393944323,
+          "speedPeak": 0.37903177458792925,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.2651953224558383
+          },
+          {
+            "id": "jack",
+            "score": 0.480178777128458
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2852737018023617,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 61,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 45,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 64,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4158805238548666,
+          "techSections": 0.2940070165786892,
+          "motifRepeat": 0.265338615514338,
+          "speedPeak": 0.9950569763313979,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.5666460618376732
+          },
+          {
+            "id": "jack",
+            "score": 0.7721483258064836
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.149828353500925,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 95,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 57,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 67,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3896213109837845,
+          "techSections": 0.06139854062348604,
+          "motifRepeat": 0.6418992809485644,
+          "speedPeak": 0.6366888820193708,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.7091981952544302
+          },
+          {
+            "id": "jack",
+            "score": 0.36202385323122144
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.34662868509767575,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 72,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 67,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 59,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4924085703678429,
+          "techSections": 0.9872510402929038,
+          "motifRepeat": 0.27391151851043105,
+          "speedPeak": 0.8064165480900556,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.12353403540328145
+          },
+          {
+            "id": "jack",
+            "score": 0.7263476199004799
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.002828986709937453,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 30,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 55,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 21,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.14532449876423925,
+          "techSections": 0.7586790635250509,
+          "motifRepeat": 0.504282008158043,
+          "speedPeak": 0.24569723941385746,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.060561983147636056
+          },
+          {
+            "id": "jack",
+            "score": 0.17106679175049067
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.06566226041177287,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 50,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 74,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 20,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4380509953480214,
+          "techSections": 0.9021313034463674,
+          "motifRepeat": 0.34393703751266,
+          "speedPeak": 0.03343373327516019,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.8935230867937207
+          },
+          {
+            "id": "jack",
+            "score": 0.752113290829584
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.21402013015467672,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 49,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 20,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 57,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.05681357684079558,
+          "techSections": 0.474049823358655,
+          "motifRepeat": 0.018294038018211722,
+          "speedPeak": 0.11970023671165109,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.5591359257232398
+          },
+          {
+            "id": "jack",
+            "score": 0.9628324485383928
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3211149693815969,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 94,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 72,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 48,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1100481329485774,
+          "techSections": 0.9730604344513267,
+          "motifRepeat": 0.6557230674661696,
+          "speedPeak": 0.6749420987907797,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.7533374889753759
+          },
+          {
+            "id": "jack",
+            "score": 0.31990471039898694
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2184506963007152,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 52,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 17,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 9,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.46840534068178385,
+          "techSections": 0.0354646653868258,
+          "motifRepeat": 0.05822097905911505,
+          "speedPeak": 0.5112363463267684,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.11720716883428395
+          },
+          {
+            "id": "jack",
+            "score": 0.4987718593329191
+          }
+        ]
+      },
+      "expected": [
+        "stream",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.162828435015399,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 51,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 36,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 95,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1905968536157161,
+          "techSections": 0.6915973725263029,
+          "motifRepeat": 0.3525723172351718,
+          "speedPeak": 0.6724138471763581,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.7395614106208086
+          },
+          {
+            "id": "jack",
+            "score": 0.6930815742816776
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2952247137902304,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 20,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 56,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 41,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3562078197719529,
+          "techSections": 0.8784797927364707,
+          "motifRepeat": 0.813072646735236,
+          "speedPeak": 0.9833749416284263,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.3967655503656715
+          },
+          {
+            "id": "jack",
+            "score": 0.4137903922237456
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2410394710372202,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 84,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 30,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 20,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1545028849504888,
+          "techSections": 0.0652123976033181,
+          "motifRepeat": 0.9021886358968914,
+          "speedPeak": 0.7752342459280044,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.7367969513870776
+          },
+          {
+            "id": "jack",
+            "score": 0.1815755481366068
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.09636552040465175,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 14,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 25,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 93,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.0006790620973333716,
+          "techSections": 0.8677431005053222,
+          "motifRepeat": 0.3204365943092853,
+          "speedPeak": 0.9582106359302998,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.30792622291482985
+          },
+          {
+            "id": "jack",
+            "score": 0.13226528000086546
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.03544149469817057,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 5,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 8,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 37,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1951232326682657,
+          "techSections": 0.23378226277418435,
+          "motifRepeat": 0.6570121720433235,
+          "speedPeak": 0.42173838592134416,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.2707568695768714
+          },
+          {
+            "id": "jack",
+            "score": 0.8144004147034138
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.03022326047066599,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 57,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 97,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 9,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.29322675114963204,
+          "techSections": 0.7519826553761959,
+          "motifRepeat": 0.16550803533755243,
+          "speedPeak": 0.498588212300092,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.6224798399489373
+          },
+          {
+            "id": "jack",
+            "score": 0.4916589776985347
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.31357256922638044,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 49,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 2,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 2,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.09059333056211472,
+          "techSections": 0.9631757808383554,
+          "motifRepeat": 0.40266793640330434,
+          "speedPeak": 0.08290968299843371,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.8732109474949539
+          },
+          {
+            "id": "jack",
+            "score": 0.6884470109362155
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.17393130194395778,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 48,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 32,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 99,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.11856008123140782,
+          "techSections": 0.6744913910515606,
+          "motifRepeat": 0.01875807181932032,
+          "speedPeak": 0.5155630270019174,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.06157909450121224
+          },
+          {
+            "id": "jack",
+            "score": 0.17834260314702988
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.33514994896249845,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 22,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 31,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 17,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2877437046263367,
+          "techSections": 0.4159542790148407,
+          "motifRepeat": 0.5323451505973935,
+          "speedPeak": 0.04786609928123653,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.9437127523124218
+          },
+          {
+            "id": "jack",
+            "score": 0.7051108067389578
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.28057929778005924,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 56,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 78,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 18,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.1260873480932787,
+          "techSections": 0.3222379023209214,
+          "motifRepeat": 0.2804287045728415,
+          "speedPeak": 0.8255470818839967,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.7331719619687647
+          },
+          {
+            "id": "jack",
+            "score": 0.2960640308447182
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.07595342210261151,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 89,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 8,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 68,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2179273427464068,
+          "techSections": 0.2564378983806819,
+          "motifRepeat": 0.5288700773380697,
+          "speedPeak": 0.7015491232741624,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.0613538627512753
+          },
+          {
+            "id": "jack",
+            "score": 0.27446403936482966
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.17191710057668386,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 2,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 35,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 39,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.06351599318441004,
+          "techSections": 0.1531785330735147,
+          "motifRepeat": 0.7338321649003774,
+          "speedPeak": 0.22034877352416515,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.22545606107451022
+          },
+          {
+            "id": "jack",
+            "score": 0.4861280219629407
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.1686390428454615,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 86,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 92,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 59,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.19345161761157215,
+          "techSections": 0.3436777770984918,
+          "motifRepeat": 0.48799283988773823,
+          "speedPeak": 0.517882110318169,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.11092544440180063
+          },
+          {
+            "id": "jack",
+            "score": 0.41141088004224
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.32590959884691983,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 45,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 30,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 58,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.22520637104753405,
+          "techSections": 0.5056037660688162,
+          "motifRepeat": 0.34478366910479963,
+          "speedPeak": 0.2728846394456923,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.5698551095556468
+          },
+          {
+            "id": "jack",
+            "score": 0.3123010857962072
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.07031601661583409,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 100,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 93,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 35,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.07168751675635576,
+          "techSections": 0.5637257189955562,
+          "motifRepeat": 0.7884790510870516,
+          "speedPeak": 0.32857864745892584,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.6943123689852655
+          },
+          {
+            "id": "jack",
+            "score": 0.5320531718898565
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.01470277765765786,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 68,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 59,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 39,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.24800629063975066,
+          "techSections": 0.5779222347773612,
+          "motifRepeat": 0.24391075992025435,
+          "speedPeak": 0.7937242342159152,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.7333075136411935
+          },
+          {
+            "id": "jack",
+            "score": 0.9252115804702044
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.014717548910994081,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 75,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 88,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 19,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3724640898872167,
+          "techSections": 0.8145070115569979,
+          "motifRepeat": 0.5194798847660422,
+          "speedPeak": 0.491258169291541,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.9122028853744268
+          },
+          {
+            "id": "jack",
+            "score": 0.7438458406832069
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.08191091574262827,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 1,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 69,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 5,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4995004126103595,
+          "techSections": 0.08466849010437727,
+          "motifRepeat": 0.05455896141938865,
+          "speedPeak": 0.9913245807401836,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.8475086928810924
+          },
+          {
+            "id": "jack",
+            "score": 0.6430858732201159
+          }
+        ]
+      },
+      "expected": [
+        "stream",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.262216390192043,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 42,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 1,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 53,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.09929742990061641,
+          "techSections": 0.3450786198955029,
+          "motifRepeat": 0.22584953485056758,
+          "speedPeak": 0.43306511384435,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.035767162684351206
+          },
+          {
+            "id": "jack",
+            "score": 0.5725351425353438
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10296881557442247,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 80,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 38,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 15,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.42909686581697315,
+          "techSections": 0.1572159673087299,
+          "motifRepeat": 0.14405253645963967,
+          "speedPeak": 0.2843184545636177,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.09466280438937247
+          },
+          {
+            "id": "jack",
+            "score": 0.8405441930517554
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.020652606117073445,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 61,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 48,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 24,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3026011602487415,
+          "techSections": 0.62859404576011,
+          "motifRepeat": 0.7400868199765682,
+          "speedPeak": 0.2500894700642675,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.6553408382460475
+          },
+          {
+            "id": "jack",
+            "score": 0.44484947505407035
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.10798632225487381,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 2,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 64,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 71,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.02239297761116177,
+          "techSections": 0.5781844109296799,
+          "motifRepeat": 0.6426706982310861,
+          "speedPeak": 0.6800410714931786,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.607776093063876
+          },
+          {
+            "id": "jack",
+            "score": 0.7373751210980117
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.19582977428799495,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 41,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 17,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 98,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3395293075591326,
+          "techSections": 0.277397703146562,
+          "motifRepeat": 0.647898003924638,
+          "speedPeak": 0.6610506309662014,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.9058450157754123
+          },
+          {
+            "id": "jack",
+            "score": 0.9109515410382301
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.29747012145817275,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 24,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 97,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 49,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.19506279367487878,
+          "techSections": 0.029351328033953905,
+          "motifRepeat": 0.25536368996836245,
+          "speedPeak": 0.482112561352551,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.9710631568450481
+          },
+          {
+            "id": "jack",
+            "score": 0.1372154764831066
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2894713555579074,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 87,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 24,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 12,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.48676259466446936,
+          "techSections": 0.25183572457171977,
+          "motifRepeat": 0.09551071468740702,
+          "speedPeak": 0.20843302900902927,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.1391819715499878
+          },
+          {
+            "id": "jack",
+            "score": 0.10726221627555788
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.30681491603609173,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 54,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 16,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 75,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.11534109443891793,
+          "techSections": 0.5065098525956273,
+          "motifRepeat": 0.5484597093891352,
+          "speedPeak": 0.13383892318233848,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.4851389785762876
+          },
+          {
+            "id": "jack",
+            "score": 0.1943826680071652
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.01628640982089564,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 45,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 31,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 32,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4556155954487622,
+          "techSections": 0.33409667457453907,
+          "motifRepeat": 0.5033141574822366,
+          "speedPeak": 0.2340510927606374,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.25466613890603185
+          },
+          {
+            "id": "jack",
+            "score": 0.39093053550459445
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.30998756526969373,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 100,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 79,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 61,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3352918963646516,
+          "techSections": 0.7236607163213193,
+          "motifRepeat": 0.5899027169216424,
+          "speedPeak": 0.05595196969807148,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.3548336385283619
+          },
+          {
+            "id": "jack",
+            "score": 0.6982393944635987
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.05744812308112159,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 52,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 67,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 15,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.09956484916619956,
+          "techSections": 0.5971847095061094,
+          "motifRepeat": 0.11465862952172756,
+          "speedPeak": 0.39137262641452253,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.622182753868401
+          },
+          {
+            "id": "jack",
+            "score": 0.9844507731031626
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.055708630126900964,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 70,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 81,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 88,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.27169395762030035,
+          "techSections": 0.005683833733201027,
+          "motifRepeat": 0.11941272928379476,
+          "speedPeak": 0.7092790813185275,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.9271931841503829
+          },
+          {
+            "id": "jack",
+            "score": 0.4709158889017999
+          }
+        ]
+      },
+      "expected": [
+        "speed",
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.17711478447308762,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 58,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 10,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 80,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.09892693813890219,
+          "techSections": 0.9594792851712555,
+          "motifRepeat": 0.4932176568545401,
+          "speedPeak": 0.35634377622045577,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.4517118572257459
+          },
+          {
+            "id": "jack",
+            "score": 0.9152166575659066
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.08505100226029753,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 26,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 59,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 87,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.2888015889329836,
+          "techSections": 0.16570532182231545,
+          "motifRepeat": 0.8868742624763399,
+          "speedPeak": 0.6178164025768638,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.11601919610984623
+          },
+          {
+            "id": "jack",
+            "score": 0.08847271464765072
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0984958987799473,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 25,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 49,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 82,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.312200688989833,
+          "techSections": 0.9397495763842016,
+          "motifRepeat": 0.8996988860890269,
+          "speedPeak": 0.5244353103917092,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.3896131608635187
+          },
+          {
+            "id": "jack",
+            "score": 0.08265432133339345
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.14709990385454147,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 72,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 20,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 23,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4286961016478017,
+          "techSections": 0.9932585870847106,
+          "motifRepeat": 0.9857351507525891,
+          "speedPeak": 0.03787442622706294,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.7596511521842331
+          },
+          {
+            "id": "jack",
+            "score": 0.5701574333943427
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.18826104187173767,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 10,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 2,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 40,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.20477906381711364,
+          "techSections": 0.9784683350007981,
+          "motifRepeat": 0.24138517631217837,
+          "speedPeak": 0.896669001551345,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.3691375986672938
+          },
+          {
+            "id": "jack",
+            "score": 0.997489650035277
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2435275298077613,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 59,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 39,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 7,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.49168150627519935,
+          "techSections": 0.5545334252528846,
+          "motifRepeat": 0.985737030627206,
+          "speedPeak": 0.16697272285819054,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.9331097530666739
+          },
+          {
+            "id": "jack",
+            "score": 0.7477912781760097
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.17968086336040867,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 93,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Dense Stream",
+            "importance": 1,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 37,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.4595839639659971,
+          "techSections": 0.2313089754898101,
+          "motifRepeat": 0.8084951490163803,
+          "speedPeak": 0.6239844632800668,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.12251419480890036
+          },
+          {
+            "id": "jack",
+            "score": 0.17618225771002471
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.0030039631063118574,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 43,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 61,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 80,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.22044760605785996,
+          "techSections": 0.3390148915350437,
+          "motifRepeat": 0.9984003414865583,
+          "speedPeak": 0.5644808863289654,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.7366959366481751
+          },
+          {
+            "id": "jack",
+            "score": 0.04001727653667331
+          }
+        ]
+      },
+      "expected": [
+        "tech",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.3476533126435242,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 53,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 6,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 25,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.44693107530474663,
+          "techSections": 0.13231123960576952,
+          "motifRepeat": 0.6021727663464844,
+          "speedPeak": 0.8599708548281342,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.5871561947278678
+          },
+          {
+            "id": "jack",
+            "score": 0.4010973770637065
+          }
+        ]
+      },
+      "expected": [
+        "stream",
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.29666872862726446,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 10,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 29,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 78,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.06877441133838147,
+          "techSections": 0.6901340116746724,
+          "motifRepeat": 0.5518507568631321,
+          "speedPeak": 0.6171355778351426,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.8731793698389083
+          },
+          {
+            "id": "jack",
+            "score": 0.12664908170700073
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.27957871138351037,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 99,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 67,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 19,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.3388420401606709,
+          "techSections": 0.32986485422588885,
+          "motifRepeat": 0.532548320479691,
+          "speedPeak": 0.2292144305538386,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.5215382166206837
+          },
+          {
+            "id": "jack",
+            "score": 0.6360885163303465
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.16579945997800677,
+        "clusterCategory": "Stream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 59,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 99,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 71,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.46963383175898343,
+          "techSections": 0.7436852166429162,
+          "motifRepeat": 0.8713005229365081,
+          "speedPeak": 0.7390088639222085,
+          "rollSections": 3
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.9673117694910616
+          },
+          {
+            "id": "jack",
+            "score": 0.8591800821013749
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.336779717344325,
+        "clusterCategory": "Tech Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 89,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 66,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 2,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.20233764732256532,
+          "techSections": 0.38088715891353786,
+          "motifRepeat": 0.4342585294507444,
+          "speedPeak": 0.41480197315104306,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0
+          },
+          {
+            "id": "bracket",
+            "score": 0.2996164937503636
+          },
+          {
+            "id": "jack",
+            "score": 0.38032779679633677
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.12671063835732638,
+        "clusterCategory": "Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 31,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 47,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 75,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.43990788457449526,
+          "techSections": 0.5792106962762773,
+          "motifRepeat": 0.9202872433234006,
+          "speedPeak": 0.35976085625588894,
+          "rollSections": 0
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.25
+          },
+          {
+            "id": "bracket",
+            "score": 0.13706446648575366
+          },
+          {
+            "id": "jack",
+            "score": 0.46714517194777727
+          }
+        ]
+      },
+      "expected": [
+        "tech"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.01869152138242498,
+        "clusterCategory": "Dense Chordstream",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 25,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 13,
+            "mixed": true
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 51,
+            "mixed": true
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.053218387765809894,
+          "techSections": 0.9098597422707826,
+          "motifRepeat": 0.5235712472349405,
+          "speedPeak": 0.6663717122282833,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.7
+          },
+          {
+            "id": "bracket",
+            "score": 0.8887970903888345
+          },
+          {
+            "id": "jack",
+            "score": 0.21294744755141437
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.2051712217973545,
+        "clusterCategory": "Tech",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Chordstream",
+            "importance": 72,
+            "mixed": false
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 78,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Dense Jack",
+            "importance": 63,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.30083718860987574,
+          "techSections": 0.278809679672122,
+          "motifRepeat": 0.9181242117192596,
+          "speedPeak": 0.9395799734629691,
+          "rollSections": 2
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 0.9
+          },
+          {
+            "id": "bracket",
+            "score": 0.3582161895465106
+          },
+          {
+            "id": "jack",
+            "score": 0.038972878362983465
+          }
+        ]
+      },
+      "expected": [
+        "speed"
+      ]
+    },
+    {
+      "parsed": {
+        "version": 1,
+        "lnRatio": 0.1982487912639044,
+        "clusterCategory": "Jack",
+        "clusters": [
+          {
+            "pattern": "Chordstream",
+            "label": "Dense Chordstream",
+            "importance": 50,
+            "mixed": true
+          },
+          {
+            "pattern": "Stream",
+            "label": "Stream",
+            "importance": 89,
+            "mixed": false
+          },
+          {
+            "pattern": "Jack",
+            "label": "Jack",
+            "importance": 82,
+            "mixed": false
+          }
+        ],
+        "riceShape": {
+          "twoBack": 0.0027176300063729286,
+          "techSections": 0.36224068864248693,
+          "motifRepeat": 0.9183306084014475,
+          "speedPeak": 0.492017392301932,
+          "rollSections": 1
+        },
+        "patterns": [
+          {
+            "id": "delay",
+            "score": 1
+          },
+          {
+            "id": "bracket",
+            "score": 0.7479022867046297
+          },
+          {
+            "id": "jack",
+            "score": 0.2898449965287
+          }
+        ]
+      },
+      "expected": [
+        "jack"
+      ]
+    }
+  ],
+  "averages": [
+    {
+      "values": [
+        8,
+        9,
+        10
+      ],
+      "raw": null,
+      "ignored": 0
+    },
+    {
+      "values": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "raw": 10,
+      "ignored": 0
+    },
+    {
+      "values": [
+        14,
+        14,
+        14,
+        14,
+        14,
+        1,
+        1,
+        1
+      ],
+      "raw": 14,
+      "ignored": 3
+    },
+    {
+      "values": [
+        14,
+        13.9,
+        13.8,
+        13.7,
+        13.6,
+        13.5,
+        13.4,
+        13.3,
+        13.2,
+        13.1,
+        13,
+        12.9,
+        12.8,
+        12.7,
+        12.6,
+        12.5,
+        12.4,
+        12.3,
+        12.2,
+        12.1,
+        12,
+        11.9,
+        11.8,
+        11.7,
+        11.6,
+        11.5,
+        11.4,
+        11.3,
+        11.2,
+        11.1
+      ],
+      "raw": 13.05,
+      "ignored": 0
+    },
+    {
+      "values": [
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "raw": 6.5,
+      "ignored": 2
+    }
+  ],
+  "anchors": [
+    {
+      "values": [
+        13.8,
+        13.6,
+        9.8
+      ],
+      "raw": 13.25
+    },
+    {
+      "values": [
+        10,
+        14,
+        14
+      ],
+      "raw": 11
+    },
+    {
+      "values": [
+        10,
+        6,
+        6
+      ],
+      "raw": 9
+    },
+    {
+      "values": [
+        10,
+        10.1
+      ],
+      "raw": 10.05
+    },
+    {
+      "values": [
+        10,
+        9.5,
+        8.4,
+        6.1
+      ],
+      "raw": 9.32
+    }
+  ]
+}

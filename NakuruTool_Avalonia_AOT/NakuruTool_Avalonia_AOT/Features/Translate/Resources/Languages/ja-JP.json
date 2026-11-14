@@ -23,7 +23,8 @@
     "PreferUnicode": "Unicode表示を優先",
     "BeatmapMirror": "譜面ダウンロードミラー",
     "AutoBatchGenerateOnStartup": "起動時にプリセットからコレクションを一括生成",
-    "AppVersion": "バージョン"
+    "AppVersion": "バージョン",
+    "Analyze7kEnabled": "7K譜面の解析（Prism・段位推定）を行う"
   },
   "Licenses": {
     "Title": "オープンソースライセンス",
@@ -78,7 +79,25 @@
     "Sort.Field.None": "(未指定)",
     "LocalRanking.Toggle": "ローカルランキング表示",
     "LocalRanking.PlayedAt": "登録日時",
-    "LocalRanking.Empty": "スコアなし"
+    "LocalRanking.Empty": "スコアなし",
+    "Analyze7k.PrismColumn": "Prism（基準96.5%）",
+    "Analyze7k.DanColumn": "段位推定",
+    "Analyze7k.Unavailable": "測定不能",
+    "Analyze7k.Concentration": "ジャンル濃度",
+    "Analyze7k.SkillValue": "基準スキル値",
+    "Analyze7k.ModeToggle": "Prism列の表示: 基準スキル値（棒グラフ）／ジャンル濃度（五角形）",
+    "Analyze7k.Toggle": "解析結果を表示（Prism・段位推定）",
+    "Analyze7k.GenreChart": "棒グラフ: 基準スキル値とLN（6本の最大値が満幅）／五角形: ジャンル濃度（5ジャンルの内訳。外周が50%）",
+    "Analyze7k.Progress": "未解析の7K譜面をバックグラウンドで解析しています。結果は解析が進むごとに一覧へ反映されます。",
+    "Analyze7k.Running": "7K譜面を解析中",
+    "Analyze7k.Count": "{0} / {1} 譜面",
+    "Analyze7k.RemainingEstimating": "残り時間を計算中…",
+    "Analyze7k.RemainingUnderMinute": "残り1分未満",
+    "Analyze7k.RemainingMinutes": "残り約{0}分",
+    "Analyze7k.RemainingHours": "残り約{0}時間{1}分",
+    "Analyze7k.Failed": "解析できなかった譜面: {0}件（ファイルなし・MD5不一致・形式不正など）",
+    "Analyze7k.Warning": "縦連打（vibro）または段位推定の対象外と判定された譜面",
+    "Analyze7k.Primary": "段位推定の主分類"
   },
   "MapFilter": {
     "Title": "フィルタ条件",
@@ -123,7 +142,17 @@
     "No": "いいえ",
     "ModCategory": "Mod",
     "Not": "NOT",
-    "ScoreSystem": "スコアシステム"
+    "ScoreSystem": "スコアシステム",
+    "Target.ManiaPrismOverall": "7K Prism Reg基準Overall",
+    "Target.ManiaPrismLnOverall": "7K Prism LN基準Overall",
+    "Target.ManiaPrismTopGenre": "7K Prism 最大ジャンル",
+    "Target.ManiaPrismGenreSkill": "7K Prism 基準スキル値（ジャンル別）",
+    "Target.ManiaPrismGenreConcentration": "7K Prism ジャンル濃度（ジャンル別）",
+    "CompareTarget": "比較対象",
+    "Target.ManiaDanRegular": "7K 段位推定 Reg",
+    "Target.ManiaDanLn": "7K 段位推定 LN",
+    "Target.ManiaDanRegularGenre": "7K 段位推定 Regジャンル",
+    "Target.ManiaDanLnGenre": "7K 段位推定 LNジャンル"
   },
   "Collection": {
     "GenerateCollection": "コレクション生成",

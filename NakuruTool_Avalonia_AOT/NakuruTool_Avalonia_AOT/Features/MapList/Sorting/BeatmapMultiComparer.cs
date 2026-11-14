@@ -83,6 +83,10 @@ internal sealed class BeatmapMultiComparer : IComparer<Beatmap>
             SortField.OD               => (a.OD.CompareTo(b.OD), false),
             SortField.HP               => (a.HP.CompareTo(b.HP), false),
             SortField.DrainTime        => (a.DrainTimeSeconds.CompareTo(b.DrainTimeSeconds), false),
+            SortField.ManiaPrismOverall   => CompareNullable(a.ChartAnalysis?.PrismOverall, b.ChartAnalysis?.PrismOverall),
+            SortField.ManiaPrismLnOverall => CompareNullable(a.ChartAnalysis?.PrismLnOverall, b.ChartAnalysis?.PrismLnOverall),
+            SortField.ManiaDanRegular     => CompareNullable(a.ChartAnalysis?.RegularDan, b.ChartAnalysis?.RegularDan),
+            SortField.ManiaDanLn          => CompareNullable(a.ChartAnalysis?.LnDan, b.ChartAnalysis?.LnDan),
             _                          => (0, false),
         };
 

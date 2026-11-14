@@ -25,6 +25,7 @@ public interface ISettingsViewModel : IDisposable
     IAvaloniaReadOnlyList<string> MirrorUrls { get; }
     string SelectedMirrorUrl { get; set; }
     bool AutoBatchGenerateOnStartup { get; set; }
+    bool Analyze7kEnabled { get; set; }
     string AppVersion { get; }
 }
 
@@ -115,6 +116,17 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         }
     }
 
+    [ObservableProperty]
+    public partial bool Analyze7kEnabled { get; set; } = true;
+
+    partial void OnAnalyze7kEnabledChanged(bool value)
+    {
+        if (_isInitialized)
+        {
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private bool _isInitialized = false;
 
@@ -129,6 +141,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         PreferUnicode = settingsData.PreferUnicode;
         SelectedMirrorUrl = BeatmapMirrors.Normalize(settingsData.BeatmapMirrorUrl);
         AutoBatchGenerateOnStartup = settingsData.AutoBatchGenerateOnStartup;
+        Analyze7kEnabled = settingsData.Analyze7kEnabled;
 
         UpdateOsuPathErrorMessage();
 
@@ -149,6 +162,10 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             BeatmapMirrorUrl = SelectedMirrorUrl,
             IsDarkTheme = app?.ActualThemeVariant == ThemeVariant.Dark,
             AutoBatchGenerateOnStartup = AutoBatchGenerateOnStartup,
+            Analyze7kEnabled = Analyze7kEnabled,
+            // 並列数（設定ファイル）と Prism 列の表示モード（譜面一覧のトグル）は現在値を引き継ぐ
+            Analyze7kParallelism = _settingsService.SettingsData.Analyze7kParallelism,
+            Analyze7kShowConcentration = _settingsService.SettingsData.Analyze7kShowConcentration,
         };
 
         _settingsService.SaveSettings(settingData);

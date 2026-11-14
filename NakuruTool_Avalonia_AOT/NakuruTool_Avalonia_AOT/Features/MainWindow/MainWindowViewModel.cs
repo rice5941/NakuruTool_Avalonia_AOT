@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
@@ -31,6 +32,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public AudioPlayerPanelViewModel AudioPlayerPanelViewModel { get; }
 
     private readonly ISettingsService _settingsService;
+    private readonly IAnalyze7kService? _analyze7kService;
 
     [ObservableProperty]
     public partial bool IsLoadingOverlayVisible { get; set; } = true;
@@ -49,7 +51,8 @@ public partial class MainWindowViewModel : ViewModelBase
         ImportExportPageViewModel importExportPageViewModel,
         BeatmapGenerationPageViewModel beatmapGenerationPageViewModel,
         ILicensesViewModel licensesViewModel,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IAnalyze7kService? analyze7kService = null)
     {
         SettingsViewModel = settingsViewModel;
         DatabaseLoadingViewModel = databaseLoadingViewModel;
@@ -58,6 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ImportExportPageViewModel = importExportPageViewModel;
         BeatmapGenerationPageViewModel = beatmapGenerationPageViewModel;
         LicensesViewModel = licensesViewModel;
+        _analyze7kService = analyze7kService;
         AudioPlayerPanelViewModel = mapListPageViewModel.ListViewModel.AudioPlayerPanel;
         _settingsService = settingsService;
 
@@ -86,6 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
         MapListPageViewModel.Initialize();
         ImportExportPageViewModel.Initialize();
         BeatmapGenerationPageViewModel.Initialize();
+        StartAnalyze7k();
 
         // 設定が有効かつDB読み込み成功時、プリセットから自動一括生成
         if (!DatabaseLoadingViewModel.HasError
@@ -93,6 +98,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
+                // 7K 解析の条件を使うプリセットのため、解析済みの値の反映を待つ（最大30秒）
+                if (_analyze7kService is not null)
+                    await Task.WhenAny(_analyze7kService.WhenCachedResultsAppliedAsync(), Task.Delay(TimeSpan.FromSeconds(30)));
                 await MapListPageViewModel.AutoBatchGenerateFromPresetsAsync();
             }
             catch (Exception ex)
@@ -110,6 +118,23 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 7K 譜面のバックグラウンド解析を始める（DB 読み込み成功時のみ）
+    /// </summary>
+    private void StartAnalyze7k()
+    {
+        if (DatabaseLoadingViewModel.HasError || _analyze7kService is null)
+            return;
+        try
+        {
+            _analyze7kService.OnDatabaseLoaded();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Analyze7k start failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// フォルダパス変更時にデータベースを再読み込み
     /// </summary>
     private async Task ReloadDatabaseAsync()
@@ -122,6 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
             MapListPageViewModel.Initialize();
             ImportExportPageViewModel.Initialize();
             BeatmapGenerationPageViewModel.Initialize();
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(StartAnalyze7k);
         }
         catch
         {

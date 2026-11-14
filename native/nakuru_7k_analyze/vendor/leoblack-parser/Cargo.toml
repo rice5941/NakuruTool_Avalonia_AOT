@@ -1,0 +1,9 @@
+[package]
+name = "leoblack-parser"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dependencies]
+jsmath = { git = "https://github.com/aleju03/mania-hub", rev = "1339369851234d6ed928aa1bd8149a4b558378e6" }

@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
@@ -788,6 +789,7 @@ public class MockSettingsViewModel : ISettingsViewModel
     public IAvaloniaReadOnlyList<string> MirrorUrls { get; } = new AvaloniaList<string>(["https://mirror.hinamizawa.ai/api/v1/hinai/d/", "https://api.nerinyan.moe/d/"]);
     public string SelectedMirrorUrl { get; set; } = "https://mirror.hinamizawa.ai/api/v1/hinai/d/";
     public bool AutoBatchGenerateOnStartup { get; set; } = false;
+    public bool Analyze7kEnabled { get; set; } = true;
     public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
@@ -907,8 +909,11 @@ public class MockMapListViewModel : ObservableObject, IMapListViewModel
     public ModCategory SelectedModCategory { get; set; } = ModCategory.NoMod;
     public ScoreSystemCategory SelectedScoreSystemCategory { get; set; } = ScoreSystemCategory.Default;
     public bool IsLocalRankingMode { get; set; }
+    public bool IsAnalysisMode { get; set; }
     public IAvaloniaReadOnlyList<LocalRankingEntry> LocalRanking { get; } = new AvaloniaList<LocalRankingEntry>();
     public bool HasLocalRanking => false;
+    public bool ShowGenreSkillValues { get; set; }
+    public Analyze7kProgressDisplay? Analyze7kStatus { get; set; }
 
     public IRelayCommand PreviousPageCommand { get; }
     public IRelayCommand NextPageCommand { get; }
@@ -1015,6 +1020,8 @@ public class MockDatabaseService : IDatabaseService
     public Task ReloadCollectionDbAsync() => Task.CompletedTask;
     public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap) { beatmap = null; return false; }
     public ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash) => ReadOnlySpan<LocalScore>.Empty;
+    public IReadOnlySet<string> ApplyChartAnalyses(Func<Beatmap, ManiaChartAnalysis?> resolver)
+        => new HashSet<string>();
     public void Dispose() { }
 }
 
@@ -1067,6 +1074,9 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public bool IsDarkTheme { get; set; } = true;
     public string BeatmapMirrorUrl { get; set; } = "https://mirror.hinamizawa.ai/api/v1/hinai/d/";
     public bool AutoBatchGenerateOnStartup { get; set; } = false;
+    public bool Analyze7kEnabled { get; set; } = true;
+    public int Analyze7kParallelism { get; set; }
+    public bool Analyze7kShowConcentration { get; set; }
 }
 
 /// <summary>

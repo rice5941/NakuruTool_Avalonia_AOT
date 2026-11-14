@@ -1,0 +1,18 @@
+[package]
+name = "leoblack-ett"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Stand-in for mania-hub's leoblack-ett without MinaCalc (see UPSTREAM.md)"
+
+# The upstream crate's features, kept so that dan-calc / chart-pipeline still resolve.
+# None of them pulls anything in.
+[features]
+default = []
+jit = []
+aot = []
+legacy-builds = []
+
+[dependencies]
+leoblack-parser = { git = "https://github.com/aleju03/mania-hub", rev = "1339369851234d6ed928aa1bd8149a4b558378e6" }

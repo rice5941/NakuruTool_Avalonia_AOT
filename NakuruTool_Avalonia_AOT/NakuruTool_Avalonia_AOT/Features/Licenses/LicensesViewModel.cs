@@ -1201,6 +1201,56 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
         SOFTWARE.
         """;
 
+    private static string ManiaTrackerLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2026 aleju03
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
+    private static string LeoBlackLicenseText =>
+        """
+        MIT License
+
+        Copyright (c) 2026 Leo_Black
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """;
+
     public LicensesViewModel()
     {
         var licenses = new AvaloniaList<LicenseItem>
@@ -1437,6 +1487,33 @@ public class LicensesViewModel : ViewModelBase, ILicensesViewModel
                 Copyright = "Copyright (c) 2019 Daniel \"Lokathor\" Gee",
                 LicenseText = TinyvecLicenseText
                     + "\n\n---\n\n(This package is also available under the MIT or Apache-2.0 license.)\n\n"
+            },
+            new LicenseItem
+            {
+                PackageName = "nakuru_7k_analyze (analyze_7k.dll)",
+                Version = "0.2.0",
+                LicenseType = "MIT",
+                Url = "https://github.com/rice5941/NakuruTool_Avalonia_AOT",
+                Copyright = "Copyright (c) 2025 NakuruTool Contributors",
+                LicenseText = NakuruAudioLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "Mania Tracker (Prism / ln-skill / dan-calc)",
+                Version = "1339369",
+                LicenseType = "MIT",
+                Url = "https://github.com/aleju03/mania-hub",
+                Copyright = "Copyright (c) 2026 aleju03",
+                LicenseText = ManiaTrackerLicenseText
+            },
+            new LicenseItem
+            {
+                PackageName = "LeoBlack osumania_map_analyser (leoblack-parser)",
+                Version = "5fac939",
+                LicenseType = "MIT",
+                Url = "https://github.com/LeoBlackMT/osumania_map_analyser",
+                Copyright = "Copyright (c) 2026 Leo_Black",
+                LicenseText = LeoBlackLicenseText
             }
         };
 

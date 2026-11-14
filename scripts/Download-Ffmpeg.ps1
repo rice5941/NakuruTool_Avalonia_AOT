@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
   ffmpeg.exe が存在しない場合、BtbN LGPL ビルドをダウンロード・展開する。

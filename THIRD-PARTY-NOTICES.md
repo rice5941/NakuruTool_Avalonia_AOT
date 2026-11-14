@@ -130,6 +130,45 @@ AvaloniaのためのMaterial Design Iconsライブラリ。
 
 ---
 
+### nakuru_7k_analyze（analyze_7k.dll、7K 譜面解析）
+- **Version**: 0.2.0
+- **License**: MIT License（このプロジェクトのつなぎのコード）
+- **Repository**: https://github.com/rice5941/NakuruTool_Avalonia_AOT
+- **詳細**: `native/nakuru_7k_analyze/THIRD-PARTY-NOTICES.md`、`native/nakuru_7k_analyze/UPSTREAM.md`
+
+Mania Tracker の計算（Prism / LN スキル / 段位推定）を C FFI で呼び出すライブラリ。配布物の `licenses/` に各ライセンス本文を同梱する。
+
+---
+
+### Mania Tracker（Prism / ln-skill / dan-calc ほか）
+- **Version**: mania-hub @ 1339369851234d6ed928aa1bd8149a4b558378e6（Prism 0.26.0）
+- **License**: MIT License
+- **Repository**: https://github.com/aleju03/mania-hub
+- **Copyright**: Copyright (c) 2026 aleju03
+
+7K の Prism・譜面段位の計算本体。C# 側の段位ジャンル判定と段位の表示名（`Features/Analyze7k/`）も、
+同リポジトリの TypeScript を huuugeosu が Python へ移植したものをさらに移植している。
+
+---
+
+### LeoBlack osumania_map_analyser（leoblack-parser ほか）
+- **License**: MIT License
+- **Repository**: https://github.com/LeoBlackMT/osumania_map_analyser
+- **Copyright**: Copyright (c) 2026 Leo_Black
+
+dan-calc が使う .osu パーサー・パターン解析。時刻順の安定ソート修正（5fac939）を当てたパーサーを同梱。
+
+---
+
+### huuugeosu（7K 解析の移植元）
+- **Version**: v1.4.0（39e0710）
+- **License**: MIT License
+- **Copyright**: Copyright (c) 2026 YGetArtstr / Copyright (c) 2021 cmyui
+
+段位ジャンル判定などの Python ロジックと Rust アダプタの構成を C# / Rust へ移植した。
+
+---
+
 ### FFmpeg (LGPL build)
 - **Version**: n8.1 (BtbN LGPL build, win64)
 - **License**: **GNU Lesser General Public License v2.1 or later (LGPL-2.1-or-later)**（`native/ffmpeg/win-x64/LICENSE.txt` に同梱されるライセンス全文は LGPL version 3 の本文で、FFmpeg の LGPL-2.1-or-later における "or later" 節に基づき v3 を選択した形になっています）

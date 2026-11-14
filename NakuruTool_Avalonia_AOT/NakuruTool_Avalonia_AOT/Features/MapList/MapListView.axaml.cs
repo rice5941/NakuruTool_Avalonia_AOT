@@ -50,6 +50,13 @@ public partial class MapListView : UserControl
     public static readonly StyledProperty<bool> ShowLocalRankingButtonProperty =
         AvaloniaProperty.Register<MapListView, bool>(nameof(ShowLocalRankingButton), defaultValue: true);
 
+    public static readonly StyledProperty<bool> ShowAnalyze7kColumnsProperty =
+        AvaloniaProperty.Register<MapListView, bool>(nameof(ShowAnalyze7kColumns), defaultValue: true);
+
+    /// <summary>Prism 列を基準スキル値で描くか（ViewModel の値を写す。セルからの参照用）</summary>
+    public static readonly StyledProperty<bool> ShowGenreSkillValuesProperty =
+        AvaloniaProperty.Register<MapListView, bool>(nameof(ShowGenreSkillValues));
+
     public static readonly StyledProperty<ICommand?> SortCommandProperty =
         AvaloniaProperty.Register<MapListView, ICommand?>(nameof(SortCommand), defaultValue: null);
 
@@ -120,6 +127,19 @@ public partial class MapListView : UserControl
         set => SetValue(ShowLocalRankingButtonProperty, value);
     }
 
+    /// <summary>7K の解析結果ボタン（Prism 列・段位推定列）と表示切替を出すか（beatmap 生成ページでは非表示）。</summary>
+    public bool ShowAnalyze7kColumns
+    {
+        get => GetValue(ShowAnalyze7kColumnsProperty);
+        set => SetValue(ShowAnalyze7kColumnsProperty, value);
+    }
+
+    public bool ShowGenreSkillValues
+    {
+        get => GetValue(ShowGenreSkillValuesProperty);
+        private set => SetValue(ShowGenreSkillValuesProperty, value);
+    }
+
     public ICommand? SortCommand
     {
         get => GetValue(SortCommandProperty);
@@ -130,6 +150,9 @@ public partial class MapListView : UserControl
     private IBeatmapListViewModel? _boundViewModel;
     private IDisposable? _scrollRequestSubscription;
     private IDisposable? _localRankingModeSubscription;
+    private IDisposable? _genreSkillModeSubscription;
+    private IDisposable? _analysisModeSubscription;
+    private bool _isAnalysisMode;
     private bool _isLocalRankingMode;
 
     public MapListView()
@@ -149,7 +172,8 @@ public partial class MapListView : UserControl
         base.OnPropertyChanged(change);
 
         if (change.Property == ShowHistoryColumnProperty ||
-            change.Property == ShowIsPlayedColumnProperty)
+            change.Property == ShowIsPlayedColumnProperty ||
+            change.Property == ShowAnalyze7kColumnsProperty)
         {
             ApplyColumnVisibility();
         }
@@ -157,15 +181,25 @@ public partial class MapListView : UserControl
 
     /// <summary>
     /// DataGrid 列はビジュアルツリー外でバインドできないため、Tag で引いて IsVisible を直接設定する。
-    /// ローカルランキングモード中は BPM / LN率 / 履歴 / プレイ済み を隠し、空いた幅にランキング用 DataGrid を出す。
+    /// <list type="bullet">
+    /// <item>ローカルランキングモード: BPM / LN率 / 履歴 / プレイ済み を隠し、空いた幅にランキング用 DataGrid を出す。</item>
+    /// <item>解析結果モード: 履歴 / プレイ済み を隠し、Prism 列・段位推定列を出す（ランキングとは排他）。</item>
+    /// </list>
     /// </summary>
     private void ApplyColumnVisibility()
     {
         var ranking = _isLocalRankingMode;
+        var analysis = ShowAnalyze7kColumns && _isAnalysisMode && !ranking;
         SetColumnVisible("BpmColumn", !ranking);
         SetColumnVisible("LongNoteRateColumn", !ranking);
-        SetColumnVisible("HistoryColumn", ShowHistoryColumn && !ranking);
-        SetColumnVisible("IsPlayedColumn", ShowIsPlayedColumn && !ranking);
+        SetColumnVisible("PrismColumn", analysis);
+        SetColumnVisible("DanEstimateColumn", analysis);
+        SetColumnVisible("HistoryColumn", ShowHistoryColumn && !ranking && !analysis);
+        SetColumnVisible("IsPlayedColumn", ShowIsPlayedColumn && !ranking && !analysis);
+        if (Analyze7kHeaderPanel is not null)
+            Analyze7kHeaderPanel.IsVisible = ShowAnalyze7kColumns;
+        if (GenreDisplayModePanel is not null)
+            GenreDisplayModePanel.IsVisible = analysis;
     }
 
     private void SetColumnVisible(string tag, bool visible)
@@ -229,7 +263,15 @@ public partial class MapListView : UserControl
             _localRankingModeSubscription = vm
                 .ObserveProperty(nameof(IBeatmapListViewModel.IsLocalRankingMode))
                 .Subscribe(_ => UpdateLocalRankingMode(vm.IsLocalRankingMode));
+            _genreSkillModeSubscription = vm
+                .ObserveProperty(nameof(IBeatmapListViewModel.ShowGenreSkillValues))
+                .Subscribe(_ => ShowGenreSkillValues = vm.ShowGenreSkillValues);
+            _analysisModeSubscription = vm
+                .ObserveProperty(nameof(IBeatmapListViewModel.IsAnalysisMode))
+                .Subscribe(_ => UpdateAnalysisMode(vm.IsAnalysisMode));
         }
+        ShowGenreSkillValues = _boundViewModel?.ShowGenreSkillValues ?? false;
+        UpdateAnalysisMode(_boundViewModel?.IsAnalysisMode ?? false);
 
         UpdateLocalRankingMode(_boundViewModel?.IsLocalRankingMode ?? false);
 
@@ -243,6 +285,15 @@ public partial class MapListView : UserControl
             _scrollRequestSubscription = mapListVm.ScrollToBeatmapRequested
                 .Subscribe(ScheduleScrollIntoView);
         }
+    }
+
+    private void UpdateAnalysisMode(bool isAnalysisMode)
+    {
+        if (_isAnalysisMode == isAnalysisMode)
+            return;
+
+        _isAnalysisMode = isAnalysisMode;
+        ApplyColumnVisibility();
     }
 
     private void UpdateLocalRankingMode(bool isLocalRankingMode)
@@ -288,6 +339,10 @@ public partial class MapListView : UserControl
         _scrollRequestSubscription = null;
         _localRankingModeSubscription?.Dispose();
         _localRankingModeSubscription = null;
+        _genreSkillModeSubscription?.Dispose();
+        _genreSkillModeSubscription = null;
+        _analysisModeSubscription?.Dispose();
+        _analysisModeSubscription = null;
 
         if (AudioPlayerHost is not null)
             AudioPlayerHost.DataContext = null;

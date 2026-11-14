@@ -1,4 +1,5 @@
 ﻿using System;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 
 namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 /// <summary>
@@ -78,6 +79,12 @@ public sealed record Beatmap
     /// DB 上の譜面では常に null で、表示ページの行コピーにのみ設定される。
     /// </summary>
     public LocalRankingEntry? BestPlay { get; init; }
+
+    /// <summary>
+    /// 7K 譜面の解析結果（等速の Prism と段位推定）。7K 以外・未解析の譜面では null。
+    /// バックグラウンド解析の結果を <see cref="IDatabaseService.ApplyChartAnalyses"/> で反映する。
+    /// </summary>
+    public ManiaChartAnalysis? ChartAnalysis { get; init; }
 
     /// <summary>スコアシステム・mod 2軸で最高スコアを取得</summary>
     public int GetBestScore(ScoreSystemCategory system, ModCategory mod) => (system, mod) switch

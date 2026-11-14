@@ -126,6 +126,20 @@ public partial class MapFilterViewModel : ViewModelBase
         return Conditions.MatchesAll(beatmap, _databaseService);
     }
 
+    /// <summary>7K 解析の値を使う条件があるか</summary>
+    public bool UsesAnalyze7k
+    {
+        get
+        {
+            foreach (var condition in Conditions)
+            {
+                if (FilterTargetInfo.IsAnalyze7k(condition.Target))
+                    return true;
+            }
+            return false;
+        }
+    }
+
     /// <summary>
     /// コレクション名リストを更新
     /// </summary>

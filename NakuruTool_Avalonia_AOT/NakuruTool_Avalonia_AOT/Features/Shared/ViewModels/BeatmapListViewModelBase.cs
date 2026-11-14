@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.MapList.Sorting;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
@@ -53,12 +54,27 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     [ObservableProperty]
     public partial bool IsLocalRankingMode { get; set; }
 
+    /// <summary>
+    /// 7K 解析結果の表示モード（Prism 列・段位推定列を出し、履歴・プレイ済み列を隠す）。
+    /// ローカルランキング表示とは排他（永続化しない）。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsAnalysisMode { get; set; }
+
     /// <summary>選択譜面のローカルランキング（選択中 ScoreSystem / Mod で絞り込み、スコア降順）。</summary>
     public IAvaloniaReadOnlyList<LocalRankingEntry> LocalRanking => _localRankingList;
 
     /// <summary><see cref="LocalRanking"/> が1件以上あるか。</summary>
     [ObservableProperty]
     public partial bool HasLocalRanking { get; set; }
+
+    /// <summary>Prism 列を基準スキル値の横棒で表示する（false はジャンル濃度の五角形）。設定に保存する。</summary>
+    [ObservableProperty]
+    public partial bool ShowGenreSkillValues { get; set; }
+
+    /// <summary>7K 解析の進み具合（解析中だけ値がある）</summary>
+    [ObservableProperty]
+    public partial Analyze7kProgressDisplay? Analyze7kStatus { get; set; }
 
     [ObservableProperty]
     public partial int CurrentPage { get; set; } = 1;
@@ -90,6 +106,8 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         _settingsService = settingsService;
         _databaseService = databaseService;
         ShowBeatmaps = _showBeatmapsList;
+        // 既定は基準スキル値（設定はジャンル濃度を選んだときだけ true）
+        ShowGenreSkillValues = !_settingsService.SettingsData.Analyze7kShowConcentration;
 
         _settingsService.SettingsData.ObservePropertyAndSubscribe(
             nameof(ISettingsData.PreferUnicode),
@@ -99,6 +117,15 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         SortViewModel.SortChanged
             .Subscribe(_ => ApplyCurrentSort())
             .AddTo(Disposables);
+    }
+
+    partial void OnShowGenreSkillValuesChanged(bool value)
+    {
+        if (_settingsService.SettingsData is SettingsData settings && settings.Analyze7kShowConcentration == value)
+        {
+            settings.Analyze7kShowConcentration = !value;
+            _settingsService.SaveSettings(settings);
+        }
     }
 
     /// <summary>派生から参照可能な現在のソース配列。</summary>
@@ -122,6 +149,63 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         if (CurrentPage != 1)
         {
             CurrentPage = 1;
+        }
+        else
+        {
+            UpdateShowBeatmaps();
+        }
+    }
+
+    /// <summary>
+    /// 並び・件数を変えずに、指定 MD5 の譜面レコードを最新のものへ差し替える（7K 解析結果の反映用）。
+    /// 配列インスタンスは維持する。表示中のページに差し替えがあれば再投影して true を返す。
+    /// </summary>
+    protected bool ReplaceRecordsInPlace(IReadOnlySet<string> changedMd5, Func<string, Beatmap?> lookup)
+    {
+        static void Replace(Beatmap[] array, IReadOnlySet<string> changed, Func<string, Beatmap?> lookup)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (changed.Contains(array[i].MD5Hash) && lookup(array[i].MD5Hash) is { } latest)
+                    array[i] = latest;
+            }
+        }
+
+        Replace(_unsortedBeatmaps, changedMd5, lookup);
+        Replace(_sourceBeatmaps, changedMd5, lookup);
+
+        var size = Math.Max(1, PageSize);
+        var skip = (CurrentPage - 1) * size;
+        var end = Math.Min(_sourceBeatmaps.Length, skip + size);
+        for (int i = Math.Max(0, skip); i < end; i++)
+        {
+            if (changedMd5.Contains(_sourceBeatmaps[i].MD5Hash))
+            {
+                UpdateShowBeatmaps();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// ベース譜面配列を差し替えるが、表示中のページはできるだけ維持する（7K 解析結果の反映用）。
+    /// ページ数が減った場合だけ最終ページに寄せる。
+    /// </summary>
+    protected void ReplaceSourceBeatmapsPreservingPage(Beatmap[] source)
+    {
+        _unsortedBeatmaps = source ?? Array.Empty<Beatmap>();
+        if (_sourceBeatmaps.Length != _unsortedBeatmaps.Length)
+        {
+            _sourceBeatmaps = new Beatmap[_unsortedBeatmaps.Length];
+        }
+        RefillAndSortInPlace();
+
+        FilteredCount = _sourceBeatmaps.Length;
+        RecalculatePageCount();
+        if (CurrentPage > PageCount)
+        {
+            CurrentPage = PageCount;
         }
         else
         {
@@ -287,7 +371,18 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         UpdateLocalRanking();
     }
 
-    partial void OnIsLocalRankingModeChanged(bool value) => UpdateLocalRanking();
+    partial void OnIsLocalRankingModeChanged(bool value)
+    {
+        if (value)
+            IsAnalysisMode = false;
+        UpdateLocalRanking();
+    }
+
+    partial void OnIsAnalysisModeChanged(bool value)
+    {
+        if (value)
+            IsLocalRankingMode = false;
+    }
 
     partial void OnSelectedBeatmapChanged(Beatmap? value)
     {

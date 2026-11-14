@@ -18,6 +18,7 @@ osu!mania の beatmap を管理し、各種データベースファイルを読�
 - **エクスポート/インポート**: コレクションを JSON 形式でファイルに書き出し・読み込み
 - **レート変更譜面生成**: beatmapの倍速・減速版を自動生成（.osuタイミング変換 + オーディオレート変換）。一括生成では生成済み譜面のMD5・メタ情報を集約した `CollectionExchangeData` 互換 JSON を `imports/rate-generation/` へサイドカー出力し、ImportExport 画面からそのまま取り込み可能
 - **オーディオプレビュー**: 譜面選択時に音声を自動再生（Rust ネイティブライブラリ）
+- **7K 譜面解析**: Mania Tracker の計算で、全 7K 譜面（等速）の Prism 基準Overall（Reg / LN、精度 96.5%）・5ジャンルのジャンル濃度と基準スキル値・段位推定（Reg / LN とジャンル）を求め、beatmap一覧の Prism 列・段位推定列・フィルタ・ソートに使う（仕様: [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)）
 - **多言語対応**: 日本語/英語の動的切り替え
 - **テーマ切替**: ダーク/ライトテーマ
 
@@ -48,6 +49,7 @@ osu!mania の beatmap を管理し、各種データベースファイルを読�
 | ライブラリ | 言語 | 用途 |
 |-----------|------|------|
 | nakuru_audio | Rust | オーディオ再生エンジン（P/Invoke経由） |
+| nakuru_7k_analyze（analyze_7k.dll） | Rust | 7K 譜面解析（Mania Tracker の Prism / LN スキル / 段位推定を P/Invoke 経由で呼ぶ。MinaCalc は同梱しない） |
 | FFmpeg | C | オーディオレート変換・エンコード（n8.1 LGPL static build, subprocess 経由, LGPL-2.1-or-later。同梱 `LICENSE.txt` は LGPL v3 本文） |
 
 ---
@@ -71,6 +73,7 @@ Features/
 │   └── Models/        #   CollectionExchangeData, ExportCollectionItem, ImportFileItem, ImportExportBeatmapItem
 ├── Licenses/          # ライセンス表示画面
 ├── MainWindow/        # メインウィンドウ（DrawerPage サイドバー + NavigationPage、読み込みオーバーレイ）
+├── Analyze7k/         # 7K 譜面解析（Rust FFI・バックグラウンド解析・キャッシュ・段位ジャンル判定・Prism のジャンル表示）
 ├── MapList/           # 譜面一覧・フィルタ・コレクション生成
 │   └── Models/        #   FilterCondition, FilterPreset
 ├── OsuDatabase/       # osu! DB パーサー群・データモデル
@@ -89,6 +92,11 @@ Features/
 native/
 ├── nakuru_audio/      # Rust オーディオライブラリ
 │   └── src/lib.rs
+├── nakuru_7k_analyze/ # Rust 7K 譜面解析ライブラリ → analyze_7k.dll（Mania Tracker の FFI アダプタ。Rust 1.96.0 固定）
+│   ├── src/lib.rs, src/analyze.rs
+│   ├── vendor/leoblack-parser/  # 時刻順修正を当てたパーサー（[patch]）
+│   ├── vendor/leoblack-ett/     # MinaCalc を外す代替クレート（[patch]）
+│   └── UPSTREAM.md, THIRD-PARTY-NOTICES.md, licenses/
 └── ffmpeg/win-x64/    # FFmpeg LGPL static ビルド（subprocess 実行用）
     ├── ffmpeg.exe
     ├── LICENSE.txt    # LGPL v3 全文（BtbN 同梱。FFmpeg の LGPL-2.1-or-later における "or later" 節により v3 を選択）
@@ -236,6 +244,10 @@ graph TD
     ImportExport --> Translate
     AudioPlayer --> Settings
     AudioPlayer --> NativeLib["nakuru_audio (Rust)"]
+    Analyze7k --> OsuDatabase
+    Analyze7k --> Settings
+    Analyze7k --> Analyze7kNative["analyze_7k.dll (Rust)"]
+    MapList --> Analyze7k
     BeatmapGenerator --> FFmpeg["FFmpeg (subprocess, LGPL build)"]
     OsuDatabase --> Settings
     Settings --> Translate

@@ -1012,3 +1012,30 @@ flowchart TD
 2. アプリで osu! データベースを再読み込みし、各 `.osu` の MD5 を `IDatabaseService` に反映
 3. ImportExport 画面で `imports/rate-generation/` 以下の JSON を `Import` する
 4. 既存 ImportExport フローでは MD5 マッチした譜面が `collection.db` に追加されるため、生成レート譜面をコレクション化できる
+
+---
+
+## 10. 7K 譜面解析フロー
+
+仕様: [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)
+
+```mermaid
+flowchart TD
+    L["DB 読み込み完了（MainWindowViewModel）"] --> S["Analyze7kService.OnDatabaseLoaded()"]
+    S --> R["Restart(): 前のジョブを中断し、譜面一覧のスナップショットでジョブ開始"]
+    R --> C["キャッシュ読み込み（cache/analyze-7k/results-{版}.jsonl）"]
+    C --> PUB1["PublishAsync: キャッシュの値を Beatmap.ChartAnalysis に反映"]
+    PUB1 --> PLAN["BuildPlan: 未解析の 7K 譜面を★の高い順に並べる"]
+    PLAN --> W["専用スレッド（16MiB スタック）× 並列数"]
+    W --> F[".osu 読み込み → MD5 照合 → ヘッダー確認（OD）"]
+    F --> N["Analyze7kNative.Analyze（analyze_7k.dll）→ ToAnalysis（段位ジャンル判定）"]
+    N --> CA["キャッシュへ追記（解析結果 / 失敗理由）"]
+    W -.->|3秒ごと・完了時| PUB2["PublishAsync"]
+    PUB2 --> AP["IDatabaseService.ApplyChartAnalyses（UI スレッド）"]
+    AP --> CS["ChartAnalysesChanged → MapListViewModel<br/>表示中ページの差し替え / 7K 解析の条件・並びがあれば絞り込み直し"]
+```
+
+- 設定の「7K譜面の解析」の変更でも `Restart()` する。
+- 進み具合（`ProgressChanged`、0.5 秒ごと）は `Analyze7kProgressDisplay.From` で表示用に変換し、beatmap一覧のヘッダーの下に
+  進捗率・「解析済み / 対象」・残り時間の目安（`Analyze7kRemainingTimeEstimator`、直近 30 秒の速度）として表示する。
+- 起動時のプリセット一括生成は `WhenCachedResultsAppliedAsync()` を待ってから実行する（7K 解析の条件を含むプリセットのため）。

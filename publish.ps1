@@ -1,4 +1,4 @@
-# NakuruTool NativeAOT Publish Script
+﻿# NakuruTool NativeAOT Publish Script
 # このスクリプトはvswhere.exeをPATHに追加してNativeAOTビルドを実行します
 
 $ErrorActionPreference = "Stop"
@@ -46,6 +46,7 @@ if ($LASTEXITCODE -eq 0) {
     $publishDir = Join-Path $projectDir "bin\Release\net10.0\win-x64\publish"
     $exeFile = Join-Path $publishDir "NakuruTool.exe"
     $dllFile = Join-Path $publishDir "nakuru_audio.dll"
+    $analyze7kDllFile = Join-Path $publishDir "analyze_7k.dll"
     $userGuideSource = Join-Path $PSScriptRoot "USER_GUIDE.url"
     $userGuideDestination = Join-Path $publishDir "USER_GUIDE.url"
     $presetsSource = Join-Path $PSScriptRoot "presets"
@@ -59,6 +60,13 @@ if ($LASTEXITCODE -eq 0) {
     if (Test-Path $dllFile) {
         $dllSize = (Get-Item $dllFile).Length / 1MB
         Write-Host "  nakuru_audio.dll: $([math]::Round($dllSize, 1)) MB" -ForegroundColor White
+    }
+
+    if (Test-Path $analyze7kDllFile) {
+        $analyze7kDllSize = (Get-Item $analyze7kDllFile).Length / 1MB
+        Write-Host "  analyze_7k.dll: $([math]::Round($analyze7kDllSize, 1)) MB" -ForegroundColor White
+    } else {
+        Write-Host "  Warning: analyze_7k.dll not found (7K chart analysis will be unavailable)." -ForegroundColor Yellow
     }
 
     $ffmpegExeFile = Join-Path $publishDir "ffmpeg.exe"
@@ -98,6 +106,25 @@ if ($LASTEXITCODE -eq 0) {
     # （FFmpeg subprocess 方式への移行により LAME DLL は同梱していません。
     #   MP3 エンコードは FFmpeg 同梱の libmp3lame で行われます。
     #   該当ライセンスは FFmpeg_LICENSE.txt に含まれます。）
+
+    # 7K 譜面解析（analyze_7k.dll）のライセンス
+    $analyze7kNativeDir = Join-Path $PSScriptRoot "native\nakuru_7k_analyze"
+    $analyze7kLicenseFiles = @(
+        @{ Source = "licenses\LICENSE-MANIA-TRACKER"; Destination = "ManiaTracker_LICENSE.txt" },
+        @{ Source = "licenses\LICENSE-LEOBLACK"; Destination = "LeoBlack_LICENSE.txt" },
+        @{ Source = "licenses\LICENSE-HUUUGEOSU"; Destination = "huuugeosu_LICENSE.txt" },
+        @{ Source = "THIRD-PARTY-NOTICES.md"; Destination = "analyze_7k_THIRD-PARTY-NOTICES.md" },
+        @{ Source = "UPSTREAM.md"; Destination = "analyze_7k_UPSTREAM.md" }
+    )
+    foreach ($entry in $analyze7kLicenseFiles) {
+        $source = Join-Path $analyze7kNativeDir $entry.Source
+        if (Test-Path $source) {
+            Copy-Item -Path $source -Destination (Join-Path $licensesDir $entry.Destination) -Force
+            Write-Host "  Included $($entry.Destination)" -ForegroundColor DarkGray
+        } else {
+            Write-Host "  Warning: $($entry.Source) not found, skipping." -ForegroundColor Yellow
+        }
+    }
 
     # FFmpeg LGPL ライセンス (同梱 ffmpeg.exe 用)
     $ffmpegLicenseSource = Join-Path $PSScriptRoot "native\ffmpeg\win-x64\LICENSE.txt"

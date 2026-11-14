@@ -50,6 +50,16 @@ public class FilterConditionData
     public string StatusValue { get; set; } = string.Empty;
 
     /// <summary>
+    /// 選択式の対象の選択値（ジャンル名）
+    /// </summary>
+    public string ChoiceValue { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 比較対象（ジャンル別の基準スキル値・ジャンル濃度のジャンル名）
+    /// </summary>
+    public string CompareValue { get; set; } = string.Empty;
+
+    /// <summary>
     /// NOT条件フラグ
     /// </summary>
     public bool IsNot { get; set; }
@@ -93,6 +103,8 @@ public class FilterConditionData
             Value = condition.Value,
             ValueMax = condition.ValueMax,
             StatusValue = condition.StatusValue.ToString(),
+            ChoiceValue = condition.ChoiceValue,
+            CompareValue = condition.CompareValue,
             IsNot = condition.IsNot,
             BoolValue = condition.BoolValue,
             CollectionValue = condition.CollectionValue,
@@ -117,7 +129,7 @@ public class FilterConditionData
         var minBoundaryType = Enum.TryParse<RangeBoundaryType>(MinBoundaryType, out var mbt) ? mbt : Models.RangeBoundaryType.Inclusive;
         var maxBoundaryType = Enum.TryParse<RangeBoundaryType>(MaxBoundaryType, out var mxbt) ? mxbt : Models.RangeBoundaryType.Inclusive;
 
-        return new FilterCondition
+        var condition = new FilterCondition
         {
             Target = target,
             ComparisonType = comparisonType,
@@ -132,6 +144,12 @@ public class FilterConditionData
             MinBoundaryType = minBoundaryType,
             MaxBoundaryType = maxBoundaryType
         };
+        // Target の設定で選択値・比較対象が先頭の選択肢に戻るため、最後に設定する
+        if (!string.IsNullOrEmpty(ChoiceValue))
+            condition.ChoiceValue = ChoiceValue;
+        if (!string.IsNullOrEmpty(CompareValue))
+            condition.CompareValue = CompareValue;
+        return condition;
     }
 }
 

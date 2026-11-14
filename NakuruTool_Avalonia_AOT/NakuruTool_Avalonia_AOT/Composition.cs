@@ -1,4 +1,5 @@
-﻿using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
+﻿using NakuruTool_Avalonia_AOT.Features.Analyze7k;
+using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.ImportExport;
 using NakuruTool_Avalonia_AOT.Features.Licenses;
@@ -40,6 +41,7 @@ partial class Composition
         .Bind<IAudioPlayerService>().As(Singleton).To<AudioPlayerService>()
         .Bind<IImportExportService>().As(Singleton).To<ImportExportService>()
         .Bind<IBeatmapDownloadService>().As(Singleton).To<BeatmapDownloadService>()
+        .Bind<IAnalyze7kService>().As(Singleton).To<Analyze7kService>()
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします

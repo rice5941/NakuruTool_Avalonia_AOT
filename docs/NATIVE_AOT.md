@@ -227,7 +227,8 @@ Release構成でのみ NativeAOT が有効になる。以下は `NakuruTool_Aval
 
 ## 6. ネイティブライブラリ統合
 
-本プロジェクトではオーディオ再生機能にRust製ネイティブライブラリ（`nakuru_audio`）を使用している。
+本プロジェクトではオーディオ再生機能にRust製ネイティブライブラリ（`nakuru_audio`）を、
+7K 譜面解析に `nakuru_7k_analyze`（`analyze_7k.dll`）を使用している。
 
 ### MSBuildターゲットによるRustビルド統合
 
@@ -235,8 +236,8 @@ csprojに定義された2つのMSBuildカスタムターゲットにより、C#�
 
 | ターゲット名 | 実行タイミング | 役割 |
 |-------------|-------------|------|
-| `BuildRustLibrary` | `BeforeBuild` の前 | `cargo build` を実行し、生成された `nakuru_audio.dll` を出力ディレクトリにコピー |
-| `CopyNativeLibraryToPublish` | `ComputeResolvedFilesToPublishList` の前 | `dotnet publish` 時に `nakuru_audio.dll` をパブリッシュディレクトリに同梱 |
+| `BuildRustLibrary` | `BeforeBuild` の前 | `cargo build` を実行し、生成された `nakuru_audio.dll` / `analyze_7k.dll` を出力ディレクトリにコピー |
+| `CopyNativeLibraryToPublish` | `ComputeResolvedFilesToPublishList` の前 | `dotnet publish` 時に `nakuru_audio.dll` / `analyze_7k.dll` をパブリッシュディレクトリに同梱 |
 
 - `Configuration` に応じて `debug` / `release` プロファイルが自動選択される
 - Rustライブラリのソースは `native/nakuru_audio/` に配置
@@ -291,6 +292,17 @@ Rust側の `build.rs` で [csbindgen](https://github.com/Cysharp/csbindgen) を�
 | クレートタイプ | `cdylib`（動的ライブラリ） |
 | 主要依存 | `rodio`（オーディオ再生）、`parking_lot`（同期プリミティブ） |
 | ビルドツール | `csbindgen`（C#バインディング生成） |
+
+### nakuru_7k_analyze（analyze_7k.dll、7K 譜面解析）
+
+| 項目 | 値 |
+|------|-----|
+| 公開関数 | `a7k_analyze`（.osu と JSON の要求 `{"od": x}` → JSON の結果）、`a7k_engine_version`、`a7k_free` |
+| 入出力 | UTF-8 JSON。C# 側は `Analyze7kJsonContext`（Source Generator）でシリアライズする |
+| バインディング | csbindgen → `Features/Analyze7k/NativeMethods.g.cs`、ラッパーは `Analyze7kNative` |
+| スレッド | 複数スレッドから同時に呼んでよい。段位エンジンの再帰に余裕を持たせるため、`Analyze7kService` は 16MiB のスタックの専用スレッドから呼ぶ |
+| panic | Rust 側で `catch_unwind` し、エラーコードと `{"error": ...}` を返す |
+| DLL がない場合 | `Analyze7kNative.IsAvailable` が false になり、7K 解析だけが無効になる（アプリは起動する） |
 
 **NativeAOTとの統合ポイント**:
 

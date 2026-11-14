@@ -123,7 +123,7 @@
 | ファイル | 種別 | 概要 |
 |---------|------|------|
 | `MapListViewModel.cs` | ViewModel | フィルタ済み譜面一覧の保持・オーディオ連携・ナビゲーションを担う。`BeatmapListViewModelBase`（Shared）を継承し、ページング / ContextMenu / Mod・ScoreSystem 切替 / `PreferUnicode` 監視は基底側で集約される。`IMapListViewModel`（`IBeatmapListViewModel` 継承）を実装し、`MapListView` を BeatmapGenerator と共有する |
-| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義。共通 BeatmapList View として再利用され、表示要素は `StyledProperty`（`ShowAudioPlayer` / `ShowTotalCount` / `ShowFilteredCount` / `ShowResolvedCount` / `ShowHistoryColumn` / `ShowIsPlayedColumn` / `ScoreSystemGroupName` / `ModGroupName` / `DataGridRowHeight` / `ShowSortButton` / `SortCommand`）で切替する。`ShowSortButton=true` 時にソートトグル用ボタンを表示し、`SortCommand` をクリック時に発火する。コンテキストメニュー（Copy/Open/Generate）は両画面共通で常に有効 |
+| `MapListView.axaml` | View | DataGrid・ページング・オーディオパネルのレイアウト定義。共通 BeatmapList View として再利用され、表示要素は `StyledProperty`（`ShowAudioPlayer` / `ShowTotalCount` / `ShowFilteredCount` / `ShowResolvedCount` / `ShowHistoryColumn` / `ShowIsPlayedColumn` / `ShowAnalyze7kColumns` / `ScoreSystemGroupName` / `ModGroupName` / `DataGridRowHeight` / `ShowSortButton` / `SortCommand`）で切替する。`ShowSortButton=true` 時にソートトグル用ボタンを表示し、`SortCommand` をクリック時に発火する。コンテキストメニュー（Copy/Open/Generate）は両画面共通で常に有効 |
 | `MapListView.axaml.cs` | CodeBehind | 上記 `StyledProperty` の定義、DataGrid右クリック時のコンテキストメニュー表示制御（行ヒットテスト）、`IBeatmapListViewModel` 経由での Command 配線 |
 
 #### 固有責務（基底に集約済みの共通責務は除く）
@@ -253,6 +253,10 @@
 | `LastModifiedTime` | 日付 | ✗ | ✓ | 最終更新日 |
 | `PlayCount` | 数値（int） | ✓ | ✓ | プレイ回数 |
 | `Collection` | 文字列 | ✓ | ✗ | コレクション名（部分一致ではなく完全一致でコレクション内の譜面に一致） |
+| `ManiaPrismOverall` / `ManiaPrismLnOverall` | 数値（double） | ✗ | ✓ | 7K Prism の Reg / LN 基準Overall（値のない譜面は一致しない） |
+| `ManiaPrismGenreSkill` / `ManiaPrismGenreConcentration` | 数値（double） | ✗ | ✓ | 7K Prism の基準スキル値 / ジャンル濃度（比較対象でジャンルを選ぶ） |
+| `ManiaDanRegular` / `ManiaDanLn` | 数値（double） | ✗ | ✓ | 7K 段位推定の Reg / LN 段位 |
+| `ManiaPrismTopGenre` / `ManiaDanRegularGenre` / `ManiaDanLnGenre` | 選択式 | ✓ | ✗ | 7K Prism の最大ジャンル（5ジャンルと LN）/ 段位推定のジャンル |
 
 ##### `FilterTargetInfo` ヘルパークラス
 
@@ -266,6 +270,9 @@
 - `IsStringType(FilterTarget)` — 文字列型か
 - `IsBoolType(FilterTarget)` — Bool型か
 - `IsEnumType(FilterTarget)` — Enum型か
+- `IsChoiceType(FilterTarget)` / `ChoiceOptions(FilterTarget)` — 固定の選択肢から選ぶ型か / その選択肢
+- `HasCompareTarget(FilterTarget)` / `CompareOptions(FilterTarget)` — 比較対象（ジャンル）を選ぶ型か / その選択肢
+- `IsAnalyze7k(FilterTarget)` — 7K 解析の値を使うか（解析結果が更新されたら絞り込み直す）
 
 ##### 主要プロパティ
 
@@ -279,6 +286,8 @@
 | `StatusValue` | `BeatmapStatus` | Status用の選択値 |
 | `BoolValue` | `bool` | IsPlayed用の選択値 |
 | `CollectionValue` | `string` | Collection用の選択コレクション名 |
+| `ChoiceValue` | `string` | 選択式の対象の選択値（ジャンル名） |
+| `CompareValue` | `string` | 比較対象（ジャンル別の基準スキル値・ジャンル濃度で比べるジャンル名） |
 | `DateValue` / `DateValueMax` | `DateTime?` | 日付型の値（CalendarDatePicker連携用） |
 
 ##### `Matches(Beatmap)` メソッド
@@ -290,6 +299,7 @@
 - `MatchesDouble` — double値の近似一致（誤差 < 0.001）または範囲判定
 - `MatchesLongNoteRate` — 入力値を100で割って内部値と比較
 - `MatchesDateTime` — 日付部分のみで一致または範囲判定
+- `MatchesNullableDouble` — 7K 解析の値の範囲判定（値のない譜面は、条件が入力されていれば一致しない）
 
 #### FilterPreset
 
@@ -427,7 +437,7 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 
 | ファイル | 種別 | 概要 |
 |---------|------|------|
-| `Sorting/SortField.cs` | enum | ソート対象フィールド。`None` + 17 値（`Title` / `Artist` / `Version` / `Creator` / `KeyCount` / `BPM` / `OD` / `HP` / `DrainTimeSeconds` / `Difficulty` / `LongNoteRate` / `Status` / `BestScore` / `BestAccuracy` / `PlayCount` / `LastPlayed` / `LastModifiedTime`） |
+| `Sorting/SortField.cs` | enum | ソート対象フィールド。`None` + 21 値（`Title` / `Artist` / `Version` / `Creator` / `KeyCount` / `BPM` / `OD` / `HP` / `DrainTimeSeconds` / `Difficulty` / `LongNoteRate` / `Status` / `BestScore` / `BestAccuracy` / `PlayCount` / `LastPlayed` / `LastModifiedTime` / 7K 解析の `ManiaPrismOverall` / `ManiaPrismLnOverall` / `ManiaDanRegular` / `ManiaDanLn`） |
 | `Sorting/SortDirection.cs` | enum | `Ascending` / `Descending` |
 | `Sorting/SortRule.cs` | `ObservableObject` | 1 スロット分のソート規則。`Field` / `Direction` を `[ObservableProperty]` で公開 |
 | `Sorting/BeatmapMultiComparer.cs` | `IComparer<Beatmap>` | NativeAOT 安全な switch 式ベースで `SortRule` 順に比較。`Field == None` のスロットはスキップ。`null` は方向に拘わらず末尾固定。Mod / ScoreSystem / `PreferUnicode` をコンストラクタで受け取り、`Beatmap.GetBestScore` / `GetBestAccuracy` 等や Title / Artist の Unicode/ASCII 選択を反映 |
@@ -1664,6 +1674,34 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 - 生成 .osu の MD5 は `MD5.HashData(Stream)` をファイル `FileStream` に対して直接呼び出し、ハッシュアルゴリズムをリフレクションで解決しない
 - sidecar JSON は既存 `ImportExportJsonContext`（Source Generator）を再利用し、`new ImportExportJsonContext(options)` で `WriteIndented` / `SnakeCaseLower` / `UnsafeRelaxedJsonEscaping` を付け直して呼び出す。新規 `JsonSerializerContext` の追加は不要
 - ReflectionBindingは不使用（全Viewに `x:DataType` 指定）
+
+---
+
+## 11. Analyze7k（7K 譜面解析）
+
+仕様は [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)、上流との対応は `native/nakuru_7k_analyze/UPSTREAM.md` を参照。
+
+### 構成ファイル一覧
+
+| ファイル | 種別 | 概要 |
+|---------|------|------|
+| `Analyze7kService.cs` | サービス | `IAnalyze7kService`。DB 読み込み後のバックグラウンド解析（専用スレッド・★の高い順）、キャッシュ反映、`Beatmap.ChartAnalysis` への反映、進み具合 |
+| `Analyze7kNative.cs` / `NativeMethods.g.cs` | ネイティブ | analyze_7k.dll の呼び出し（csbindgen 生成）と、出力から `ManiaChartAnalysis` への変換 |
+| `Analyze7kJson.cs` | DTO | エンジンの入出力・キャッシュ行（`Analyze7kJsonContext`） |
+| `Analyze7kCache.cs` | キャッシュ | `cache/analyze-7k/results-{版ハッシュ}.jsonl`（1 譜面 1 行、追記のみ。版が変わると古いファイルを削除） |
+| `Analyze7kProgressDisplay.cs` | 表示 | 進み具合の表示（進捗率・件数・残り時間の文字列）と、残り時間の推定（`Analyze7kRemainingTimeEstimator`） |
+| `Analyze7kRules.cs` | ルール | .osu の確認（native 7K・OD）、解析できなかった理由 |
+| `ManiaChartAnalysis.cs` | モデル | 解析結果（Prism の基準Overall・5ジャンルの値、段位推定と段位ジャンル）。`PrismGenre` / `RegularDanGenre` / `LnDanGenre` / `GenreValues` |
+| `DanBuckets.cs` | 移植 | `mania_dan_buckets.py`（Regular / LN の段位ジャンル判定） |
+| `DanLabels.cs` | 移植 | `mania_dan.py` の段位の表示名 |
+| `PrismGenreChart.cs` | コントロール | Prism 列の5ジャンルの表示（ジャンル濃度の五角形と凡例 / 基準スキル値と LN の横棒） |
+
+### 他モジュールとの接点
+
+- **OsuDatabase**: `Beatmap.ChartAnalysis`。`IDatabaseService.ApplyChartAnalyses` で解析結果を反映する。
+- **MapList**: Prism 列・段位推定列（`MapListView`、`ShowAnalyze7kColumns`）。列は解析結果モード（`IsAnalysisMode`、ローカルランキングと排他。履歴・プレイ済み列を隠す）の間だけ出す。基準スキル値 / ジャンル濃度のラジオボタン（`ShowGenreSkillValues`、既定は基準スキル値）と進み具合（`Analyze7kStatus`）。`FilterTarget` / `SortField` に `Mania*` を追加し、選択式の条件（`IsChoiceType` / `ChoiceOptions` / `ChoiceValue`）と、ジャンル別の値を範囲で絞り込む条件の比較対象（`HasCompareTarget` / `CompareOptions` / `CompareValue`）を `MapFilterView` と `PresetEditorView` に追加（どちらもプリセットに保存）。`ChartAnalysesChanged` を受けて表示中のページだけ差し替える。
+- **Settings**: `Analyze7kEnabled`（既定 ON）、`Analyze7kParallelism`（0 は自動、設定ファイルのみ）、`Analyze7kShowConcentration`（Prism 列の表示モード。既定 OFF ＝ 基準スキル値）。
+- **MainWindow**: DB 読み込み完了後に `OnDatabaseLoaded()` を呼ぶ。
 
 ---
 

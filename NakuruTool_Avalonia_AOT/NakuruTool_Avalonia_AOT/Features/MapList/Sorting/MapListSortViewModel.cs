@@ -95,6 +95,18 @@ internal sealed partial class MapListSortViewModel : ViewModelBase
         RaiseSortChanged();
     }
 
+    /// <summary>7K 解析の値で並べ替えているか</summary>
+    public bool UsesAnalyze7k()
+    {
+        foreach (var rule in GetActiveRules())
+        {
+            if (rule.Field is SortField.ManiaPrismOverall or SortField.ManiaPrismLnOverall or
+                SortField.ManiaDanRegular or SortField.ManiaDanLn)
+                return true;
+        }
+        return false;
+    }
+
     /// <summary>
     /// active な SortRule のみを Primary -> Secondary -> Tertiary の順で抜き出した snapshot を返す。
     /// </summary>

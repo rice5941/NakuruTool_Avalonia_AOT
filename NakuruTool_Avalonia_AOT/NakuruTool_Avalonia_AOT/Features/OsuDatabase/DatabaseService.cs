@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using R3;
@@ -28,6 +29,12 @@ public interface IDatabaseService : IDisposable
     /// 指定譜面のローカルスコア（mania のみ、ReplayScore 降順）を返す。無ければ空。
     /// </summary>
     ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash);
+
+    /// <summary>
+    /// 7K 譜面の解析結果を <see cref="Beatmaps"/> に反映する（UI スレッドから呼ぶこと）。
+    /// 値が変わった譜面の MD5 を返す。
+    /// </summary>
+    IReadOnlySet<string> ApplyChartAnalyses(Func<Beatmap, ManiaChartAnalysis?> resolver);
 }
 
 /// <summary>
@@ -431,6 +438,26 @@ public class DatabaseService: IDatabaseService
             return _localScores.GetScores(index);
         }
         return ReadOnlySpan<LocalScore>.Empty;
+    }
+
+    /// <summary>
+    /// 7K 譜面の解析結果を反映する。Beatmap は不変レコードなので、値が変わった譜面だけ差し替える。
+    /// </summary>
+    public IReadOnlySet<string> ApplyChartAnalyses(Func<Beatmap, ManiaChartAnalysis?> resolver)
+    {
+        var beatmaps = _beatmaps;
+        var changed = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < beatmaps.Length; i++)
+        {
+            var beatmap = beatmaps[i];
+            var analysis = resolver(beatmap);
+            if (!Equals(beatmap.ChartAnalysis, analysis))
+            {
+                beatmaps[i] = beatmap with { ChartAnalysis = analysis };
+                changed.Add(beatmap.MD5Hash);
+            }
+        }
+        return changed;
     }
 
     /// <summary>

@@ -46,6 +46,10 @@ internal sealed class SortFieldNameConverter : IValueConverter
         SortField.OD               => "MapFilter.Target.OD",
         SortField.HP               => "MapFilter.Target.HP",
         SortField.DrainTime        => "MapFilter.Target.DrainTime",
+        SortField.ManiaPrismOverall   => "MapFilter.Target.ManiaPrismOverall",
+        SortField.ManiaPrismLnOverall => "MapFilter.Target.ManiaPrismLnOverall",
+        SortField.ManiaDanRegular     => "MapFilter.Target.ManiaDanRegular",
+        SortField.ManiaDanLn          => "MapFilter.Target.ManiaDanLn",
         _                          => "MapList.Sort.Field.None",
     };
 }

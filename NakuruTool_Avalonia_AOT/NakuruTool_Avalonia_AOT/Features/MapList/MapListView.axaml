@@ -10,6 +10,7 @@
              xmlns:osu="using:NakuruTool_Avalonia_AOT.Features.OsuDatabase"
              xmlns:audio="using:NakuruTool_Avalonia_AOT.Features.AudioPlayer"
              xmlns:shared="using:NakuruTool_Avalonia_AOT.Features.Shared.ViewModels"
+             xmlns:a7k="using:NakuruTool_Avalonia_AOT.Features.Analyze7k"
              x:Class="NakuruTool_Avalonia_AOT.Features.MapList.MapListView"
              x:DataType="shared:IBeatmapListViewModel">
 
@@ -145,6 +146,48 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
+        <!-- 7K 解析列: 小さな見出し（Reg / LN） -->
+        <Style Selector="TextBlock.a7k-caption">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey6}"/>
+        </Style>
+
+        <!-- 7K 解析列: 値 -->
+        <Style Selector="TextBlock.a7k-value">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
+        </Style>
+
+        <!-- 7K 解析列: 測定不能 -->
+        <Style Selector="TextBlock.a7k-unavailable">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey6}"/>
+        </Style>
+
+        <!-- 段位推定のジャンルラベル（有効なものだけ強調） -->
+        <Style Selector="Border.dan-genre">
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiGrey4}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+        <Style Selector="Border.dan-genre > TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey7}"/>
+        </Style>
+        <Style Selector="Border.dan-genre.active">
+            <Setter Property="Background" Value="{DynamicResource SemiBlue5}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Border.dan-genre.active > TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
     </UserControl.Styles>
 
 
@@ -170,7 +213,7 @@
                     BorderThickness="1,1,1,0"
                     CornerRadius="4,4,0,0"
                     Padding="12,8">
-                <Grid>
+                <Grid RowDefinitions="Auto,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
                         <!-- MapListのアイコン+TotalCount/FilteredCount表示 -->
                         <StackPanel Orientation="Horizontal" Spacing="12"
@@ -248,6 +291,34 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- 7K 解析: Prism 列の表示（解析結果モードの間だけ）と、解析結果の表示切替（ローカルランキングと排他）。区切りとセットで出し入れ -->
+                        <StackPanel x:Name="Analyze7kHeaderPanel" Orientation="Horizontal" Spacing="4">
+                            <Border Width="1" Background="{DynamicResource SemiGrey4}" Margin="4,2"/>
+                            <Border x:Name="GenreDisplayModePanel"
+                                    BorderBrush="{DynamicResource SemiGrey4}" BorderThickness="1" CornerRadius="4" Padding="6,2"
+                                    ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.ModeToggle'}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <mi:MaterialIcon Kind="ChartBar" Width="18" Height="18"
+                                                     Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                    <!-- 基準スキル値（既定）→ ジャンル濃度の順。グループ名なしのラジオボタンは同じ親の中で排他になる（他ページの MapListView とは干渉しない） -->
+                                    <RadioButton x:Name="GenreSkillValueRadio"
+                                                 Content="{translate:Translate 'MapList.Analyze7k.SkillValue'}"
+                                                 IsChecked="{Binding ShowGenreSkillValues, Mode=TwoWay}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                    <RadioButton x:Name="GenreConcentrationRadio"
+                                                 Content="{translate:Translate 'MapList.Analyze7k.Concentration'}"
+                                                 IsChecked="{Binding !ShowGenreSkillValues, Mode=OneWay}"
+                                                 Padding="4,2" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ToggleButton x:Name="AnalysisToggleButton"
+                                          Width="32" Height="32" Padding="0"
+                                          IsChecked="{Binding IsAnalysisMode, Mode=TwoWay}"
+                                          ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Toggle'}">
+                                <mi:MaterialIcon Kind="ChartBoxOutline" Width="20" Height="20"/>
+                            </ToggleButton>
+                        </StackPanel>
+
                         <!-- ローカルランキング表示切替 (区切りとセットで出し入れ) -->
                         <StackPanel Orientation="Horizontal" Spacing="4"
                                     IsVisible="{Binding ShowLocalRankingButton, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}">
@@ -274,6 +345,31 @@
                             <mi:MaterialIcon Kind="SortVariant" Width="20" Height="16"/>
                         </Button>
                     </StackPanel>
+
+                    <!-- 7K 解析の進み具合（解析中だけ表示）: 進捗率・解析済み / 対象・残り時間の目安 -->
+                    <Border Grid.Row="1" x:Name="Analyze7kProgressPanel"
+                            Margin="0,8,0,0" Padding="10,6" CornerRadius="4"
+                            Background="{DynamicResource SemiBlue0}"
+                            BorderBrush="{DynamicResource SemiBlue2}" BorderThickness="1"
+                            IsVisible="{Binding Analyze7kStatus, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            ToolTip.Tip="{Binding Analyze7kStatus.ToolTip}">
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+                            <mi:MaterialIcon Grid.Column="0" Kind="ProgressClock" Width="18" Height="18"
+                                             Foreground="{DynamicResource SemiBluePrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.Running'}"
+                                       FontSize="13" FontWeight="SemiBold" Margin="6,0,12,0" VerticalAlignment="Center"/>
+                            <ProgressBar Grid.Column="2" x:Name="Analyze7kProgressBar"
+                                         Minimum="0" Maximum="100" Value="{Binding Analyze7kStatus.Percent, FallbackValue=0}"
+                                         MinWidth="120" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" Text="{Binding Analyze7kStatus.PercentText}"
+                                       FontSize="13" FontWeight="Bold" Foreground="{DynamicResource SemiBluePrimary}"
+                                       MinWidth="44" TextAlignment="Right" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="4" Text="{Binding Analyze7kStatus.CountText}"
+                                       FontSize="12" Foreground="{DynamicResource SemiGrey7}" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="5" Text="{Binding Analyze7kStatus.RemainingText}"
+                                       FontSize="12" FontWeight="SemiBold" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -407,6 +503,91 @@
                                                Classes="primary-value" 
                                                HorizontalAlignment="Left"/>
                                 </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 7K Prism（基準 96.5%）: Reg / LN 基準Overall と、ジャンル濃度の五角形 / 基準スキル値の横棒（ヘッダーで切替）。7K 以外・未解析は空 -->
+                    <DataGridTemplateColumn Tag="PrismColumn" Width="300">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.PrismColumn'}" HorizontalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="osu:Beatmap">
+                                <Grid ColumnDefinitions="58,*" Margin="0,6"
+                                      IsVisible="{Binding ChartAnalysis, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <TextBlock Text="Reg" Classes="a7k-caption"/>
+                                            <mi:MaterialIcon Kind="AlertOutline" Width="11" Height="11"
+                                                             Foreground="{DynamicResource SemiOrange5}"
+                                                             IsVisible="{Binding ChartAnalysis.HasWarning, FallbackValue=False}"
+                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Warning'}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ChartAnalysis.PrismOverallText, FallbackValue=''}" Classes="a7k-value"/>
+                                        <TextBlock Text="LN" Classes="a7k-caption" Margin="0,3,0,0"/>
+                                        <TextBlock Text="{Binding ChartAnalysis.PrismLnOverallText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
+                                                   IsVisible="{Binding ChartAnalysis.HasLnOverall, FallbackValue=False}"/>
+                                        <TextBlock Text="{translate:Translate 'MapList.Analyze7k.Unavailable'}" Classes="a7k-unavailable"
+                                                   IsVisible="{Binding !ChartAnalysis.HasLnOverall, FallbackValue=False}"/>
+                                    </StackPanel>
+                                    <a7k:PrismGenreChart Grid.Column="1" Margin="4,0,0,0"
+                                                         Analysis="{Binding ChartAnalysis}"
+                                                         ShowSkillValues="{Binding ShowGenreSkillValues, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
+                                                         ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.GenreChart'}"
+                                                         TextElement.Foreground="{DynamicResource SemiGrey8}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- 7K 段位推定: Reg / LN の推定段位とジャンル。主分類の側に印。7K 以外・未解析は空 -->
+                    <DataGridTemplateColumn Tag="DanEstimateColumn" Width="250">
+                        <DataGridTemplateColumn.Header>
+                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.DanColumn'}" HorizontalAlignment="Center"/>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="osu:Beatmap">
+                                <StackPanel Spacing="5" VerticalAlignment="Center"
+                                            IsVisible="{Binding ChartAnalysis, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <!-- Regular -->
+                                    <StackPanel Spacing="2">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="Reg" Classes="a7k-caption" VerticalAlignment="Center"/>
+                                            <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
+                                                             IsVisible="{Binding ChartAnalysis.IsRegularPrimary, FallbackValue=False}"
+                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
+                                            <TextBlock Text="{Binding ChartAnalysis.RegularDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularJack, FallbackValue=False}"><TextBlock Text="Jack"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularTech, FallbackValue=False}"><TextBlock Text="Tech"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularSpeed, FallbackValue=False}"><TextBlock Text="Speed"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularStream, FallbackValue=False}"><TextBlock Text="Stream"/></Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <!-- LN -->
+                                    <StackPanel Spacing="2">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="LN" Classes="a7k-caption" VerticalAlignment="Center"/>
+                                            <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
+                                                             IsVisible="{Binding ChartAnalysis.IsLnPrimary, FallbackValue=False}"
+                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
+                                            <TextBlock Text="{Binding ChartAnalysis.LnDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsVisible="{Binding ChartAnalysis.HasLnDan, FallbackValue=False}"/>
+                                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.Unavailable'}" Classes="a7k-unavailable"
+                                                       IsVisible="{Binding !ChartAnalysis.HasLnDan, FallbackValue=False}"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsLnGeneral, FallbackValue=False}"><TextBlock Text="General"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsLnTech, FallbackValue=False}"><TextBlock Text="Tech"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsLnInverse, FallbackValue=False}"><TextBlock Text="Inverse"/></Border>
+                                            <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsLnRelease, FallbackValue=False}"><TextBlock Text="Release"/></Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

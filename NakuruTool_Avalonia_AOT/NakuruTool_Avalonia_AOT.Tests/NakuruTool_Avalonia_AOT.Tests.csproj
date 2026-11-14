@@ -41,6 +41,13 @@
   <ItemGroup>
     <!-- スクリーンショット出力ディレクトリ -->
     <None Update="Screenshots\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 7K 解析の検証用 fixture（原典 TypeScript の出力） -->
+    <None Update="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 7K 解析のネイティブライブラリ（メインプロジェクトのビルドで生成される） -->
+    <None Include="..\..\native\nakuru_7k_analyze\target\release\analyze_7k.dll"
+          Link="analyze_7k.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('..\..\native\nakuru_7k_analyze\target\release\analyze_7k.dll')" />
   </ItemGroup>
 
 </Project>

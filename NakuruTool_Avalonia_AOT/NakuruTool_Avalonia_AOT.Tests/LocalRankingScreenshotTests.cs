@@ -8,6 +8,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
@@ -110,6 +111,105 @@ public class LocalRankingScreenshotTests
     }
 
     [AvaloniaFact]
+    public void AnalysisMode_ShowsAnalyze7kColumnsAndExcludesLocalRanking()
+    {
+        var vm = new TestListViewModel(new MockSettingsService(), new StubScoresDatabaseService([]));
+        vm.SetTestSource([CreateBeatmap("md5-a", "Song")]);
+        var view = new MapListView { DataContext = vm };
+        var window = new Window { Width = 1280, Height = 720, Content = view };
+        window.Show();
+        Render();
+
+        var grid = view.FindControl<DataGrid>("MapListDataGrid")!;
+        var analysisToggle = view.FindControl<Avalonia.Controls.Primitives.ToggleButton>("AnalysisToggleButton")!;
+        var rankingToggle = view.FindControl<Avalonia.Controls.Primitives.ToggleButton>("LocalRankingToggleButton")!;
+        var modePanel = view.FindControl<Border>("GenreDisplayModePanel")!;
+
+        // 既定: 解析結果の列は出さず、履歴・プレイ済みを出す
+        Assert.True(analysisToggle.IsEffectivelyVisible);
+        Assert.False(Column(grid, "PrismColumn").IsVisible);
+        Assert.False(Column(grid, "DanEstimateColumn").IsVisible);
+        Assert.True(Column(grid, "HistoryColumn").IsVisible);
+        Assert.True(Column(grid, "IsPlayedColumn").IsVisible);
+        Assert.False(modePanel.IsVisible);
+
+        // 解析結果を表示: Prism・段位推定を出し、履歴・プレイ済みを隠す（BPM・LN率は残す）
+        analysisToggle.IsChecked = true;
+        Render();
+        Assert.True(vm.IsAnalysisMode);
+        Assert.True(Column(grid, "PrismColumn").IsVisible);
+        Assert.True(Column(grid, "DanEstimateColumn").IsVisible);
+        Assert.False(Column(grid, "HistoryColumn").IsVisible);
+        Assert.False(Column(grid, "IsPlayedColumn").IsVisible);
+        Assert.True(Column(grid, "BpmColumn").IsVisible);
+        Assert.True(modePanel.IsVisible);
+
+        // ラジオボタンで基準スキル値（既定）/ ジャンル濃度を切り替える
+        var concentration = view.FindControl<RadioButton>("GenreConcentrationRadio")!;
+        var skill = view.FindControl<RadioButton>("GenreSkillValueRadio")!;
+        Assert.True(vm.ShowGenreSkillValues);
+        Assert.True(skill.IsChecked);
+        Assert.False(concentration.IsChecked);
+        concentration.IsChecked = true;
+        Render();
+        Assert.False(vm.ShowGenreSkillValues);
+        Assert.False(skill.IsChecked);
+        skill.IsChecked = true;
+        Render();
+        Assert.True(vm.ShowGenreSkillValues);
+        Assert.False(concentration.IsChecked);
+        vm.ShowGenreSkillValues = false;
+        Render();
+        Assert.True(concentration.IsChecked);
+        Assert.False(skill.IsChecked);
+
+        // ローカルランキングと排他
+        rankingToggle.IsChecked = true;
+        Render();
+        Assert.True(vm.IsLocalRankingMode);
+        Assert.False(vm.IsAnalysisMode);
+        Assert.False(analysisToggle.IsChecked);
+        Assert.False(Column(grid, "PrismColumn").IsVisible);
+        Assert.False(Column(grid, "HistoryColumn").IsVisible);
+        Assert.False(modePanel.IsVisible);
+
+        analysisToggle.IsChecked = true;
+        Render();
+        Assert.True(vm.IsAnalysisMode);
+        Assert.False(vm.IsLocalRankingMode);
+        Assert.False(rankingToggle.IsChecked);
+        Assert.True(Column(grid, "PrismColumn").IsVisible);
+        Assert.True(Column(grid, "BpmColumn").IsVisible);
+
+        // 解除で元に戻る
+        analysisToggle.IsChecked = false;
+        Render();
+        Assert.False(Column(grid, "PrismColumn").IsVisible);
+        Assert.True(Column(grid, "HistoryColumn").IsVisible);
+        Assert.True(Column(grid, "IsPlayedColumn").IsVisible);
+
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ShowAnalyze7kColumnsFalse_HidesAnalysisButtonAndColumns()
+    {
+        var vm = new TestListViewModel(new MockSettingsService(), new StubScoresDatabaseService([]));
+        vm.IsAnalysisMode = true;
+        var view = new MapListView { DataContext = vm, ShowAnalyze7kColumns = false };
+        var window = new Window { Width = 1280, Height = 720, Content = view };
+        window.Show();
+        Render();
+
+        var grid = view.FindControl<DataGrid>("MapListDataGrid")!;
+        Assert.False(view.FindControl<Avalonia.Controls.Primitives.ToggleButton>("AnalysisToggleButton")!.IsEffectivelyVisible);
+        Assert.False(Column(grid, "PrismColumn").IsVisible);
+        Assert.False(Column(grid, "DanEstimateColumn").IsVisible);
+
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void ShowLocalRankingButtonFalse_HidesToggle()
     {
         var vm = new TestListViewModel(new MockSettingsService(), new StubScoresDatabaseService([]));
@@ -186,6 +286,8 @@ public class LocalRankingScreenshotTests
         public bool TryGetBeatmapByMd5(string md5Hash, out Beatmap? beatmap) { beatmap = null; return false; }
         public ReadOnlySpan<LocalScore> GetLocalScores(string md5Hash)
             => scores.TryGetValue(md5Hash, out var s) ? s : ReadOnlySpan<LocalScore>.Empty;
+        public IReadOnlySet<string> ApplyChartAnalyses(Func<Beatmap, ManiaChartAnalysis?> resolver)
+            => new HashSet<string>();
         public void Dispose() { }
     }
 }

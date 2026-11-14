@@ -116,6 +116,7 @@
                                  ShowHistoryColumn="False"
                                  ShowIsPlayedColumn="False"
                                  ShowLocalRankingButton="False"
+                                 ShowAnalyze7kColumns="False"
                                  ScoreSystemGroupName="BeatmapGenScoreSystem"
                                  ModGroupName="BeatmapGenMod"
                                  DataGridRowHeight="80"/>

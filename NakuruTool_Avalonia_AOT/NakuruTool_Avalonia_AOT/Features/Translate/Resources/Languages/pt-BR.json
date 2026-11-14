@@ -23,7 +23,8 @@
     "PreferUnicode": "Preferir exibição Unicode",
     "BeatmapMirror": "Mirror de download de beatmaps",
     "AutoBatchGenerateOnStartup": "Gerar coleções em lote a partir de presets ao iniciar",
-    "AppVersion": "Versão"
+    "AppVersion": "Versão",
+    "Analyze7kEnabled": "Analyze 7K charts (Prism / dan estimate)"
   },
   "Licenses": {
     "Title": "Licenças de código aberto",
@@ -78,7 +79,25 @@
     "Sort.Field.None": "(Não especificado)",
     "LocalRanking.Toggle": "Alternar Ranking Local",
     "LocalRanking.PlayedAt": "Data do registro",
-    "LocalRanking.Empty": "Sem pontuações"
+    "LocalRanking.Empty": "Sem pontuações",
+    "Analyze7k.PrismColumn": "Prism (96.5% base)",
+    "Analyze7k.DanColumn": "Dan estimate",
+    "Analyze7k.Unavailable": "N/A",
+    "Analyze7k.Concentration": "Genre concentration",
+    "Analyze7k.SkillValue": "Base skill value",
+    "Analyze7k.ModeToggle": "Prism column: base skill value (bars) / genre concentration (pentagon)",
+    "Analyze7k.Toggle": "Show analysis results (Prism / dan estimate)",
+    "Analyze7k.GenreChart": "Bars: base skill values and LN (full width = the largest of the six) / Pentagon: genre concentration (share of the five genres; the outer edge is 50%)",
+    "Analyze7k.Progress": "Analyzing 7K charts in the background. Results appear in the list as they are ready.",
+    "Analyze7k.Running": "Analyzing 7K charts",
+    "Analyze7k.Count": "{0} / {1} charts",
+    "Analyze7k.RemainingEstimating": "Estimating time left…",
+    "Analyze7k.RemainingUnderMinute": "Less than a minute left",
+    "Analyze7k.RemainingMinutes": "About {0} min left",
+    "Analyze7k.RemainingHours": "About {0} h {1} min left",
+    "Analyze7k.Failed": "Charts that could not be analyzed: {0} (missing file, MD5 mismatch, invalid format, etc.)",
+    "Analyze7k.Warning": "Flagged as vibro or not eligible for dan estimates",
+    "Analyze7k.Primary": "Primary family of the dan estimate"
   },
   "MapFilter": {
     "Title": "Condições de filtro",
@@ -123,7 +142,17 @@
     "No": "Não",
     "ModCategory": "Mod",
     "Not": "NOT",
-    "ScoreSystem": "Sistema de pontuação"
+    "ScoreSystem": "Sistema de pontuação",
+    "Target.ManiaPrismOverall": "7K Prism Reg base Overall",
+    "Target.ManiaPrismLnOverall": "7K Prism LN base Overall",
+    "Target.ManiaPrismTopGenre": "7K Prism top genre",
+    "Target.ManiaPrismGenreSkill": "7K Prism base skill value (by genre)",
+    "Target.ManiaPrismGenreConcentration": "7K Prism genre concentration (by genre)",
+    "CompareTarget": "Compare target",
+    "Target.ManiaDanRegular": "7K dan estimate Reg",
+    "Target.ManiaDanLn": "7K dan estimate LN",
+    "Target.ManiaDanRegularGenre": "7K dan estimate Reg genre",
+    "Target.ManiaDanLnGenre": "7K dan estimate LN genre"
   },
   "Collection": {
     "GenerateCollection": "Gerar coleção",

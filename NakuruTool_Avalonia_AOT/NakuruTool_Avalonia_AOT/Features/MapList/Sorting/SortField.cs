@@ -22,5 +22,9 @@ internal enum SortField
     PlayCount,
     OD,
     HP,
-    DrainTime
+    DrainTime,
+    ManiaPrismOverall,
+    ManiaPrismLnOverall,
+    ManiaDanRegular,
+    ManiaDanLn
 }

@@ -1,10 +1,13 @@
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
+using NakuruTool_Avalonia_AOT.Features.Translate;
 using R3;
 using System;
+using System.Collections.Generic;
 using ZLinq;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
@@ -53,7 +56,8 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         MapFilterViewModel filterViewModel,
         AudioPlayerViewModel audioPlayerViewModel,
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IAnalyze7kService? analyze7kService = null)
         : base(settingsService, databaseService)
     {
         _databaseService = databaseService;
@@ -66,6 +70,18 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         _filterViewModel.FilterChanged
             .Subscribe(_ => ApplyFilter())
             .AddTo(Disposables);
+
+        // 7K 解析の結果が反映されたら、表示中のページと（必要なら）絞り込み・並びを更新する
+        if (analyze7kService is not null)
+        {
+            analyze7kService.ChartAnalysesChanged
+                .Subscribe(OnChartAnalysesChanged)
+                .AddTo(Disposables);
+            UpdateAnalyze7kStatus(analyze7kService.Progress);
+            analyze7kService.ProgressChanged
+                .Subscribe(UpdateAnalyze7kStatus)
+                .AddTo(Disposables);
+        }
 
         // 譜面選択時にオーディオを再生
         this.ObserveProperty(nameof(SelectedBeatmap))
@@ -111,6 +127,47 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
     }
 
     private void UpdateTotalCount() => TotalCount = _databaseService.Beatmaps.Length;
+
+    private void UpdateAnalyze7kStatus(Analyze7kProgress progress) =>
+        Analyze7kStatus = Analyze7kProgressDisplay.From(progress, LanguageService.Instance.GetString);
+
+    private void OnChartAnalysesChanged(IReadOnlySet<string> changed)
+    {
+        var selectedMd5 = SelectedBeatmap?.MD5Hash;
+        _isNavigating = true;
+        try
+        {
+            if (_filterViewModel.UsesAnalyze7k || SortViewModel.UsesAnalyze7k())
+            {
+                var filtered = _databaseService.Beatmaps.AsValueEnumerable()
+                    .Where(x => _filterViewModel.Matches(x))
+                    .ToArray();
+                ReplaceSourceBeatmapsPreservingPage(filtered);
+                AudioPlayerPanel.RefreshNavigationContextPreservingCurrent(SourceBeatmapsRaw);
+            }
+            else if (!ReplaceRecordsInPlace(changed, md5 => _databaseService.TryGetBeatmapByMd5(md5, out var b) ? b : null))
+            {
+                return;
+            }
+
+            // 行が作り直されて選択が外れた場合は同じ譜面を選び直す（再生はやり直さない）
+            if (selectedMd5 is not null && SelectedBeatmap is null)
+            {
+                foreach (var row in ShowBeatmaps)
+                {
+                    if (row.MD5Hash == selectedMd5)
+                    {
+                        SelectedBeatmap = row;
+                        break;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            _isNavigating = false;
+        }
+    }
 
     private void UpdateFilteredBeatmapsArray()
     {

@@ -21,6 +21,7 @@
 |------------|----------|------|
 | .NET SDK | 10.0以上 | C#プロジェクトのビルド |
 | Rust | 1.92.0以上 | nakuru_audioライブラリのビルド |
+| Rust | 1.96.0 | nakuru_7k_analyze（analyze_7k.dll）のビルド（`rust-toolchain.toml` で固定） |
 | Visual Studio | 2022 | NativeAOTリンカー (Windows) |
 
 ### 動作確認済み環境
@@ -207,6 +208,22 @@ cargo build --release --manifest-path native/nakuru_audio/Cargo.toml
 **出力先:**
 - Debug: `native/nakuru_audio/target/debug/nakuru_audio.dll`
 - Release: `native/nakuru_audio/target/release/nakuru_audio.dll`
+
+nakuru_7k_analyze（7K 譜面解析、出力は `analyze_7k.dll`）は、構成に関係なく常に release でビルドする（Mania Tracker の計算は debug だと遅すぎるため）。
+`rust-toolchain.toml` を効かせるため、**クレートのディレクトリで**実行する。
+
+```powershell
+rustup toolchain install 1.96.0 --profile minimal   # 初回のみ
+cd native/nakuru_7k_analyze
+cargo build --release
+```
+
+- 初回は mania-hub（GitHub）の固定コミットと crates.io から依存を取得するため、ネットワーク接続が必要。
+- MinaCalc（wasm）と wasmtime は含めない（`vendor/leoblack-ett/` の代替クレートに `[patch]` で差し替え。7K は Prism で計算するため使われない）。
+- 出力先: `native/nakuru_7k_analyze/target/release/analyze_7k.dll`（約 2.4MB）
+- テスト: `cargo test --release`（Prism の値との突き合わせ、ジャンル傾向の範囲と並び順）
+- 計測・比較用のサンプル: `cargo run --release --example probe -- batch <list.tsv> <threads> <out.jsonl>`（`examples/probe.rs`。各行に1譜面の時間 `ms` も出す）
+- 工程別の時間（1スレッド）: `cargo run --release --example profile -- <list.tsv> [件数]`（`examples/profile.rs`）
 
 ---
 

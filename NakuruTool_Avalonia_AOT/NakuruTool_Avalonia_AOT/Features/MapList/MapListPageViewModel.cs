@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
@@ -89,14 +90,15 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         AudioPlayerViewModel audioPlayerViewModel,
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService,
-        IBeatmapRateGenerator beatmapRateGenerator)
+        IBeatmapRateGenerator beatmapRateGenerator,
+        IAnalyze7kService? analyze7kService = null)
     {
         _generateCollectionService = generateCollectionService;
         _beatmapRateGenerator = beatmapRateGenerator;
         _settingsService = settingsService;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
-        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService);
+        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService, analyze7kService);
         PresetEditorViewModel = new PresetEditorViewModel(presetService, databaseService, generateCollectionService);
 
         // MapFilterViewModelにToggle命令を中継するコマンドを注入

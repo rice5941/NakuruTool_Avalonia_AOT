@@ -137,6 +137,73 @@ public class Analyze7kScreenshotTests
         window.Close();
     }
 
+    /// <summary>列の見方はセルではなく Prism 列・段位推定列のヘッダーセル全体のツールチップで説明する（？アイコンは目印）</summary>
+    [AvaloniaFact]
+    public void CaptureHeaderHelpTooltips()
+    {
+        var vm = new MockMapListViewModel { IsAnalysisMode = true };
+        vm.SetTestData(TestBeatmaps());
+        var view = new MapListView { DataContext = vm };
+        var window = new Window { Width = 1920, Height = 760, Content = view };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+        var grid = view.FindControl<DataGrid>("MapListDataGrid")!;
+        if (grid.ItemsSource is null)
+        {
+            grid.ItemsSource = vm.ShowBeatmaps;
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        }
+
+        // セル内には説明のツールチップを置かない
+        var cellTips = grid.GetVisualDescendants()
+            .OfType<Control>()
+            .Where(c => c.FindAncestorOfType<DataGridCell>() is not null && ToolTip.GetTip(c) is string)
+            .ToList();
+        Assert.Empty(cellTips);
+
+        // ？アイコンは目印で、ツールチップはヘッダーセル全体に付く（小さなアイコンに合わせなくても出る）
+        var helpIcons = grid.GetVisualDescendants()
+            .OfType<Control>()
+            .Where(c => c.Classes.Contains("a7k-help"))
+            .ToList();
+        Assert.Equal(2, helpIcons.Count);
+        Assert.All(helpIcons, icon => Assert.Null(ToolTip.GetTip(icon)));
+        var helpHeaders = helpIcons.Select(icon => icon.FindAncestorOfType<DataGridColumnHeader>()!).ToList();
+        Assert.All(helpHeaders, header =>
+        {
+            Assert.NotNull(header);
+            Assert.True(header.Classes.Contains(ColumnHeaderToolTip.HeaderClass));
+        });
+        var otherHeaders = grid.GetVisualDescendants().OfType<DataGridColumnHeader>().Except(helpHeaders);
+        Assert.All(otherHeaders, header => Assert.Null(ToolTip.GetTip(header)));
+
+        Directory.CreateDirectory(ScreenshotsDirectory);
+        string[] names = ["Analyze7k_PrismHelp.png", "Analyze7k_DanHelp.png"];
+        for (var i = 0; i < helpHeaders.Count; i++)
+        {
+            ToolTip.SetIsOpen(helpHeaders[i], true);
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+            var tip = Assert.IsAssignableFrom<Control>(ToolTip.GetTip(helpHeaders[i]));
+            var texts = tip.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+            Assert.All(texts, t => Assert.False(string.IsNullOrWhiteSpace(t)));
+
+            var popup = TopLevel.GetTopLevel(tip);
+            Assert.NotNull(popup);
+            var path = Path.Combine(ScreenshotsDirectory, names[i]);
+            popup.CaptureRenderedFrame()?.Save(path, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+            Assert.True(File.Exists(path));
+
+            ToolTip.SetIsOpen(helpHeaders[i], false);
+            Dispatcher.UIThread.RunJobs();
+        }
+        window.Close();
+    }
+
     /// <summary>フィルタ: ジャンル別の基準スキル値・ジャンル濃度は「比較対象」でジャンルを選び、範囲で絞り込む</summary>
     [AvaloniaFact]
     public void CaptureGenreFilters()

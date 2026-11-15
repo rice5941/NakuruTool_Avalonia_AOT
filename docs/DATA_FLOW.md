@@ -1038,4 +1038,8 @@ flowchart TD
 - 設定の「7K譜面の解析」の変更でも `Restart()` する。
 - 進み具合（`ProgressChanged`、0.5 秒ごと）は `Analyze7kProgressDisplay.From` で表示用に変換し、beatmap一覧のヘッダーの下に
   進捗率・「解析済み / 対象」・残り時間の目安（`Analyze7kRemainingTimeEstimator`、直近 30 秒の速度）として表示する。
-- 起動時のプリセット一括生成は `WhenCachedResultsAppliedAsync()` を待ってから実行する（7K 解析の条件を含むプリセットのため）。
+- 起動時のプリセット一括生成は、7K 解析の条件（Prism・段位推定）を含まないプリセットだけを読み込み画面の間に生成する。
+  含むプリセット（`FilterPreset.UsesAnalyze7k()`）は、読み込み画面を閉じた後に `WhenAnalysisFinishedAsync()`
+  （状態が Completed / Disabled / EngineUnavailable になるまで）を待ってから生成する。Completed の通知は最後の
+  `PublishAsync` の後に届くので、未解析だった譜面も含めて絞り込める。進捗はプリセット編集の一括生成欄に表示し、
+  手動の一括生成中なら終わるまで待つ。DB を読み直したら取りやめる。

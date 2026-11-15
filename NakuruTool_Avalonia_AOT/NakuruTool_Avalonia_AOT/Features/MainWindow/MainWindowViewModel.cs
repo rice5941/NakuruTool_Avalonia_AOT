@@ -12,6 +12,7 @@ using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.MainWindow;
@@ -33,6 +34,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly ISettingsService _settingsService;
     private readonly IAnalyze7kService? _analyze7kService;
+
+    /// <summary>7K 解析の完了を待っている起動時の自動一括生成（DB の読み直し・破棄で取りやめる）</summary>
+    private CancellationTokenSource? _deferredBatchGenerateCts;
 
     [ObservableProperty]
     public partial bool IsLoadingOverlayVisible { get; set; } = true;
@@ -95,15 +99,14 @@ public partial class MainWindowViewModel : ViewModelBase
         StartAnalyze7k();
 
         // 設定が有効かつDB読み込み成功時、プリセットから自動一括生成
-        if (!DatabaseLoadingViewModel.HasError
-            && _settingsService.SettingsData.AutoBatchGenerateOnStartup)
+        var autoBatchGenerate = !DatabaseLoadingViewModel.HasError
+            && _settingsService.SettingsData.AutoBatchGenerateOnStartup;
+        if (autoBatchGenerate)
         {
             try
             {
-                // 7K 解析の条件を使うプリセットのため、解析済みの値の反映を待つ（最大30秒）
-                if (_analyze7kService is not null)
-                    await Task.WhenAny(_analyze7kService.WhenCachedResultsAppliedAsync(), Task.Delay(TimeSpan.FromSeconds(30)));
-                await MapListPageViewModel.AutoBatchGenerateFromPresetsAsync();
+                // 7K 解析の条件を含むプリセットは、解析が終わってから別に生成する
+                await MapListPageViewModel.AutoBatchGenerateFromPresetsAsync(excludeAnalyze7k: _analyze7kService is not null);
             }
             catch (Exception ex)
             {
@@ -113,11 +116,44 @@ public partial class MainWindowViewModel : ViewModelBase
 
         IsLoadingOverlayVisible = false;
 
+        if (autoBatchGenerate && _analyze7kService is not null)
+            _ = GenerateAnalyze7kPresetsAfterAnalysisAsync(_analyze7kService);
+
         // 読み込み結果に応じて表示ページを切り替え
         SelectedPage = DatabaseLoadingViewModel.HasError
             ? MainPageKind.Settings
             : MainPageKind.MapList;
     }
+
+    /// <summary>
+    /// 7K 解析が終わってから、解析の条件を含むプリセットのコレクションを生成する（起動時の自動一括生成）。
+    /// 解析には時間がかかるため、読み込み画面は閉じたまま裏で待つ。DB を読み直したら取りやめる。
+    /// </summary>
+    private async Task GenerateAnalyze7kPresetsAfterAnalysisAsync(IAnalyze7kService analyze7kService)
+    {
+        var cts = new CancellationTokenSource();
+        Interlocked.Exchange(ref _deferredBatchGenerateCts, cts)?.Cancel();
+        try
+        {
+            await analyze7kService.WhenAnalysisFinishedAsync(cts.Token);
+            await MapListPageViewModel.AutoBatchGenerateAnalyze7kPresetsAsync(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Auto batch generate (7K analysis presets) failed: {ex}");
+        }
+        finally
+        {
+            Interlocked.CompareExchange(ref _deferredBatchGenerateCts, null, cts);
+            cts.Dispose();
+        }
+    }
+
+    private void CancelDeferredBatchGenerate()
+        => Interlocked.Exchange(ref _deferredBatchGenerateCts, null)?.Cancel();
 
     /// <summary>
     /// 7K 譜面のバックグラウンド解析を始める（DB 読み込み成功時のみ）
@@ -142,6 +178,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task ReloadDatabaseAsync()
     {
         IsLoadingOverlayVisible = true;
+        CancelDeferredBatchGenerate();
 
         try
         {
@@ -160,5 +197,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IsLoadingOverlayVisible = false;
         }
+    }
+
+    public override void Dispose()
+    {
+        CancelDeferredBatchGenerate();
+        base.Dispose();
     }
 }

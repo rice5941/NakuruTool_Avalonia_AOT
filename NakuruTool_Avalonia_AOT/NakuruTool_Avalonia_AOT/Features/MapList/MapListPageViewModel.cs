@@ -12,6 +12,7 @@ using NakuruTool_Avalonia_AOT.Features.Translate;
 using Avalonia.Threading;
 using R3;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList;
@@ -297,10 +298,18 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 起動時の自動一括生成を実行する。
     /// </summary>
-    public async Task AutoBatchGenerateFromPresetsAsync()
+    /// <param name="excludeAnalyze7k">7K 解析の条件を含むプリセットを除く（解析が終わってから別に生成する場合）</param>
+    public async Task AutoBatchGenerateFromPresetsAsync(bool excludeAnalyze7k = false)
     {
-        await PresetEditorViewModel.ExecuteBatchGenerateCoreAsync();
+        await PresetEditorViewModel.ExecuteBatchGenerateCoreAsync(
+            presetFilter: excludeAnalyze7k ? static p => !p.UsesAnalyze7k() : null);
     }
+
+    /// <summary>
+    /// 起動時の自動一括生成のうち、7K 解析の条件を含むプリセットを生成する（解析が終わってから呼ぶ）。
+    /// </summary>
+    public Task AutoBatchGenerateAnalyze7kPresetsAsync(CancellationToken cancellationToken)
+        => PresetEditorViewModel.GenerateAnalyze7kPresetsAsync(cancellationToken);
 
     public override void Dispose()
     {

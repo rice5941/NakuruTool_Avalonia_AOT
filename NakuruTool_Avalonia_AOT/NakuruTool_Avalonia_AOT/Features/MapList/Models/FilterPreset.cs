@@ -24,6 +24,13 @@ public class FilterPreset
     /// フィルタ条件のリスト
     /// </summary>
     public List<FilterConditionData> Conditions { get; set; } = new();
+
+    /// <summary>
+    /// 7K 解析の値（Prism・段位推定）を使う条件を含むか。
+    /// 起動時の自動一括生成では、このプリセットは解析が終わってから生成する。
+    /// </summary>
+    public bool UsesAnalyze7k() =>
+        Conditions.Exists(c => Enum.TryParse<FilterTarget>(c.Target, out var target) && FilterTargetInfo.IsAnalyze7k(target));
 }
 
 /// <summary>

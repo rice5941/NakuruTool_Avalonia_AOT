@@ -9,6 +9,7 @@ using R3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ZLinq;
 
@@ -290,16 +291,38 @@ public partial class PresetEditorViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanBatchGenerate))]
     private async Task BatchGenerateCollectionsAsync()
     {
+        EditorStatusMessage = string.Empty;
+        await RunBatchGenerateAsync(presetFilter: null);
+    }
+
+    /// <summary>
+    /// 起動時の自動一括生成のうち、7K 解析の条件を含むプリセットを生成する（解析が終わってから呼ぶ）。
+    /// 手動の一括生成中なら終わるまで待つ。進捗は手動の一括生成と同じ欄に表示する。
+    /// </summary>
+    internal async Task GenerateAnalyze7kPresetsAsync(CancellationToken cancellationToken)
+    {
+        if (!_presetService.Presets.Any(p => p.UsesAnalyze7k()))
+            return;
+
+        // collection.db への書き込みが重ならないよう、手動の一括生成が終わるのを待つ（UI スレッドで確認する）
+        while (IsBatchGenerating)
+            await Task.Delay(500, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await RunBatchGenerateAsync(static p => p.UsesAnalyze7k());
+    }
+
+    /// <summary>
+    /// 進捗表示つきで一括生成する。<paramref name="presetFilter"/> が null なら全プリセット。
+    /// </summary>
+    private async Task RunBatchGenerateAsync(Func<FilterPreset, bool>? presetFilter)
+    {
         IsBatchGenerating = true;
         BatchGenerationProgress = 0;
         BatchGenerationStatusMessage = string.Empty;
-        EditorStatusMessage = string.Empty;
 
         try
         {
-            var presets = _presetService.Presets.ToArray();
-            var totalPresets = presets.Length;
-
             var (successCount, failCount) = await ExecuteBatchGenerateCoreAsync(
                 (current, total, name) =>
                 {
@@ -307,7 +330,8 @@ public partial class PresetEditorViewModel : ViewModelBase
                         LangServiceInstance.GetString("Preset.Status.BulkProgress"),
                         current, total, name);
                     BatchGenerationProgress = (int)((double)(current - 1) / total * 100);
-                });
+                },
+                presetFilter);
 
             BatchGenerationProgress = 100;
             BatchGenerationStatusMessage = string.Format(
@@ -329,10 +353,14 @@ public partial class PresetEditorViewModel : ViewModelBase
     /// <summary>
     /// 一括生成のコアロジック。UI状態管理を含まない。
     /// </summary>
+    /// <param name="presetFilter">生成するプリセットを選ぶ条件（null なら全プリセット）</param>
     internal async Task<(int successCount, int failCount)> ExecuteBatchGenerateCoreAsync(
-        Action<int, int, string>? progressCallback = null)
+        Action<int, int, string>? progressCallback = null,
+        Func<FilterPreset, bool>? presetFilter = null)
     {
-        var presets = _presetService.Presets.ToArray();
+        var presets = presetFilter is null
+            ? _presetService.Presets.ToArray()
+            : _presetService.Presets.Where(presetFilter).ToArray();
         var totalPresets = presets.Length;
         var successCount = 0;
 

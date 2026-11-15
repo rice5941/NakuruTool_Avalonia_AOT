@@ -5,6 +5,7 @@ using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.BeatmapGenerator;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
@@ -91,14 +92,15 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService,
         IBeatmapRateGenerator beatmapRateGenerator,
-        IAnalyze7kService? analyze7kService = null)
+        IAnalyze7kService? analyze7kService = null,
+        IBeatmapThumbnailService? thumbnailService = null)
     {
         _generateCollectionService = generateCollectionService;
         _beatmapRateGenerator = beatmapRateGenerator;
         _settingsService = settingsService;
 
         FilterViewModel = new MapFilterViewModel(presetService, databaseService);
-        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService, analyze7kService);
+        ListViewModel = new MapListViewModel(databaseService, FilterViewModel, audioPlayerViewModel, audioPlayerPanelViewModel, settingsService, analyze7kService, thumbnailService);
         PresetEditorViewModel = new PresetEditorViewModel(presetService, databaseService, generateCollectionService);
 
         // MapFilterViewModelにToggle命令を中継するコマンドを注入

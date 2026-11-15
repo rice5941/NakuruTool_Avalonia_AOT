@@ -4,11 +4,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Imaging;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using R3;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 
@@ -113,6 +115,24 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
 
     /// <summary>前回ロード成功した背景画像の OsuFileName。同ファイルの重複ロードを回避する（成功時のみ更新）。</summary>
     private string? _lastBgOsuFileName;
+
+    /// <summary>読み込み中の背景画像の OsuFileName。同じ曲の連続要求で読み込みを重複させない。</summary>
+    private string? _pendingBgOsuFileName;
+
+    /// <summary>背景画像の要求番号。最新の要求の結果だけを反映する（UI スレッドでのみ操作）。</summary>
+    private int _backgroundRequestId;
+
+    private bool _isDisposed;
+
+    /// <summary>
+    /// 背景画像のデコード幅（px）。パネルの表示幅 398DIP を 200% スケールでも粗くならない大きさ。
+    /// 原寸（1920×1080 で約 8MB）を保持せず、約 1.4MB に抑える。
+    /// </summary>
+    internal const int BackgroundDecodeWidth = 800;
+
+    /// <summary>背景画像の読み込み結果を UI スレッドへ渡す（テストで差し替え可能）。</summary>
+    internal Action<Action> PostToUi { get; init; } =
+        static action => Dispatcher.UIThread.Post(action, DispatcherPriority.Background);
 
     // ---- コンストラクタ ----
 
@@ -420,43 +440,80 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
 
     /// <summary>
     /// Beatmap の OsuFileName から背景画像を読み込む。
+    /// .osu の読み取りとデコードはバックグラウンドで行い（UI スレッドを止めない）、表示サイズに合わせて縮小する。
+    /// 曲を素早く切り替えた場合は最新の要求の結果だけを反映する。
+    /// 新しい画像が届くまでは前の画像を表示したままにし、届いた時点で差し替える（空表示のちらつきを避ける）。
     /// 同じ.osuファイルは再読み込みをスキップし、失敗時はキャッシュを更新せず再試行を許容する。
     /// </summary>
     private void LoadBackgroundImage(Beatmap beatmap)
     {
-        // 同じ.osuファイルは再読み込みをスキップ
-        if (beatmap.OsuFileName == _lastBgOsuFileName) return;
+        // 同じ.osuファイルは再読み込みをスキップ（表示中、または読み込み中）
+        if (beatmap.OsuFileName == _lastBgOsuFileName)
+        {
+            // 表示中の曲に戻ってきた場合、読み込み中の別の曲の結果で上書きされないよう無効化する
+            if (_pendingBgOsuFileName is not null)
+            {
+                _backgroundRequestId++;
+                _pendingBgOsuFileName = null;
+            }
+            return;
+        }
+        if (_pendingBgOsuFileName is not null && beatmap.OsuFileName == _pendingBgOsuFileName) return;
 
-        // 旧画像を破棄
-        BackgroundImage?.Dispose();
-        BackgroundImage = null;
+        var requestId = ++_backgroundRequestId;
 
         var osuFolderPath = _settingsService.SettingsData.OsuFolderPath;
-        if (string.IsNullOrEmpty(osuFolderPath)) return;
-
-        var songDir = Path.Combine(osuFolderPath, "Songs", beatmap.FolderName);
-
         // osu!DB から取得した .osu ファイル名を使用
-        if (string.IsNullOrEmpty(beatmap.OsuFileName)) return;
-        var osuFilePath = Path.Combine(songDir, beatmap.OsuFileName);
-        if (!File.Exists(osuFilePath)) return;
+        if (string.IsNullOrEmpty(osuFolderPath) || string.IsNullOrEmpty(beatmap.OsuFileName))
+        {
+            ApplyBackgroundImage(requestId, null, null);
+            return;
+        }
 
-        var bgFilename = OsuFileParser.GetBackgroundFilename(osuFilePath);
-        if (string.IsNullOrEmpty(bgFilename)) return;
-
-        var bgPath = Path.Combine(songDir, bgFilename);
-        if (!File.Exists(bgPath)) return;
-
+        string songDir;
+        string osuFilePath;
         try
         {
-            BackgroundImage = new Bitmap(bgPath);
-            // 成功時のみキャッシュを更新（失敗後に同じファイルを選択した場合に再試行できるよう）
-            _lastBgOsuFileName = beatmap.OsuFileName;
+            songDir = Path.Combine(osuFolderPath, "Songs", beatmap.FolderName);
+            osuFilePath = Path.Combine(songDir, beatmap.OsuFileName);
         }
-        catch
+        catch (ArgumentException)
         {
-            BackgroundImage = null;
+            ApplyBackgroundImage(requestId, null, null);
+            return;
         }
+
+        var osuFileName = beatmap.OsuFileName;
+        _pendingBgOsuFileName = osuFileName;
+        var postToUi = PostToUi;
+        _ = Task.Run(() =>
+        {
+            var bitmap = BeatmapBackgroundDecoder.Load(songDir, osuFilePath, BackgroundDecodeWidth);
+            postToUi(() => ApplyBackgroundImage(requestId, osuFileName, bitmap));
+        });
+    }
+
+    /// <summary>
+    /// 読み込み結果を反映する（UI スレッド）。古い要求の結果や破棄後に届いた結果は捨てる。
+    /// </summary>
+    private void ApplyBackgroundImage(int requestId, string? osuFileName, Bitmap? bitmap)
+    {
+        if (requestId != _backgroundRequestId || _isDisposed)
+        {
+            bitmap?.Dispose();
+            return;
+        }
+
+        _pendingBgOsuFileName = null;
+
+        // 先にバインディングから外してから旧画像を破棄する（破棄済み Bitmap を描画させない）
+        var old = BackgroundImage;
+        BackgroundImage = bitmap;
+        if (!ReferenceEquals(old, bitmap))
+            old?.Dispose();
+
+        // 成功時のみキャッシュを更新（失敗後に同じファイルを選択した場合に再試行できるよう）
+        _lastBgOsuFileName = bitmap is null ? null : osuFileName;
     }
 
     // ---- 再生終了ハンドリング ----
@@ -609,8 +666,11 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
     public override void Dispose()
     {
         StopPositionPolling();
-        BackgroundImage?.Dispose();
+        _isDisposed = true;
+        _backgroundRequestId++; // 読み込み中の結果は届いた時点で破棄させる
+        var old = BackgroundImage;
         BackgroundImage = null;
+        old?.Dispose();
         base.Dispose();
     }
 }

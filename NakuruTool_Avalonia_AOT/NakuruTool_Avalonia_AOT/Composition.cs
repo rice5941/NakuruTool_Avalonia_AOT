@@ -7,6 +7,7 @@ using NakuruTool_Avalonia_AOT.Features.MainWindow;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 using Pure.DI;
 using static Pure.DI.Lifetime;
 
@@ -42,6 +43,7 @@ partial class Composition
         .Bind<IImportExportService>().As(Singleton).To<ImportExportService>()
         .Bind<IBeatmapDownloadService>().As(Singleton).To<BeatmapDownloadService>()
         .Bind<IAnalyze7kService>().As(Singleton).To<Analyze7kService>()
+        .Bind<IBeatmapThumbnailService>().As(Singleton).To<BeatmapThumbnailService>()
 
         // Root（エントリーポイント）の定義
         // MainWindow自体をDIで生成することで、コンストラクタ注入を可能にします

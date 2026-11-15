@@ -1,5 +1,6 @@
 ﻿using System;
 using NakuruTool_Avalonia_AOT.Features.Analyze7k;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 
 namespace NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 /// <summary>
@@ -79,6 +80,12 @@ public sealed record Beatmap
     /// DB 上の譜面では常に null で、表示ページの行コピーにのみ設定される。
     /// </summary>
     public LocalRankingEntry? BestPlay { get; init; }
+
+    /// <summary>
+    /// 一覧の難易度値列に出す背景サムネイル（非同期に読み込まれ、終わると Image が設定される）。
+    /// DB 上の譜面では常に null で、表示ページの行コピーにのみ設定される。
+    /// </summary>
+    public BeatmapThumbnail? Thumbnail { get; init; }
 
     /// <summary>
     /// 7K 譜面の解析結果（等速の Prism と段位推定）。7K 以外・未解析の譜面では null。

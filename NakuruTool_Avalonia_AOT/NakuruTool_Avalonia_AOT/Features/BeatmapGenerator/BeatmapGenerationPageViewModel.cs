@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
@@ -57,8 +58,9 @@ public partial class BeatmapGenerationPageViewModel : BeatmapListViewModelBase
         IDatabaseService databaseService,
         IBeatmapRateGenerator beatmapRateGenerator,
         ISettingsService settingsService,
-        IRateGenerationCollectionJsonWriter collectionJsonWriter)
-        : base(settingsService, databaseService)
+        IRateGenerationCollectionJsonWriter collectionJsonWriter,
+        IBeatmapThumbnailService? thumbnailService = null)
+        : base(settingsService, databaseService, thumbnailService)
     {
         _databaseService = databaseService;
         _beatmapRateGenerator = beatmapRateGenerator;

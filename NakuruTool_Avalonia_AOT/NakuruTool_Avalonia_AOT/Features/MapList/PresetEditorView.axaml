@@ -210,7 +210,15 @@
                                                               SelectedItem="{Binding Target}">
                                                         <ComboBox.ItemTemplate>
                                                             <DataTemplate>
-                                                                <TextBlock Text="{Binding Converter={x:Static converters:FilterTargetToStringConverter.Instance}}"/>
+                                                                <!-- CurrentLanguage を併せてバインドし、言語切替時に再評価させる -->
+                                                                <TextBlock>
+                                                                    <TextBlock.Text>
+                                                                        <MultiBinding Converter="{x:Static converters:FilterTargetToStringConverter.Instance}">
+                                                                            <Binding/>
+                                                                            <Binding Path="CurrentLanguage" Source="{x:Static translate:LanguageService.Instance}"/>
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Text>
+                                                                </TextBlock>
                                                             </DataTemplate>
                                                         </ComboBox.ItemTemplate>
                                                     </ComboBox>
@@ -260,7 +268,15 @@
                                                           HorizontalAlignment="Stretch">
                                                     <ComboBox.ItemTemplate>
                                                         <DataTemplate>
-                                                            <TextBlock Text="{Binding Converter={x:Static converters:ModCategoryToStringConverter.Instance}}"/>
+                                                            <!-- CurrentLanguage を併せてバインドし、言語切替時に再評価させる -->
+                                                            <TextBlock>
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding Converter="{x:Static converters:ModCategoryToStringConverter.Instance}">
+                                                                        <Binding/>
+                                                                        <Binding Path="CurrentLanguage" Source="{x:Static translate:LanguageService.Instance}"/>
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
                                                         </DataTemplate>
                                                     </ComboBox.ItemTemplate>
                                                 </ComboBox>

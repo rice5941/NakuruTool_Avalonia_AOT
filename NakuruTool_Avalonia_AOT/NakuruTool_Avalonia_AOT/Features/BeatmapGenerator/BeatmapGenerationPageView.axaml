@@ -27,7 +27,15 @@
                           SelectedItem="{Binding Field}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="sorting:SortField">
-                            <TextBlock Text="{Binding Converter={StaticResource SortFieldNameConverter}}"/>
+                            <!-- CurrentLanguage を併せてバインドし、言語切替時に再評価させる -->
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource SortFieldNameConverter}">
+                                        <Binding/>
+                                        <Binding Path="CurrentLanguage" Source="{x:Static translate:LanguageService.Instance}"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>

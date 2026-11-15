@@ -19,8 +19,18 @@
             <Setter Property="Height" Value="16" />
         </Style>
         <Style Selector="Window">
-            <Setter Property="FontFamily" 
+            <Setter Property="FontFamily"
                     Value="Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif" />
+        </Style>
+        <!-- ComboBox 既定の VirtualizingStackPanel だとスクロールで長い項目が実体化されるたびに
+             ドロップダウン幅が広がるため、全項目を一度に計測する StackPanel を使用して幅を固定する。
+             ローカル値(ItemsPanel 指定)はこの Style より優先されるので個別指定には影響しない。 -->
+        <Style Selector="ComboBox">
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </Setter>
         </Style>
     </Application.Styles>
 </Application>

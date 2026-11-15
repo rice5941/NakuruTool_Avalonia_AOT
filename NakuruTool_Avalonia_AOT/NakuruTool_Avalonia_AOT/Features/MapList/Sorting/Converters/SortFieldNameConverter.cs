@@ -1,6 +1,3 @@
-using System;
-using System.Globalization;
-using Avalonia.Data.Converters;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 
 namespace NakuruTool_Avalonia_AOT.Features.MapList.Sorting.Converters;
@@ -8,22 +5,17 @@ namespace NakuruTool_Avalonia_AOT.Features.MapList.Sorting.Converters;
 /// <summary>
 /// SortFieldを多言語対応した文字列に変換するコンバータ
 /// </summary>
-internal sealed class SortFieldNameConverter : IValueConverter
+internal sealed class SortFieldNameConverter : TranslatingConverterBase
 {
     public static readonly SortFieldNameConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    protected override string Translate(object? value)
     {
         if (value is SortField field)
         {
             return LanguageService.Instance.GetString(KeyOf(field));
         }
         return string.Empty;
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
     }
 
     private static string KeyOf(SortField field) => field switch

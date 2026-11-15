@@ -49,7 +49,7 @@ public class Analyze7kScreenshotTests
             PrismOverall = 37.95,
             GenreSkills = new GenreValues(30.1f, 28.4f, 27.0f, 33.2f, 37.95f),
             GenreTendencies = new GenreValues(20, 14, 10, 30, 52),
-            RegularDan = 9.18,
+            RegularDan = 9.2,
             // LN 段位はあるが LN ジャンルなし（主分類は Regular）→ 参考値として薄く表示
             LnDan = 9.8,
             PrimaryFamily = DanSide.Regular,

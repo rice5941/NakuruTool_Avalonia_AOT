@@ -54,7 +54,7 @@ public class Analyze7kTests
     [Fact]
     public void FormatDan_ShowsLabelAndNumber()
     {
-        Assert.Equal("9th Dan Mid/High (9.18)", ManiaChartAnalysis.FormatDan(9.18));
+        Assert.Equal("9th Dan Mid/High (9.20)", ManiaChartAnalysis.FormatDan(9.2));
         Assert.Equal(string.Empty, ManiaChartAnalysis.FormatDan(null));
     }
 

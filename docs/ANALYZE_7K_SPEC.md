@@ -89,7 +89,8 @@ r = ジャンルの強さ ÷ Overall の強さ   （どちらも精度 96.5%、�
 - 段位ジャンルは Mania Tracker の 7K tile 判定を移植した `DanBuckets` で判定する（等速・OD 指定なしの配置分析から）。
   - LN: パターンスコア（lngeneral / ln、lntech、lninverse、lnrelease）が 0.5 以上、かつホールド比率 37.5% 以上。
   - Reg: クラスタの構成比とカテゴリ、配置の特徴量（riceShape）、delay などのスコアによる判定木。
-- 表示は「段位名（数値）」（例: `9th Dan Mid/High (9.18)`）。LN 段位がない譜面は「測定不能」。
+- 表示は「段位名（数値）」（例: `9th Dan Mid/High (9.20)`）。LN 段位がない譜面は「測定不能」。
+- `raw_dan` は 0.2 刻み（段位表のラベル ＋ Low -0.4 / Mid/Low -0.2 / Mid 0 / Mid/High +0.2 / High +0.4。表の範囲外は ±0.5）。
 - 縦連打・対象外の譜面も値は表示し、⚠ を付ける。
 - **参考値の段位は薄く表示する**: 段位はあるが、その側の段位ジャンルが1つも有効でなく、主分類でもない側
   （`IsRegularDanReference` / `IsLnDanReference`）。段位推定列ヘッダーのツールチップで「参考値」と説明する。

@@ -165,6 +165,50 @@
             <Setter Property="FontWeight" Value="Normal"/>
         </Style>
 
+        <!-- 7K 解析列: ヘッダーの？アイコン（目印。ツールチップはヘッダーセル全体に付く: ColumnHeaderToolTip） -->
+        <Style Selector="mi|MaterialIcon.a7k-help">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey6}"/>
+        </Style>
+        <Style Selector="DataGridColumnHeader.column-help">
+            <Setter Property="Cursor" Value="Help"/>
+        </Style>
+        <Style Selector="StackPanel.a7k-help-tip">
+            <Setter Property="Spacing" Value="4"/>
+            <Setter Property="MaxWidth" Value="420"/>
+            <Setter Property="TextElement.FontSize" Value="12"/>
+            <Setter Property="TextElement.FontWeight" Value="Normal"/>
+        </Style>
+        <Style Selector="DataGridColumnHeader.column-help ToolTip">
+            <Setter Property="MaxWidth" Value="520"/>
+        </Style>
+        <Style Selector="Grid.a7k-help-tip">
+            <Setter Property="MaxWidth" Value="460"/>
+            <Setter Property="RowSpacing" Value="4"/>
+            <Setter Property="ColumnSpacing" Value="8"/>
+            <Setter Property="TextElement.FontSize" Value="12"/>
+            <Setter Property="TextElement.FontWeight" Value="Normal"/>
+        </Style>
+        <Style Selector=":is(Panel).a7k-help-tip TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector=":is(Panel).a7k-help-tip TextBlock.a7k-help-base">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+        <Style Selector="Border.a7k-help-sample">
+            <Setter Property="Background" Value="{DynamicResource SemiGrey0}"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="6,2"/>
+        </Style>
+        <Style Selector="Border.a7k-help-sample TextBlock.a7k-value">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+        </Style>
+
         <!-- 7K 解析列: 測定不能 -->
         <Style Selector="TextBlock.a7k-unavailable">
             <Setter Property="FontSize" Value="12"/>
@@ -516,7 +560,22 @@
                     <!-- 7K Prism（基準 96.5%）: Reg / LN 基準Overall と、ジャンル濃度の五角形 / 基準スキル値の横棒（ヘッダーで切替）。7K 以外・未解析は空 -->
                     <DataGridTemplateColumn Tag="PrismColumn" Width="300">
                         <DataGridTemplateColumn.Header>
-                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.PrismColumn'}" HorizontalAlignment="Center"/>
+                            <!-- 列の見方はヘッダーセル全体のツールチップで説明する（？は目印） -->
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <MapList:ColumnHeaderToolTip.Tip>
+                                    <StackPanel Classes="a7k-help-tip">
+                                        <TextBlock Text="{translate:Translate 'MapList.Analyze7k.HelpPrismBase'}" Classes="a7k-help-base"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <mi:MaterialIcon Kind="AlertOutline" Width="12" Height="12" Foreground="{DynamicResource SemiOrange5}"/>
+                                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.Warning'}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{translate:Translate 'MapList.Analyze7k.HelpBars'}"/>
+                                        <TextBlock Text="{translate:Translate 'MapList.Analyze7k.HelpPentagon'}"/>
+                                    </StackPanel>
+                                </MapList:ColumnHeaderToolTip.Tip>
+                                <TextBlock Text="{translate:Translate 'MapList.Analyze7k.PrismColumn'}" VerticalAlignment="Center"/>
+                                <mi:MaterialIcon Kind="HelpCircleOutline" Classes="a7k-help"/>
+                            </StackPanel>
                         </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="osu:Beatmap">
@@ -527,8 +586,7 @@
                                             <TextBlock Text="Reg" Classes="a7k-caption"/>
                                             <mi:MaterialIcon Kind="AlertOutline" Width="11" Height="11"
                                                              Foreground="{DynamicResource SemiOrange5}"
-                                                             IsVisible="{Binding ChartAnalysis.HasWarning, FallbackValue=False}"
-                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Warning'}"/>
+                                                             IsVisible="{Binding ChartAnalysis.HasWarning, FallbackValue=False}"/>
                                         </StackPanel>
                                         <TextBlock Text="{Binding ChartAnalysis.PrismOverallText, FallbackValue=''}" Classes="a7k-value"/>
                                         <TextBlock Text="LN" Classes="a7k-caption" Margin="0,3,0,0"/>
@@ -540,7 +598,6 @@
                                     <a7k:PrismGenreChart Grid.Column="1" Margin="4,0,0,0"
                                                          Analysis="{Binding ChartAnalysis}"
                                                          ShowSkillValues="{Binding ShowGenreSkillValues, RelativeSource={RelativeSource AncestorType=MapList:MapListView}}"
-                                                         ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.GenreChart'}"
                                                          TextElement.Foreground="{DynamicResource SemiGrey8}"/>
                                 </Grid>
                             </DataTemplate>
@@ -550,7 +607,32 @@
                     <!-- 7K 段位推定: Reg / LN の推定段位とジャンル。主分類の側に印。7K 以外・未解析は空 -->
                     <DataGridTemplateColumn Tag="DanEstimateColumn" Width="250">
                         <DataGridTemplateColumn.Header>
-                            <TextBlock Text="{translate:Translate 'MapList.Analyze7k.DanColumn'}" HorizontalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <MapList:ColumnHeaderToolTip.Tip>
+                                    <!-- 左に一覧と同じ見た目の見本（一覧の背景色の上に置き、半透明も見分けられるようにする）、右に説明 -->
+                                    <Grid Classes="a7k-help-tip" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                   Text="{translate:Translate 'MapList.Analyze7k.HelpDanBase'}" Classes="a7k-help-base"/>
+                                        <Border Grid.Row="1" Grid.Column="0" Classes="a7k-help-sample">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"/>
+                                                <TextBlock Text="9th Dan" Classes="a7k-value"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
+                                        <Border Grid.Row="2" Grid.Column="0" Classes="a7k-help-sample">
+                                            <TextBlock Text="9th Dan (9.18)" Classes="a7k-value"/>
+                                        </Border>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.HelpEstimate'}"/>
+                                        <Border Grid.Row="3" Grid.Column="0" Classes="a7k-help-sample">
+                                            <TextBlock Text="9th Dan (9.18)" Classes="a7k-value a7k-reference"/>
+                                        </Border>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.DanReference'}"/>
+                                    </Grid>
+                                </MapList:ColumnHeaderToolTip.Tip>
+                                <TextBlock Text="{translate:Translate 'MapList.Analyze7k.DanColumn'}" VerticalAlignment="Center"/>
+                                <mi:MaterialIcon Kind="HelpCircleOutline" Classes="a7k-help"/>
+                            </StackPanel>
                         </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="osu:Beatmap">
@@ -561,14 +643,11 @@
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock Text="Reg" Classes="a7k-caption" VerticalAlignment="Center"/>
                                             <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
-                                                             IsVisible="{Binding ChartAnalysis.IsRegularPrimary, FallbackValue=False}"
-                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
+                                                             IsVisible="{Binding ChartAnalysis.IsRegularPrimary, FallbackValue=False}"/>
                                             <TextBlock x:Name="RegularDanText"
                                                        Text="{Binding ChartAnalysis.RegularDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
                                                        TextTrimming="CharacterEllipsis"
-                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsRegularDanReference, FallbackValue=False}"
-                                                       ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.DanReference'}"
-                                                       ToolTip.ServiceEnabled="{Binding ChartAnalysis.IsRegularDanReference, FallbackValue=False}"/>
+                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsRegularDanReference, FallbackValue=False}"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularJack, FallbackValue=False}"><TextBlock Text="Jack"/></Border>
@@ -582,15 +661,12 @@
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock Text="LN" Classes="a7k-caption" VerticalAlignment="Center"/>
                                             <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
-                                                             IsVisible="{Binding ChartAnalysis.IsLnPrimary, FallbackValue=False}"
-                                                             ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
+                                                             IsVisible="{Binding ChartAnalysis.IsLnPrimary, FallbackValue=False}"/>
                                             <TextBlock x:Name="LnDanText"
                                                        Text="{Binding ChartAnalysis.LnDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
                                                        TextTrimming="CharacterEllipsis"
                                                        IsVisible="{Binding ChartAnalysis.HasLnDan, FallbackValue=False}"
-                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsLnDanReference, FallbackValue=False}"
-                                                       ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.DanReference'}"
-                                                       ToolTip.ServiceEnabled="{Binding ChartAnalysis.IsLnDanReference, FallbackValue=False}"/>
+                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsLnDanReference, FallbackValue=False}"/>
                                             <TextBlock Text="{translate:Translate 'MapList.Analyze7k.Unavailable'}" Classes="a7k-unavailable"
                                                        IsVisible="{Binding !ChartAnalysis.HasLnDan, FallbackValue=False}"/>
                                         </StackPanel>

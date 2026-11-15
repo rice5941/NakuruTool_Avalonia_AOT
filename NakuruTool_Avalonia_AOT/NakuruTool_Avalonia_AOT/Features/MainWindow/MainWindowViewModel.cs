@@ -74,7 +74,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnFolderPathChanged(PropertyChangedEventArgs args)
     {
-        Task.Run(ReloadDatabaseAsync);
+        // 再読み込み後の Initialize() は表示中の一覧（AvaloniaList）を更新するため UI スレッドで実行する。
+        // DB の読み込み自体は DatabaseService 内で Task.Run されるので UI はブロックしない。
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = ReloadDatabaseAsync());
     }
 
     /// <summary>
@@ -147,11 +149,12 @@ public partial class MainWindowViewModel : ViewModelBase
             MapListPageViewModel.Initialize();
             ImportExportPageViewModel.Initialize();
             BeatmapGenerationPageViewModel.Initialize();
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(StartAnalyze7k);
+            StartAnalyze7k();
         }
-        catch
+        catch (Exception ex)
         {
-            // エラーは進捗通知経由で表示されるため、ここでは無視
+            // DB 読み込みエラーは進捗通知経由で表示される。それ以外の例外は握りつぶさずログに残す
+            System.Diagnostics.Debug.WriteLine($"Reload database failed: {ex}");
         }
         finally
         {

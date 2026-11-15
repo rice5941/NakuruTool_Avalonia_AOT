@@ -58,6 +58,35 @@ public class Analyze7kTests
         Assert.Equal(string.Empty, ManiaChartAnalysis.FormatDan(null));
     }
 
+    [Fact]
+    public void DanReference_IsTheSideWithoutGenreThatIsNotPrimary()
+    {
+        // Regular の譜面の LN 段位でジャンルなし → LN 側だけ参考値（Finding shiners [Lvl 79] と同じ形）
+        var regularChart = new ManiaChartAnalysis
+        {
+            PrismOverall = 29.94, RegularDan = 9.4, LnDan = 9.8, PrimaryFamily = DanSide.Regular,
+            RegularGenres = RegularDanGenre.Stream,
+        };
+        Assert.False(regularChart.IsRegularDanReference);
+        Assert.True(regularChart.IsLnDanReference);
+
+        // LN の譜面の Reg 段位でジャンルなし → Reg 側だけ参考値
+        var lnChart = new ManiaChartAnalysis
+        {
+            PrismOverall = 25, RegularDan = 8, LnDan = 9, PrimaryFamily = DanSide.Ln, LnGenres = LnDanGenre.General,
+        };
+        Assert.True(lnChart.IsRegularDanReference);
+        Assert.False(lnChart.IsLnDanReference);
+
+        // 主分類の側はジャンルがなくても参考値にしない
+        var primaryWithoutGenre = regularChart with { RegularGenres = RegularDanGenre.None };
+        Assert.False(primaryWithoutGenre.IsRegularDanReference);
+
+        // 主分類ではない側でもジャンルがあれば参考値にしない・段位がなければ参考値にしない
+        Assert.False((regularChart with { LnGenres = LnDanGenre.Tech }).IsLnDanReference);
+        Assert.False((regularChart with { LnDan = null }).IsLnDanReference);
+    }
+
     // ───────────────────────────────────────────
     // 段位推定のジャンル（mania_dan_buckets.py）
     // ───────────────────────────────────────────

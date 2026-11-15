@@ -97,7 +97,8 @@
     "Analyze7k.RemainingHours": "残り約{0}時間{1}分",
     "Analyze7k.Failed": "解析できなかった譜面: {0}件（ファイルなし・MD5不一致・形式不正など）",
     "Analyze7k.Warning": "縦連打（vibro）または段位推定の対象外と判定された譜面",
-    "Analyze7k.Primary": "段位推定の主分類"
+    "Analyze7k.Primary": "段位推定の主分類",
+    "Analyze7k.DanReference": "参考値: 主分類ではなく、どの段位ジャンルにも当てはまらない側の段位です"
   },
   "MapFilter": {
     "Title": "フィルタ条件",

@@ -220,6 +220,20 @@ public sealed record ManiaChartAnalysis
 
     public bool HasLnDan => LnDan is not null;
 
+    /// <summary>
+    /// Reg 段位が参考値か: 段位はあるが Reg の段位ジャンルが1つも有効でなく、主分類でもない（段位推定列で薄く表示する）。
+    /// 主分類が LN の譜面の Reg 段位などがこれにあたる。
+    /// </summary>
+    public bool IsRegularDanReference
+        => RegularDan is not null && RegularGenres == RegularDanGenre.None && PrimaryFamily != DanSide.Regular;
+
+    /// <summary>
+    /// LN 段位が参考値か: 段位はあるが LN の段位ジャンルが1つも有効でなく、主分類でもない（段位推定列で薄く表示する）。
+    /// LN を含むが LN 譜面の条件（ホールド 37.5% 以上など）に届かない Regular の譜面がこれにあたる。
+    /// </summary>
+    public bool IsLnDanReference
+        => LnDan is not null && LnGenres == LnDanGenre.None && PrimaryFamily != DanSide.Ln;
+
     /// <summary>縦連打・対象外の印を出すか</summary>
     public bool HasWarning => Vibro || !Eligible;
 

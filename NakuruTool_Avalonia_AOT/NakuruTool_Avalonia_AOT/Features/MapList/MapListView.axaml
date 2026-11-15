@@ -616,16 +616,16 @@
                                         <Border Grid.Row="1" Grid.Column="0" Classes="a7k-help-sample">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"/>
-                                                <TextBlock Text="9th Dan" Classes="a7k-value"/>
+                                                <TextBlock Text="9th Dan Mid/High" Classes="a7k-value"/>
                                             </StackPanel>
                                         </Border>
                                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
                                         <Border Grid.Row="2" Grid.Column="0" Classes="a7k-help-sample">
-                                            <TextBlock Text="9th Dan (9.18)" Classes="a7k-value"/>
+                                            <TextBlock Text="9th Dan Mid/High (9.20)" Classes="a7k-value"/>
                                         </Border>
                                         <TextBlock Grid.Row="2" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.HelpEstimate'}"/>
                                         <Border Grid.Row="3" Grid.Column="0" Classes="a7k-help-sample">
-                                            <TextBlock Text="9th Dan (9.18)" Classes="a7k-value a7k-reference"/>
+                                            <TextBlock Text="9th Dan Mid/High (9.20)" Classes="a7k-value a7k-reference"/>
                                         </Border>
                                         <TextBlock Grid.Row="3" Grid.Column="1" Text="{translate:Translate 'MapList.Analyze7k.DanReference'}"/>
                                     </Grid>

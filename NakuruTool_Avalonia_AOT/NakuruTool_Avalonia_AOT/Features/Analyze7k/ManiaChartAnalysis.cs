@@ -241,7 +241,7 @@ public sealed record ManiaChartAnalysis
 
     public string PrismLnOverallText => PrismLnOverall is { } v ? v.ToString("F2", CultureInfo.InvariantCulture) : string.Empty;
 
-    /// <summary>例: "9th Dan Mid (9.42)"</summary>
+    /// <summary>例: "9th Dan Mid/High (9.20)"（値は 0.2 刻み）</summary>
     public string RegularDanText => FormatDan(RegularDan);
 
     public string LnDanText => FormatDan(LnDan);

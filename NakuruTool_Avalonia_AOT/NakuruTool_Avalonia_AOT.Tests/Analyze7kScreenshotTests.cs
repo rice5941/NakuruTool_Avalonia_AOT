@@ -50,6 +50,8 @@ public class Analyze7kScreenshotTests
             GenreSkills = new GenreValues(30.1f, 28.4f, 27.0f, 33.2f, 37.95f),
             GenreTendencies = new GenreValues(20, 14, 10, 30, 52),
             RegularDan = 9.18,
+            // LN 段位はあるが LN ジャンルなし（主分類は Regular）→ 参考値として薄く表示
+            LnDan = 9.8,
             PrimaryFamily = DanSide.Regular,
             RegularGenres = RegularDanGenre.Jack,
             Eligible = true,
@@ -117,6 +119,15 @@ public class Analyze7kScreenshotTests
         Assert.Equal(!showSkillValues, view.FindControl<RadioButton>("GenreConcentrationRadio")!.IsChecked);
         Assert.Equal(showSkillValues, view.FindControl<RadioButton>("GenreSkillValueRadio")!.IsChecked);
         Assert.True(view.FindControl<Border>("Analyze7kProgressPanel")!.IsVisible);
+
+        // 段位推定の参考値（ジャンルなし・主分類ではない側）だけ薄く表示する
+        var lnDans = grid.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Name == "LnDanText" && t.IsVisible).ToList();
+        var reference = Assert.Single(lnDans, t => t.Text!.Contains("(9.80)"));
+        Assert.True(reference.Classes.Contains("a7k-reference"));
+        Assert.True(reference.Opacity < 1);
+        var genuine = Assert.Single(lnDans, t => t.Text!.Contains("(12.60)"));
+        Assert.False(genuine.Classes.Contains("a7k-reference"));
+        Assert.Equal(1, genuine.Opacity);
 
         var frame = window.CaptureRenderedFrame();
         Directory.CreateDirectory(ScreenshotsDirectory);

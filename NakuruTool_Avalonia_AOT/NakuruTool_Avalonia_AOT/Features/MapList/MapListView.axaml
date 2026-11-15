@@ -159,6 +159,12 @@
             <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
         </Style>
 
+        <!-- 段位推定: 参考値（段位はあるがジャンルが1つも有効でなく、主分類でもない側）は薄く表示する -->
+        <Style Selector="TextBlock.a7k-value.a7k-reference">
+            <Setter Property="Opacity" Value="0.45"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
         <!-- 7K 解析列: 測定不能 -->
         <Style Selector="TextBlock.a7k-unavailable">
             <Setter Property="FontSize" Value="12"/>
@@ -557,8 +563,12 @@
                                             <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
                                                              IsVisible="{Binding ChartAnalysis.IsRegularPrimary, FallbackValue=False}"
                                                              ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
-                                            <TextBlock Text="{Binding ChartAnalysis.RegularDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
-                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="RegularDanText"
+                                                       Text="{Binding ChartAnalysis.RegularDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsRegularDanReference, FallbackValue=False}"
+                                                       ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.DanReference'}"
+                                                       ToolTip.ServiceEnabled="{Binding ChartAnalysis.IsRegularDanReference, FallbackValue=False}"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <Border Classes="dan-genre" Classes.active="{Binding ChartAnalysis.IsRegularJack, FallbackValue=False}"><TextBlock Text="Jack"/></Border>
@@ -574,9 +584,13 @@
                                             <mi:MaterialIcon Kind="Star" Width="11" Height="11" Foreground="{DynamicResource SemiYellow6}"
                                                              IsVisible="{Binding ChartAnalysis.IsLnPrimary, FallbackValue=False}"
                                                              ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.Primary'}"/>
-                                            <TextBlock Text="{Binding ChartAnalysis.LnDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
+                                            <TextBlock x:Name="LnDanText"
+                                                       Text="{Binding ChartAnalysis.LnDanText, FallbackValue=''}" Classes="a7k-value" FontSize="13"
                                                        TextTrimming="CharacterEllipsis"
-                                                       IsVisible="{Binding ChartAnalysis.HasLnDan, FallbackValue=False}"/>
+                                                       IsVisible="{Binding ChartAnalysis.HasLnDan, FallbackValue=False}"
+                                                       Classes.a7k-reference="{Binding ChartAnalysis.IsLnDanReference, FallbackValue=False}"
+                                                       ToolTip.Tip="{translate:Translate 'MapList.Analyze7k.DanReference'}"
+                                                       ToolTip.ServiceEnabled="{Binding ChartAnalysis.IsLnDanReference, FallbackValue=False}"/>
                                             <TextBlock Text="{translate:Translate 'MapList.Analyze7k.Unavailable'}" Classes="a7k-unavailable"
                                                        IsVisible="{Binding !ChartAnalysis.HasLnDan, FallbackValue=False}"/>
                                         </StackPanel>

@@ -97,7 +97,8 @@
     "Analyze7k.RemainingHours": "About {0} h {1} min left",
     "Analyze7k.Failed": "Charts that could not be analyzed: {0} (missing file, MD5 mismatch, invalid format, etc.)",
     "Analyze7k.Warning": "Flagged as vibro or not eligible for dan estimates",
-    "Analyze7k.Primary": "Primary family of the dan estimate"
+    "Analyze7k.Primary": "Primary family of the dan estimate",
+    "Analyze7k.DanReference": "Reference only: not the primary family and matches no dan genre"
   },
   "MapFilter": {
     "Title": "Conditions de filtre",

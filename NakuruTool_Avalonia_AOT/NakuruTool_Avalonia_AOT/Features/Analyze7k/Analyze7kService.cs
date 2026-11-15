@@ -61,8 +61,11 @@ public interface IAnalyze7kService : IDisposable
 /// </summary>
 public sealed class Analyze7kService : IAnalyze7kService
 {
-    /// <summary>C# 側の変換ロジックの版。段位ジャンルの判定などを変えたら上げる（キャッシュのキーに含める）</summary>
-    public const string LogicVersion = "chart-1";
+    /// <summary>
+    /// C# 側の変換ロジック・キャッシュの形の版。段位ジャンルの判定やジャンルの数などを変えたら上げる（キャッシュのキーに含める）。
+    /// chart-2: Prism の Jack を Jack / ChordJack に分けて6ジャンルにした。
+    /// </summary>
+    public const string LogicVersion = "chart-2";
 
     /// <summary>段位エンジンの再帰に余裕を持たせるスタック</summary>
     private const int WorkerStackSize = 16 * 1024 * 1024;

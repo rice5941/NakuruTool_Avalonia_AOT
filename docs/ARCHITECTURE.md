@@ -18,7 +18,7 @@ osu!mania の beatmap を管理し、各種データベースファイルを読�
 - **エクスポート/インポート**: コレクションを JSON 形式でファイルに書き出し・読み込み
 - **レート変更譜面生成**: beatmapの倍速・減速版を自動生成（.osuタイミング変換 + オーディオレート変換）。一括生成では生成済み譜面のMD5・メタ情報を集約した `CollectionExchangeData` 互換 JSON を `imports/rate-generation/` へサイドカー出力し、ImportExport 画面からそのまま取り込み可能
 - **オーディオプレビュー**: 譜面選択時に音声を自動再生（Rust ネイティブライブラリ）
-- **7K 譜面解析**: Mania Tracker の計算で、全 7K 譜面（等速）の Prism 基準Overall（Reg / LN、精度 96.5%）・5ジャンルのジャンル濃度と基準スキル値・段位推定（Reg / LN とジャンル）を求め、beatmap一覧の Prism 列・段位推定列・フィルタ・ソートに使う（仕様: [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)）
+- **7K 譜面解析**: Mania Tracker の計算で、全 7K 譜面（等速）の Prism 基準Overall（Reg / LN、精度 96.5%）・6ジャンルのジャンル濃度と基準スキル値・段位推定（Reg / LN とジャンル）を求め、beatmap一覧の Prism 列・段位推定列・フィルタ・ソートに使う（仕様: [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)）
 - **多言語対応**: 日本語/英語の動的切り替え
 - **テーマ切替**: ダーク/ライトテーマ
 

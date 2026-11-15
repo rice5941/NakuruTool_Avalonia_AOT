@@ -47,8 +47,8 @@ public class Analyze7kScreenshotTests
         Map("jack", "Jack heavy chart", new ManiaChartAnalysis
         {
             PrismOverall = 37.95,
-            GenreSkills = new GenreValues(30.1f, 28.4f, 27.0f, 33.2f, 37.95f),
-            GenreTendencies = new GenreValues(20, 14, 10, 30, 52),
+            GenreSkills = new GenreValues(30.1f, 28.4f, 27.0f, 33.2f, 37.95f, 31.5f),
+            GenreTendencies = new GenreValues(20, 14, 10, 30, 52, 34),
             RegularDan = 9.18,
             PrimaryFamily = DanSide.Regular,
             RegularGenres = RegularDanGenre.Jack,
@@ -58,8 +58,8 @@ public class Analyze7kScreenshotTests
         {
             PrismOverall = 31.2,
             PrismLnOverall = 41.6,
-            GenreSkills = new GenreValues(35.4f, 29.0f, 26.1f, 31.0f, 22.3f),
-            GenreTendencies = new GenreValues(40, 18, 12, 24, 3),
+            GenreSkills = new GenreValues(35.4f, 29.0f, 26.1f, 31.0f, 22.3f, 18.2f),
+            GenreTendencies = new GenreValues(40, 18, 12, 24, 3, 0),
             RegularDan = 10.4,
             LnDan = 12.6,
             PrimaryFamily = DanSide.Ln,
@@ -70,8 +70,8 @@ public class Analyze7kScreenshotTests
         Map("vibro", "Vibro chart", new ManiaChartAnalysis
         {
             PrismOverall = 44.0,
-            GenreSkills = new GenreValues(20, 18, 19, 25, 44),
-            GenreTendencies = new GenreValues(5, 0, 3, 12, 85),
+            GenreSkills = new GenreValues(20, 18, 19, 25, 44, 39.0f),
+            GenreTendencies = new GenreValues(5, 0, 3, 12, 85, 60),
             RegularDan = 14.5,
             PrimaryFamily = DanSide.Regular,
             RegularGenres = RegularDanGenre.Jack,

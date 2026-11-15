@@ -507,7 +507,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- 7K Prism（基準 96.5%）: Reg / LN 基準Overall と、ジャンル濃度の五角形 / 基準スキル値の横棒（ヘッダーで切替）。7K 以外・未解析は空 -->
+                    <!-- 7K Prism（基準 96.5%）: Reg / LN 基準Overall と、ジャンル濃度の六角形 / 基準スキル値の横棒（ヘッダーで切替）。7K 以外・未解析は空 -->
                     <DataGridTemplateColumn Tag="PrismColumn" Width="300">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="{translate:Translate 'MapList.Analyze7k.PrismColumn'}" HorizontalAlignment="Center"/>

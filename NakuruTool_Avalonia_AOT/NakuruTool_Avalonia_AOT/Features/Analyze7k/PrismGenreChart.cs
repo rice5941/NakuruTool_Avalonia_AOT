@@ -9,10 +9,10 @@ using Avalonia.Media.Immutable;
 namespace NakuruTool_Avalonia_AOT.Features.Analyze7k;
 
 /// <summary>
-/// Prism の5ジャンルの表示（譜面一覧の1行に描く）。
+/// Prism の6ジャンルの表示（譜面一覧の1行に描く）。
 /// <list type="bullet">
-/// <item>ジャンル濃度モード: 左に五角形のレーダーチャート（外周が <see cref="PentagonScale"/>%）、右に凡例（ジャンル名・濃度）。</item>
-/// <item>基準スキル値モード: 5ジャンルと LN の6本の横棒（huuugeosu と同じ並びと色）と数値。満幅は <see cref="SkillBarMaximum"/>。</item>
+/// <item>ジャンル濃度モード: 左に六角形のレーダーチャート（外周が <see cref="RadarScale"/>%）、右に凡例（ジャンル名・濃度）。</item>
+/// <item>基準スキル値モード: 6ジャンルと LN の7本の横棒と数値。満幅は <see cref="SkillBarMaximum"/>。</item>
 /// </list>
 /// 行ごとに TextBlock を並べないよう、まとめて描画する。
 /// </summary>
@@ -24,10 +24,13 @@ public sealed class PrismGenreChart : Control
     public static readonly StyledProperty<bool> ShowSkillValuesProperty =
         AvaloniaProperty.Register<PrismGenreChart, bool>(nameof(ShowSkillValues));
 
-    /// <summary>五角形の外周にあたるジャンル濃度（%）。超えた分は外周で止める。</summary>
-    public const double PentagonScale = 50;
+    /// <summary>レーダーチャートの外周にあたるジャンル濃度（%）。超えた分は外周で止める。</summary>
+    public const double RadarScale = 50;
 
-    /// <summary>ジャンルの色（huuugeosu の軸の色。<see cref="PrismGenre"/> の順）</summary>
+    /// <summary>
+    /// ジャンルの色（<see cref="PrismGenre"/> の順）。Chordstream〜Jack は huuugeosu の軸の色、
+    /// ChordJack は Jack と並べて見分けやすい黄色。
+    /// </summary>
     private static readonly IBrush[] s_genreBrushes =
     [
         new ImmutableSolidColorBrush(Color.Parse("#6f87d8")),
@@ -35,6 +38,7 @@ public sealed class PrismGenreChart : Control
         new ImmutableSolidColorBrush(Color.Parse("#5fb8c9")),
         new ImmutableSolidColorBrush(Color.Parse("#83a86f")),
         new ImmutableSolidColorBrush(Color.Parse("#c59a5c")),
+        new ImmutableSolidColorBrush(Color.Parse("#d4c04a")),
     ];
 
     /// <summary>LN の色（huuugeosu の LN 軸の色）</summary>
@@ -47,8 +51,8 @@ public sealed class PrismGenreChart : Control
     private static readonly IBrush s_trackBrush = new ImmutableSolidColorBrush(Colors.Gray, 0.18);
 
     // 濃度モード
-    private const double MaxPentagonDiameter = 80;
-    private const double PentagonGap = 10;
+    private const double MaxRadarDiameter = 80;
+    private const double RadarGap = 10;
     private const double DotSize = 7;
     // 基準スキル値モード
     private const double LabelWidth = 64;
@@ -68,7 +72,7 @@ public sealed class PrismGenreChart : Control
         set => SetValue(AnalysisProperty, value);
     }
 
-    /// <summary>true なら基準スキル値の横棒、false ならジャンル濃度の五角形を描く</summary>
+    /// <summary>true なら基準スキル値の横棒、false ならジャンル濃度のレーダーチャートを描く</summary>
     public bool ShowSkillValues
     {
         get => GetValue(ShowSkillValuesProperty);
@@ -90,40 +94,41 @@ public sealed class PrismGenreChart : Control
     }
 
     // ───────────────────────────────────────────
-    // ジャンル濃度: 五角形と凡例
+    // ジャンル濃度: 六角形と凡例
     // ───────────────────────────────────────────
 
     private void RenderConcentration(DrawingContext context, ManiaChartAnalysis analysis, IBrush foreground)
     {
         var genres = GenreValues.Genres;
-        double radius = Math.Min(MaxPentagonDiameter, Bounds.Height - 4) / 2;
+        double radius = Math.Min(MaxRadarDiameter, Bounds.Height - 4) / 2;
         var center = new Point(radius + 1, Bounds.Height / 2);
         if (radius > 0)
-            DrawPentagon(context, center, radius, analysis.GenreConcentrations);
+            DrawRadar(context, center, radius, analysis.GenreConcentrations);
 
         // 凡例: ● ジャンル名 … 濃度（表示の合計が 100 になるよう丸めた値）
         var dim = foreground is ISolidColorBrush solid ? new ImmutableSolidColorBrush(solid.Color, 0.75) : foreground;
         var shares = analysis.GenreTendencies.ToRoundedShares();
-        double legendLeft = center.X + radius + PentagonGap;
+        double legendLeft = center.X + radius + RadarGap;
         double rowHeight = Bounds.Height / genres.Length;
+        double fontSize = FontSizeFor(rowHeight);
         for (int i = 0; i < genres.Length; i++)
         {
             double centerY = i * rowHeight + rowHeight / 2;
             context.DrawEllipse(s_genreBrushes[i], null, new Point(legendLeft + DotSize / 2, centerY), DotSize / 2, DotSize / 2);
 
-            var label = Text(genres[i].ToString(), foreground);
+            var label = Text(genres[i].ToString(), foreground, fontSize);
             context.DrawText(label, new Point(legendLeft + DotSize + 4, centerY - label.Height / 2));
 
-            var share = Text(shares[i].ToString(CultureInfo.InvariantCulture) + "%", dim);
+            var share = Text(shares[i].ToString(CultureInfo.InvariantCulture) + "%", dim, fontSize);
             context.DrawText(share, new Point(Bounds.Width - share.Width, centerY - share.Height / 2));
         }
     }
 
     /// <summary>
-    /// 頂点は 12 時から時計回りに表示順（Chordstream → Bracket → Delay → Technical → Jack）。
-    /// 目盛りは外周（<see cref="PentagonScale"/>%）と半分の2重。
+    /// 頂点は 12 時から時計回りに表示順（Chordstream → Bracket → Delay → Technical → Jack → ChordJack）。
+    /// 目盛りは外周（<see cref="RadarScale"/>%）と半分の2重。
     /// </summary>
-    private static void DrawPentagon(DrawingContext context, Point center, double radius, GenreValues shares)
+    private static void DrawRadar(DrawingContext context, Point center, double radius, GenreValues shares)
     {
         var genres = GenreValues.Genres;
 
@@ -132,7 +137,7 @@ public sealed class PrismGenreChart : Control
         for (int i = 0; i < genres.Length; i++)
             context.DrawLine(s_gridPen, center, Vertex(center, radius, i, 1));
 
-        double Ratio(int i) => Math.Clamp(shares[genres[i]] / PentagonScale, 0, 1);
+        double Ratio(int i) => Math.Clamp(shares[genres[i]] / RadarScale, 0, 1);
         if (shares.Sum() > 0)
             context.DrawGeometry(s_shapeFill, s_shapePen, Polygon(center, radius, Ratio));
 
@@ -145,7 +150,7 @@ public sealed class PrismGenreChart : Control
 
     private static Point Vertex(Point center, double radius, int index, double ratio)
     {
-        double radians = (-90 + index * 72) * Math.PI / 180;
+        double radians = (-90 + index * 360.0 / GenreValues.Genres.Length) * Math.PI / 180;
         return new Point(center.X + radius * ratio * Math.Cos(radians), center.Y + radius * ratio * Math.Sin(radians));
     }
 
@@ -167,8 +172,8 @@ public sealed class PrismGenreChart : Control
     // ───────────────────────────────────────────
 
     /// <summary>
-    /// 横棒の満幅: Reg 基準Overall・LN 基準Overall・5ジャンルの基準スキル値のうち最大の値。
-    /// LN 譜面では LN が Reg 基準Overall を超えることがあるため、6本を同じ物差しで比べられるようにする。
+    /// 横棒の満幅: Reg 基準Overall・LN 基準Overall・6ジャンルの基準スキル値のうち最大の値。
+    /// LN 譜面では LN が Reg 基準Overall を超えることがあるため、7本を同じ物差しで比べられるようにする。
     /// </summary>
     public static double SkillBarMaximum(ManiaChartAnalysis analysis)
     {
@@ -187,19 +192,20 @@ public sealed class PrismGenreChart : Control
         int rows = genres.Length + 1;
         double maximum = SkillBarMaximum(analysis);
         double rowHeight = Bounds.Height / rows;
+        double fontSize = FontSizeFor(rowHeight);
         double barWidth = Bounds.Width - LabelWidth - ValueWidth - 4;
         double barHeight = Math.Clamp(rowHeight * 0.45, 3, 8);
 
         for (int i = 0; i < rows; i++)
         {
-            // 5ジャンルの後に LN（測定不能なら棒なし・数値は "-"）
+            // 6ジャンルの後に LN（測定不能なら棒なし・数値は "-"）
             bool isLn = i == genres.Length;
             string name = isLn ? ManiaChartAnalysis.LnAxis : genres[i].ToString();
             double? value = isLn ? analysis.PrismLnOverall : analysis.GenreSkills[genres[i]];
             var brush = isLn ? s_lnBrush : s_genreBrushes[i];
             double centerY = i * rowHeight + rowHeight / 2;
 
-            var label = Text(name, foreground);
+            var label = Text(name, foreground, fontSize);
             context.DrawText(label, new Point(0, centerY - label.Height / 2));
 
             var barRect = new Rect(LabelWidth, centerY - barHeight / 2, barWidth, barHeight);
@@ -212,11 +218,14 @@ public sealed class PrismGenreChart : Control
                 context.DrawRectangle(brush, null, fill, barHeight / 2, barHeight / 2);
             }
 
-            var number = Text(value is { } shown ? shown.ToString("F1", CultureInfo.InvariantCulture) : "-", foreground);
+            var number = Text(value is { } shown ? shown.ToString("F1", CultureInfo.InvariantCulture) : "-", foreground, fontSize);
             context.DrawText(number, new Point(Bounds.Width - number.Width, centerY - number.Height / 2));
         }
     }
 
-    private static FormattedText Text(string text, IBrush brush)
-        => new(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, s_typeface, FontSize, brush);
+    /// <summary>行が狭いとき（7本の横棒など）は、文字が隣の行に重ならないよう少し小さくする</summary>
+    private static double FontSizeFor(double rowHeight) => Math.Clamp(rowHeight * 0.8, 8, FontSize);
+
+    private static FormattedText Text(string text, IBrush brush, double fontSize)
+        => new(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, s_typeface, fontSize, brush);
 }

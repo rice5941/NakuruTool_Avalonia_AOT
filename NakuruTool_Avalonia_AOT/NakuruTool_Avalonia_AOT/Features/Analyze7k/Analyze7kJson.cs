@@ -19,7 +19,7 @@ public sealed class Analyze7kResponse
 
 /// <summary>
 /// Prism の譜面値（等速・精度 96.5%）。genres / tendency のキーは Prism の値名
-/// （Jumpstream / Handstream / Speed / Technical / Chordjack）。
+/// （Jumpstream / Handstream / Speed / Technical / JackSpeed / ChordjackOnly）。
 /// </summary>
 public sealed class PrismChartResult
 {
@@ -94,9 +94,9 @@ public sealed class Analyze7kCacheRecord
     [JsonPropertyName("p")] public double? PrismOverall { get; set; }
     /// <summary>Prism の LN 基準Overall（なければ省略）</summary>
     [JsonPropertyName("pl")] public double? PrismLnOverall { get; set; }
-    /// <summary>5ジャンルの基準スキル値（PrismGenre の順）</summary>
+    /// <summary>6ジャンルの基準スキル値（PrismGenre の順）</summary>
     [JsonPropertyName("gs")] public float[]? GenreSkills { get; set; }
-    /// <summary>5ジャンルのジャンル傾向（PrismGenre の順）。ジャンル濃度はここから計算する。</summary>
+    /// <summary>6ジャンルのジャンル傾向（PrismGenre の順）。ジャンル濃度はここから計算する。</summary>
     [JsonPropertyName("gc")] public float[]? GenreTendencies { get; set; }
     /// <summary>Regular 段位</summary>
     [JsonPropertyName("rd")] public double? RegularDan { get; set; }

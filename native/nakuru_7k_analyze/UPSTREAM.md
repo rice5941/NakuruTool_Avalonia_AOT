@@ -50,7 +50,9 @@ Prism はジャンル（skillset）ごとに、区間の負荷へ `0.6 + 0.4 × 
 `0.6`（どの区間にも含まれない）以上、`0.6 + 0.4 × 2^指数` 以下に収まる。
 `0.6`〜全ジャンルで最大の上限（Speed の `0.6 + 0.4 × 2^1.2`）を、全ジャンル共通で 0〜100 に写したものをジャンル傾向とする
 （出力キー `tendency`。1譜面の中での大小が Prism のジャンル値と一致する）。
-画面のジャンル濃度は、C# 側でこの傾向を5ジャンルの合計で割った内訳（%）。上流の非公開定数（`SKILLSET_SHARE_CAP = 2`、`SKILLSET_SOURCES` の並び）を
+画面のジャンル濃度は、C# 側でこの傾向を6ジャンルの合計で割った内訳（%）。
+6ジャンルは Prism の公開値のうち Jumpstream / Handstream / Speed / Technical と、Prism が Chordjack にまとめる前の
+JackSpeed / ChordjackOnly（出力キーもこの名前）。上流の非公開定数（`SKILLSET_SHARE_CAP = 2`、`SKILLSET_SOURCES` の並び）を
 写しているため、`src/analyze.rs` のテストで Prism の値と突き合わせている。
 
 ## 確認済みの一致

@@ -256,7 +256,7 @@
 | `ManiaPrismOverall` / `ManiaPrismLnOverall` | 数値（double） | ✗ | ✓ | 7K Prism の Reg / LN 基準Overall（値のない譜面は一致しない） |
 | `ManiaPrismGenreSkill` / `ManiaPrismGenreConcentration` | 数値（double） | ✗ | ✓ | 7K Prism の基準スキル値 / ジャンル濃度（比較対象でジャンルを選ぶ） |
 | `ManiaDanRegular` / `ManiaDanLn` | 数値（double） | ✗ | ✓ | 7K 段位推定の Reg / LN 段位 |
-| `ManiaPrismTopGenre` / `ManiaDanRegularGenre` / `ManiaDanLnGenre` | 選択式 | ✓ | ✗ | 7K Prism の最大ジャンル（5ジャンルと LN）/ 段位推定のジャンル |
+| `ManiaPrismTopGenre` / `ManiaDanRegularGenre` / `ManiaDanLnGenre` | 選択式 | ✓ | ✗ | 7K Prism の最大ジャンル（6ジャンルと LN）/ 段位推定のジャンル |
 
 ##### `FilterTargetInfo` ヘルパークラス
 
@@ -1691,10 +1691,10 @@ osu!mania beatmapのレート変更版（倍速・減速）を自動生成する
 | `Analyze7kCache.cs` | キャッシュ | `cache/analyze-7k/results-{版ハッシュ}.jsonl`（1 譜面 1 行、追記のみ。版が変わると古いファイルを削除） |
 | `Analyze7kProgressDisplay.cs` | 表示 | 進み具合の表示（進捗率・件数・残り時間の文字列）と、残り時間の推定（`Analyze7kRemainingTimeEstimator`） |
 | `Analyze7kRules.cs` | ルール | .osu の確認（native 7K・OD）、解析できなかった理由 |
-| `ManiaChartAnalysis.cs` | モデル | 解析結果（Prism の基準Overall・5ジャンルの値、段位推定と段位ジャンル）。`PrismGenre` / `RegularDanGenre` / `LnDanGenre` / `GenreValues` |
+| `ManiaChartAnalysis.cs` | モデル | 解析結果（Prism の基準Overall・6ジャンルの値、段位推定と段位ジャンル）。`PrismGenre` / `RegularDanGenre` / `LnDanGenre` / `GenreValues` |
 | `DanBuckets.cs` | 移植 | `mania_dan_buckets.py`（Regular / LN の段位ジャンル判定） |
 | `DanLabels.cs` | 移植 | `mania_dan.py` の段位の表示名 |
-| `PrismGenreChart.cs` | コントロール | Prism 列の5ジャンルの表示（ジャンル濃度の五角形と凡例 / 基準スキル値と LN の横棒） |
+| `PrismGenreChart.cs` | コントロール | Prism 列の6ジャンルの表示（ジャンル濃度の六角形と凡例 / 基準スキル値と LN の横棒） |
 
 ### 他モジュールとの接点
 

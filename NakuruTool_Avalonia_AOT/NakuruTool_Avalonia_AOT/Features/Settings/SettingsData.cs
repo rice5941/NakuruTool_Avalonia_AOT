@@ -95,7 +95,7 @@ public partial class SettingsData : ObservableObject, ISettingsData
         set => SetProperty(ref _analyze7kParallelism, value);
     }
 
-    /// <summary>Prism 列をジャンル濃度の五角形で表示する（既定の false は基準スキル値の横棒）</summary>
+    /// <summary>Prism 列をジャンル濃度の六角形で表示する（既定の false は基準スキル値の横棒）</summary>
     public bool Analyze7kShowConcentration
     {
         get => _analyze7kShowConcentration;

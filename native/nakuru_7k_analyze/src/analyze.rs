@@ -15,7 +15,7 @@ use serde_json::{json, Map, Value};
 
 pub const UPSTREAM_COMMIT: &str = "1339369851234d6ed928aa1bd8149a4b558378e6";
 /// Bump when this adapter changes the values it returns (cached results are keyed by it).
-pub const ADAPTER_VERSION: u32 = 3;
+pub const ADAPTER_VERSION: u32 = 4;
 /// Charts are analyzed at their own speed only.
 pub const RATE: f64 = 1.0;
 /// Prism's base goal: a chart's reference difficulty is the rating needed for 96.5%.
@@ -39,15 +39,17 @@ const SKILLSET_SOURCES: [(&str, Option<usize>); 8] = [
     ("Speed", Some(7)),
 ];
 
-/// The five displayed genres: (Prism value name, Prism skillsets merged into it).
-/// Prism merges Stream/JumpstreamOnly into Jumpstream and JackSpeed/ChordjackOnly into
-/// Chordjack by taking the larger value; tendencies are merged the same way.
-pub const GENRES: [(&str, &[&str]); 5] = [
+/// The six displayed genres: (Prism value name, Prism skillsets merged into it).
+/// Prism merges Stream/JumpstreamOnly into Jumpstream by taking the larger value, and the
+/// tendency is merged the same way. JackSpeed and ChordjackOnly are shown on their own
+/// (not as Prism's merged Chordjack).
+pub const GENRES: [(&str, &[&str]); 6] = [
     ("Jumpstream", &["Stream", "JumpstreamOnly"]),
     ("Handstream", &["Handstream"]),
     ("Speed", &["Speed"]),
     ("Technical", &["Technical"]),
-    ("Chordjack", &["JackSpeed", "ChordjackOnly"]),
+    ("JackSpeed", &["JackSpeed"]),
+    ("ChordjackOnly", &["ChordjackOnly"]),
 ];
 
 pub fn engine_version() -> String {
@@ -90,8 +92,9 @@ pub fn analyze(osu: &str, request: &Value) -> Result<Value, String> {
     Ok(json!({ "prism": prism, "dan": dan }))
 }
 
-/// Prism at 1.0x and the base goal: Overall, the five genre values (as Mania Tracker and
-/// huuugeosu publish them, LN lead included), their tendencies and the LN rating.
+/// Prism at 1.0x and the base goal: Overall, the six genre values (Prism's values as
+/// Mania Tracker and huuugeosu publish them, LN lead included, with JackSpeed and
+/// ChordjackOnly kept apart), their tendencies and the LN rating.
 fn prism_chart(map: &ManiaBeatmap, notes: &[dan_core::ManiaNote], od: f64) -> Result<Value, String> {
     let models = prism_models(map.key_count).ok_or("unsupported chart")?;
     // What `analyze_prism` does (`rate_with` -> `prepare_cached`), kept here so the
@@ -159,7 +162,7 @@ pub fn tendency_top() -> f64 {
 }
 
 /// Genre tendency, 0-100, for each Prism skillset, on one scale shared by all genres.
-/// NakuruTool shows each genre's share of the five tendencies as the genre concentration (sums to 100).
+/// NakuruTool shows each genre's share of the six tendencies as the genre concentration (sums to 100).
 ///
 /// Prism rates a skillset by re-weighting every section's demand with
 /// `FLOOR + (1 - FLOOR) * min(CAP, share / reference)^exponent`, where `share` is the
@@ -368,10 +371,10 @@ mod tests {
                 prism_chart(&map, &chart_notes(&map), 8.0).unwrap()
             }
         };
-        let jack = prism["tendency"]["Chordjack"].as_f64().unwrap();
-        let bracket = prism["tendency"]["Handstream"].as_f64().unwrap();
-        assert!(jack < 1e-6, "jack {jack}");
-        assert!(bracket < 1e-6, "bracket {bracket}");
+        for name in ["JackSpeed", "ChordjackOnly", "Handstream"] {
+            let c = prism["tendency"][name].as_f64().unwrap();
+            assert!(c < 1e-6, "{name}: {c}");
+        }
         for (name, _) in GENRES {
             let c = prism["tendency"][name].as_f64().unwrap();
             assert!((0.0..=100.0).contains(&c), "{name}: {c}");

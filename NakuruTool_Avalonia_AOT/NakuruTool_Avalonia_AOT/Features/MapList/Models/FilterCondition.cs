@@ -69,11 +69,11 @@ public enum FilterTarget
     ManiaPrismOverall,
     /// <summary>7K Prism の LN 基準Overall（測定不能の譜面は一致しない）</summary>
     ManiaPrismLnOverall,
-    /// <summary>7K Prism の基準スキル値が最大の軸（5ジャンルと LN から選択）</summary>
+    /// <summary>7K Prism の基準スキル値が最大の軸（6ジャンルと LN から選択）</summary>
     ManiaPrismTopGenre,
-    /// <summary>7K Prism の基準スキル値（比較対象で 5ジャンルか LN を選び、範囲で絞り込む）</summary>
+    /// <summary>7K Prism の基準スキル値（比較対象で 6ジャンルか LN を選び、範囲で絞り込む）</summary>
     ManiaPrismGenreSkill,
-    /// <summary>7K Prism のジャンル濃度（%。比較対象で 5ジャンルから選び、範囲で絞り込む）</summary>
+    /// <summary>7K Prism のジャンル濃度（%。比較対象で 6ジャンルから選び、範囲で絞り込む）</summary>
     ManiaPrismGenreConcentration,
     /// <summary>7K 段位推定の Regular 段位</summary>
     ManiaDanRegular,
@@ -265,7 +265,7 @@ public static class FilterTargetInfo
         FilterTarget.ManiaPrismGenreSkill or FilterTarget.ManiaPrismGenreConcentration;
 
     /// <summary>
-    /// 比較対象の選択肢（基準スキル値は 5ジャンル＋LN、ジャンル濃度は 5ジャンル）
+    /// 比較対象の選択肢（基準スキル値は 6ジャンル＋LN、ジャンル濃度は 6ジャンル）
     /// </summary>
     public static IReadOnlyList<string> CompareOptions(FilterTarget target) => target switch
     {
@@ -649,7 +649,7 @@ public partial class FilterCondition : ObservableObject
         return value is { } v && MatchesDouble(v);
     }
 
-    /// <summary>基準スキル値（5ジャンルと LN）が最大の軸が選んだものと一致するか</summary>
+    /// <summary>基準スキル値（6ジャンルと LN）が最大の軸が選んだものと一致するか</summary>
     private bool MatchesPrismTopGenre(ManiaChartAnalysis? analysis)
     {
         if (string.IsNullOrEmpty(ChoiceValue)) return true;

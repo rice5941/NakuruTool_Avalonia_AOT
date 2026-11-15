@@ -113,12 +113,13 @@ public class Analyze7kTests
     [Fact]
     public void TopGenre_PicksLargestSkillValue()
     {
-        Assert.Equal(PrismGenre.Jack, new GenreValues(10, 20, 5, 30, 40).Top());
-        Assert.Equal(PrismGenre.Bracket, new GenreValues(10, 40, 5, 30, 40).Top()); // 同じ値なら表示順で先
+        Assert.Equal(PrismGenre.Jack, new GenreValues(10, 20, 5, 30, 40, 35).Top());
+        Assert.Equal(PrismGenre.ChordJack, new GenreValues(10, 20, 5, 30, 40, 45).Top());
+        Assert.Equal(PrismGenre.Bracket, new GenreValues(10, 40, 5, 30, 40, 40).Top()); // 同じ値なら表示順で先
         Assert.Null(default(GenreValues).Top());
 
         // 最大ジャンルは基準スキル値で決める
-        var analysis = Analysis(skills: new GenreValues(25, 20, 31, 28, 30), tendencies: new GenreValues(30, 10, 45, 35, 40));
+        var analysis = Analysis(skills: new GenreValues(25, 20, 31, 28, 30, 12), tendencies: new GenreValues(30, 10, 45, 35, 40, 15));
         Assert.Equal(PrismGenre.Delay, analysis.TopGenre);
     }
 
@@ -130,27 +131,29 @@ public class Analyze7kTests
         // LN 譜面: LN が Reg を超えたら LN が満幅
         Assert.Equal(41.6, PrismGenreChart.SkillBarMaximum(Analysis(overall: 31.2, ln: 41.6)), 6);
         // ジャンルの値が Overall を超えた場合（LN の多い譜面の補正）もはみ出さない
-        Assert.Equal(35, PrismGenreChart.SkillBarMaximum(Analysis(overall: 30, skills: new GenreValues(35, 20, 20, 20, 20))), 6);
+        Assert.Equal(35, PrismGenreChart.SkillBarMaximum(Analysis(overall: 30, skills: new GenreValues(35, 20, 20, 20, 20, 20))), 6);
     }
 
     [Fact]
     public void Concentration_IsShareOfTendencies()
     {
-        var analysis = Analysis(tendencies: new GenreValues(30, 0, 10, 20, 40));
+        var analysis = Analysis(tendencies: new GenreValues(30, 0, 10, 20, 25, 15));
         var shares = analysis.GenreConcentrations;
         Assert.Equal(30, shares.Chordstream, 4);
         Assert.Equal(0, shares.Bracket);
         Assert.Equal(10, shares.Delay, 4);
         Assert.Equal(20, shares.Technical, 4);
-        Assert.Equal(40, shares.Jack, 4);
+        Assert.Equal(25, shares.Jack, 4);
+        Assert.Equal(15, shares.ChordJack, 4);
 
         // 合計 100・傾向なしは 0・大小は傾向（＝基準スキル値）と同じ
-        var tendencies = new GenreValues(12.5f, 0, 40, 7, 66);
+        var tendencies = new GenreValues(12.5f, 0, 40, 7, 66, 20);
         var other = tendencies.ToShares();
         Assert.Equal(100, other.Sum(), 3);
         Assert.Equal(0, other.Bracket);
         Assert.Equal(tendencies.Top(), other.Top());
-        Assert.True(other.Jack > other.Delay && other.Delay > other.Chordstream && other.Chordstream > other.Technical);
+        Assert.True(other.Jack > other.Delay && other.Delay > other.ChordJack && other.ChordJack > other.Chordstream &&
+                    other.Chordstream > other.Technical);
 
         // 傾向がすべて 0 なら濃度もすべて 0
         Assert.Equal(default(GenreValues), default(GenreValues).ToShares());
@@ -160,11 +163,11 @@ public class Analyze7kTests
     public void RoundedConcentration_AddsUpToExactlyHundred()
     {
         // 33.3 / 33.3 / 33.3 → 端数の同じものは表示順で先に 1 を足す
-        Assert.Equal([34, 33, 33, 0, 0], new GenreValues(1, 1, 1, 0, 0).ToRoundedShares());
-        // 12.5 / 0 / 40 / 7 / 66 → 9.96 / 0 / 31.87 / 5.58 / 52.59 → 切り捨てで 97、端数の大きい 3 つに足して 10 / 0 / 32 / 5 / 53
-        Assert.Equal([10, 0, 32, 5, 53], new GenreValues(12.5f, 0, 40, 7, 66).ToRoundedShares());
-        Assert.Equal(100, new GenreValues(3, 7, 11, 13, 17).ToRoundedShares().Sum());
-        Assert.Equal([0, 0, 0, 0, 0], default(GenreValues).ToRoundedShares());
+        Assert.Equal([34, 33, 33, 0, 0, 0], new GenreValues(1, 1, 1, 0, 0, 0).ToRoundedShares());
+        // 12.5 / 0 / 40 / 7 / 66 / 0 → 9.96 / 0 / 31.87 / 5.58 / 52.59 / 0 → 切り捨てで 97、端数の大きい 3 つに足して 10 / 0 / 32 / 5 / 53 / 0
+        Assert.Equal([10, 0, 32, 5, 53, 0], new GenreValues(12.5f, 0, 40, 7, 66, 0).ToRoundedShares());
+        Assert.Equal(100, new GenreValues(3, 7, 11, 13, 17, 19).ToRoundedShares().Sum());
+        Assert.Equal([0, 0, 0, 0, 0, 0], default(GenreValues).ToRoundedShares());
     }
 
     // ───────────────────────────────────────────
@@ -238,7 +241,7 @@ public class Analyze7kTests
     {
         PrismOverall = overall,
         PrismLnOverall = ln,
-        GenreSkills = skills ?? new GenreValues(28, 20, 22, 25, 30),
+        GenreSkills = skills ?? new GenreValues(28, 20, 22, 25, 30, 18),
         GenreTendencies = tendencies,
         RegularDan = regularDan,
         LnDan = lnDan,
@@ -257,7 +260,7 @@ public class Analyze7kTests
         {
             Directory.CreateDirectory(dir);
             File.WriteAllText(Path.Combine(dir, "results-oldversion.jsonl"), "{}\n");
-            var saved = Analysis(ln: 33.5, lnDan: 11.2, tendencies: new GenreValues(12.5f, 0, 40, 7, 66),
+            var saved = Analysis(ln: 33.5, lnDan: 11.2, tendencies: new GenreValues(12.5f, 0, 40, 7, 66, 9),
                 regularGenres: RegularDanGenre.Jack | RegularDanGenre.Speed, lnGenres: LnDanGenre.Release);
             using (var cache = new Analyze7kCache(dir, "v1"))
             {
@@ -364,15 +367,15 @@ public class Analyze7kTests
     [Fact]
     public void ChoiceFilters_MatchTopGenreAndDanGenres()
     {
-        var jackHeavy = Map("a", Analysis(skills: new GenreValues(24, 20, 20, 27, 30), tendencies: new GenreValues(10, 5, 5, 20, 60),
+        var jackHeavy = Map("a", Analysis(skills: new GenreValues(24, 20, 20, 27, 30, 15), tendencies: new GenreValues(10, 5, 5, 20, 60, 10),
             regularGenres: RegularDanGenre.Jack | RegularDanGenre.Tech));
-        var lnChart = Map("b", Analysis(lnDan: 10, skills: new GenreValues(30, 20, 20, 26, 22), tendencies: new GenreValues(50, 5, 5, 20, 10),
+        var lnChart = Map("b", Analysis(lnDan: 10, skills: new GenreValues(30, 20, 20, 26, 22, 18), tendencies: new GenreValues(50, 5, 5, 20, 10, 5),
             lnGenres: LnDanGenre.Inverse));
         var notAnalyzed = Map("c", null, keyCount: 4);
 
         var top = Condition(FilterTarget.ManiaPrismTopGenre, "Jack");
         Assert.True(top.IsChoiceType);
-        Assert.Equal(["Chordstream", "Bracket", "Delay", "Technical", "Jack", "LN"], top.ChoiceOptions);
+        Assert.Equal(["Chordstream", "Bracket", "Delay", "Technical", "Jack", "ChordJack", "LN"], top.ChoiceOptions);
         Assert.True(top.Matches(jackHeavy));
         Assert.False(top.Matches(lnChart));
         Assert.False(top.Matches(notAnalyzed));
@@ -389,18 +392,23 @@ public class Analyze7kTests
     [Fact]
     public void TopGenreFilter_IncludesLn()
     {
-        var regular = Map("a", Analysis(overall: 30, skills: new GenreValues(24, 20, 20, 27, 30)));
-        // LN が5ジャンルの最大を超える（LN の多い譜面の補正でジャンル値は LN×0.85 寄り）
-        var lnLead = Map("b", Analysis(overall: 28, ln: 35, skills: new GenreValues(25, 20, 20, 26, 29.75f)));
-        // LN があっても5ジャンルの最大以下なら、そのジャンル
-        var lnBelow = Map("c", Analysis(overall: 30, ln: 25, skills: new GenreValues(24, 20, 20, 27, 30)));
+        var regular = Map("a", Analysis(overall: 30, skills: new GenreValues(24, 20, 20, 27, 30, 22)));
+        // LN が6ジャンルの最大を超える（LN の多い譜面の補正でジャンル値は LN×0.85 寄り）
+        var lnLead = Map("b", Analysis(overall: 28, ln: 35, skills: new GenreValues(25, 20, 20, 26, 29.75f, 21)));
+        // LN があっても6ジャンルの最大以下なら、そのジャンル
+        var lnBelow = Map("c", Analysis(overall: 30, ln: 25, skills: new GenreValues(24, 20, 20, 27, 30, 22)));
         // 同じ値ならジャンルを優先
-        var tie = Map("d", Analysis(overall: 30, ln: 30, skills: new GenreValues(24, 20, 20, 27, 30)));
+        var tie = Map("d", Analysis(overall: 30, ln: 30, skills: new GenreValues(24, 20, 20, 27, 30, 22)));
+        // 同時押しの縦連（ChordJack）が最大
+        var chordJack = Map("f", Analysis(overall: 30, skills: new GenreValues(24, 20, 20, 27, 22, 30)));
 
         Assert.Equal("Jack", regular.ChartAnalysis!.TopSkillAxis);
         Assert.Equal("LN", lnLead.ChartAnalysis!.TopSkillAxis);
         Assert.Equal("Jack", lnBelow.ChartAnalysis!.TopSkillAxis);
         Assert.Equal("Jack", tie.ChartAnalysis!.TopSkillAxis);
+        Assert.Equal("ChordJack", chordJack.ChartAnalysis!.TopSkillAxis);
+        Assert.True(Condition(FilterTarget.ManiaPrismTopGenre, "ChordJack").Matches(chordJack));
+        Assert.False(Condition(FilterTarget.ManiaPrismTopGenre, "ChordJack").Matches(regular));
 
         var ln = Condition(FilterTarget.ManiaPrismTopGenre, "LN");
         Assert.True(ln.Matches(lnLead));
@@ -413,14 +421,14 @@ public class Analyze7kTests
     [Fact]
     public void GenreSkillFilter_ComparesChosenGenreInRange()
     {
-        var a = Map("a", Analysis(overall: 30, ln: 33, skills: new GenreValues(24, 20, 20, 27, 30)));
-        var b = Map("b", Analysis(overall: 30, skills: new GenreValues(29, 20, 20, 25, 18)));
+        var a = Map("a", Analysis(overall: 30, ln: 33, skills: new GenreValues(24, 20, 20, 27, 30, 22)));
+        var b = Map("b", Analysis(overall: 30, skills: new GenreValues(29, 20, 20, 25, 18, 31)));
         var condition = Condition(FilterTarget.ManiaPrismGenreSkill, value: "28", max: "35");
 
         Assert.True(condition.HasCompareTarget);
         Assert.True(condition.IsRangeComparison);
         Assert.False(condition.SupportsEquals);
-        Assert.Equal(["Chordstream", "Bracket", "Delay", "Technical", "Jack", "LN"], condition.CompareOptions);
+        Assert.Equal(["Chordstream", "Bracket", "Delay", "Technical", "Jack", "ChordJack", "LN"], condition.CompareOptions);
         Assert.Equal("Chordstream", condition.CompareValue); // 既定は先頭
 
         Assert.False(condition.Matches(a)); // Chordstream 24
@@ -428,6 +436,9 @@ public class Analyze7kTests
         condition.CompareValue = "Jack";
         Assert.True(condition.Matches(a));  // 30
         Assert.False(condition.Matches(b)); // 18
+        condition.CompareValue = "ChordJack";
+        Assert.False(condition.Matches(a)); // 22
+        Assert.True(condition.Matches(b));  // 31
         condition.CompareValue = "LN";
         Assert.True(condition.Matches(a));  // 33
         Assert.False(condition.Matches(b)); // LN 測定不能
@@ -440,13 +451,15 @@ public class Analyze7kTests
     [Fact]
     public void GenreConcentrationFilter_ComparesShareInPercent()
     {
-        // 傾向 30 / 0 / 10 / 20 / 40 → 濃度 30% / 0% / 10% / 20% / 40%
-        var chart = Map("a", Analysis(tendencies: new GenreValues(30, 0, 10, 20, 40)));
+        // 傾向 20 / 0 / 5 / 15 / 25 / 35 → 濃度 20% / 0% / 5% / 15% / 25% / 35%
+        var chart = Map("a", Analysis(tendencies: new GenreValues(20, 0, 5, 15, 25, 35)));
         var condition = Condition(FilterTarget.ManiaPrismGenreConcentration, value: "35");
 
         Assert.Equal(Enum.GetNames<PrismGenre>(), condition.CompareOptions); // LN はない
-        condition.CompareValue = "Jack";
+        condition.CompareValue = "ChordJack";
         Assert.True(condition.Matches(chart));
+        condition.CompareValue = "Jack";
+        Assert.False(condition.Matches(chart));
         condition.CompareValue = "Technical";
         Assert.False(condition.Matches(chart));
         condition.Value = "0";
@@ -655,9 +668,11 @@ public class Analyze7kTests
             Assert.InRange(analysis.GenreConcentrations[genre], 0, 100);
             Assert.True(analysis.GenreSkills[genre] >= 0);
         }
-        // 単押しだけの譜面に Jack（縦連）・Bracket は含まれない
+        // 単押しだけの譜面に Jack・ChordJack（縦連）は含まれない
         Assert.Equal(0, analysis.GenreTendencies.Jack, 3);
+        Assert.Equal(0, analysis.GenreTendencies.ChordJack, 3);
         Assert.Equal(0, analysis.GenreConcentrations.Jack, 3);
+        Assert.Equal(0, analysis.GenreConcentrations.ChordJack, 3);
         Assert.Equal(100, analysis.GenreConcentrations.Sum(), 3);
         Assert.Null(analysis.PrismLnOverall);
     }

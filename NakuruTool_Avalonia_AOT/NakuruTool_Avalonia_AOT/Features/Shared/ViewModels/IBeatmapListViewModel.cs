@@ -43,7 +43,7 @@ public interface IBeatmapListViewModel : INotifyPropertyChanged
     /// <summary><see cref="LocalRanking"/> が1件以上あるか。</summary>
     bool HasLocalRanking { get; }
 
-    /// <summary>Prism 列を基準スキル値の横棒で表示する（false はジャンル濃度の五角形）。</summary>
+    /// <summary>Prism 列を基準スキル値の横棒で表示する（false はジャンル濃度の六角形）。</summary>
     bool ShowGenreSkillValues { get; set; }
 
     /// <summary>7K 解析の進み具合（解析中だけ値がある。null の間はヘッダーに出さない）。</summary>

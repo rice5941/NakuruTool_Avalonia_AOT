@@ -68,7 +68,7 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     [ObservableProperty]
     public partial bool HasLocalRanking { get; set; }
 
-    /// <summary>Prism 列を基準スキル値の横棒で表示する（false はジャンル濃度の五角形）。設定に保存する。</summary>
+    /// <summary>Prism 列を基準スキル値の横棒で表示する（false はジャンル濃度の六角形）。設定に保存する。</summary>
     [ObservableProperty]
     public partial bool ShowGenreSkillValues { get; set; }
 

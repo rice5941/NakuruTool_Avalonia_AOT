@@ -14,7 +14,7 @@ public static unsafe class Analyze7kNative
     private const int StatusOk = 0;
 
     /// <summary>Prism の値名と <see cref="PrismGenre"/> の対応（表示順）</summary>
-    private static readonly string[] PrismGenreKeys = ["Jumpstream", "Handstream", "Speed", "Technical", "Chordjack"];
+    private static readonly string[] PrismGenreKeys = ["Jumpstream", "Handstream", "Speed", "Technical", "JackSpeed", "ChordjackOnly"];
 
     private static readonly Lazy<string?> s_engineVersion = new(LoadEngineVersion);
 

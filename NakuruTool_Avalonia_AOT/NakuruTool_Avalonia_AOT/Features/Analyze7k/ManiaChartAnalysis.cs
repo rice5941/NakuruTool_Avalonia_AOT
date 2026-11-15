@@ -10,7 +10,10 @@ public enum DanSide
     Ln,
 }
 
-/// <summary>Prism の5ジャンル（表示順）。表示名は huuugeosu と同じ。</summary>
+/// <summary>
+/// Prism の6ジャンル（表示順）。Chordstream〜Technical の表示名は huuugeosu と同じ。
+/// huuugeosu の Jack（Prism の Chordjack）は、まとめる前の2つ（Jack / ChordJack）に分けて扱う。
+/// </summary>
 public enum PrismGenre
 {
     /// <summary>Prism の Jumpstream（Stream / JumpstreamOnly の大きい方）</summary>
@@ -20,8 +23,10 @@ public enum PrismGenre
     /// <summary>Prism の Speed</summary>
     Delay,
     Technical,
-    /// <summary>Prism の Chordjack（JackSpeed / ChordjackOnly の大きい方）</summary>
+    /// <summary>Prism の JackSpeed（単押しの縦連）</summary>
     Jack,
+    /// <summary>Prism の ChordjackOnly（同時押しの縦連）</summary>
+    ChordJack,
 }
 
 /// <summary>段位推定の Regular ジャンル（有効なものの組み合わせ）</summary>
@@ -46,8 +51,8 @@ public enum LnDanGenre
     Release = 8,
 }
 
-/// <summary>Prism の5ジャンルの値（<see cref="PrismGenre"/> の順）</summary>
-public readonly record struct GenreValues(float Chordstream, float Bracket, float Delay, float Technical, float Jack)
+/// <summary>Prism の6ジャンルの値（<see cref="PrismGenre"/> の順）</summary>
+public readonly record struct GenreValues(float Chordstream, float Bracket, float Delay, float Technical, float Jack, float ChordJack)
 {
     public static readonly PrismGenre[] Genres = Enum.GetValues<PrismGenre>();
 
@@ -58,15 +63,17 @@ public readonly record struct GenreValues(float Chordstream, float Bracket, floa
         PrismGenre.Delay => Delay,
         PrismGenre.Technical => Technical,
         PrismGenre.Jack => Jack,
+        PrismGenre.ChordJack => ChordJack,
         _ => 0,
     };
 
-    public float[] ToArray() => [Chordstream, Bracket, Delay, Technical, Jack];
+    public float[] ToArray() => [Chordstream, Bracket, Delay, Technical, Jack, ChordJack];
 
+    /// <summary>配列（<see cref="PrismGenre"/> の順）から作る。要素が足りなければすべて 0。</summary>
     public static GenreValues FromArray(ReadOnlySpan<float> values)
-        => values.Length < 5 ? default : new(values[0], values[1], values[2], values[3], values[4]);
+        => values.Length < Genres.Length ? default : new(values[0], values[1], values[2], values[3], values[4], values[5]);
 
-    /// <summary>5ジャンルの合計（0 以下の値は数えない）</summary>
+    /// <summary>6ジャンルの合計（0 以下の値は数えない）</summary>
     public float Sum()
     {
         float sum = 0;
@@ -82,7 +89,7 @@ public readonly record struct GenreValues(float Chordstream, float Bracket, floa
         if (!(sum > 0))
             return default;
         float Share(float value) => Math.Max(0, value) * 100f / sum;
-        return new(Share(Chordstream), Share(Bracket), Share(Delay), Share(Technical), Share(Jack));
+        return new(Share(Chordstream), Share(Bracket), Share(Delay), Share(Technical), Share(Jack), Share(ChordJack));
     }
 
     /// <summary>
@@ -147,16 +154,16 @@ public sealed record ManiaChartAnalysis
     /// <summary>Prism の LN 基準Overall。LN と判定されない譜面は null（測定不能）。</summary>
     public double? PrismLnOverall { get; init; }
 
-    /// <summary>5ジャンルの基準スキル値（huuugeosu と同じ値。LN の多い譜面の補正を含む）</summary>
+    /// <summary>6ジャンルの基準スキル値（Prism の値。huuugeosu と同じく LN の多い譜面の補正を含む）</summary>
     public GenreValues GenreSkills { get; init; }
 
     /// <summary>
-    /// 5ジャンルのジャンル傾向（0〜100、全ジャンル共通の物差し。0 は傾向なし）。
+    /// 6ジャンルのジャンル傾向（0〜100、全ジャンル共通の物差し。0 は傾向なし）。
     /// 1譜面の中での大小は <see cref="GenreSkills"/> と同じ。
     /// </summary>
     public GenreValues GenreTendencies { get; init; }
 
-    /// <summary>5ジャンルのジャンル濃度（ジャンル傾向の内訳、%。合計 100）</summary>
+    /// <summary>6ジャンルのジャンル濃度（ジャンル傾向の内訳、%。合計 100）</summary>
     public GenreValues GenreConcentrations => GenreTendencies.ToShares();
 
     /// <summary>段位推定の Regular 段位（raw）</summary>
@@ -181,14 +188,14 @@ public sealed record ManiaChartAnalysis
     /// <summary>基準スキル値の6本目（LN 基準Overall）の軸名</summary>
     public const string LnAxis = "LN";
 
-    /// <summary>基準スキル値の軸名（5ジャンル＋LN。huuugeosu の6軸と同じ並び）</summary>
+    /// <summary>基準スキル値の軸名（6ジャンル＋LN。huuugeosu の6軸の Jack を Jack / ChordJack に分けた並び）</summary>
     public static readonly string[] SkillAxes = [.. Enum.GetNames<PrismGenre>(), LnAxis];
 
-    /// <summary>基準スキル値が最大のジャンル（5ジャンルの中で。ジャンル濃度が最大のジャンルとも一致する）</summary>
+    /// <summary>基準スキル値が最大のジャンル（6ジャンルの中で。ジャンル濃度が最大のジャンルとも一致する）</summary>
     public PrismGenre? TopGenre => GenreSkills.Top();
 
     /// <summary>
-    /// 基準スキル値（5ジャンルと LN）が最大の軸名。LN は5ジャンルの最大を超えたときだけ選ぶ
+    /// 基準スキル値（6ジャンルと LN）が最大の軸名。LN は6ジャンルの最大を超えたときだけ選ぶ
     /// （同じ値なら表示順で先のジャンル）。値がすべて 0 なら null。
     /// </summary>
     public string? TopSkillAxis

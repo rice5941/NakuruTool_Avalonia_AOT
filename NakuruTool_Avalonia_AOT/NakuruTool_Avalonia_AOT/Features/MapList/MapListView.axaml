@@ -31,40 +31,6 @@
         <converters:UnicodeDisplayConverter x:Key="UnicodeDisplayConverter"/>
     </UserControl.Resources>
 
-    <UserControl.DataTemplates>
-        <!-- 判定内訳ツールチップ (ToolTip.Tip に LocalRankingEntry を渡すと適用される) -->
-        <DataTemplate DataType="osu:LocalRankingEntry">
-            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
-                <Grid.Styles>
-                    <Style Selector="TextBlock">
-                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                        <Setter Property="Margin" Value="6,0"/>
-                    </Style>
-                    <Style Selector="TextBlock.judge-label">
-                        <Setter Property="FontSize" Value="11"/>
-                        <Setter Property="Opacity" Value="0.7"/>
-                    </Style>
-                    <Style Selector="TextBlock.judge-value">
-                        <Setter Property="FontSize" Value="14"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                    </Style>
-                </Grid.Styles>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="320" Classes="judge-label"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="300" Classes="judge-label"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Text="200" Classes="judge-label"/>
-                <TextBlock Grid.Row="0" Grid.Column="3" Text="100" Classes="judge-label"/>
-                <TextBlock Grid.Row="0" Grid.Column="4" Text="50" Classes="judge-label"/>
-                <TextBlock Grid.Row="0" Grid.Column="5" Text="0" Classes="judge-label"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Count320}" Classes="judge-value"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Count300}" Classes="judge-value"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Count200}" Classes="judge-value"/>
-                <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Count100}" Classes="judge-value"/>
-                <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Count50}" Classes="judge-value"/>
-                <TextBlock Grid.Row="1" Grid.Column="5" Text="{Binding Count0}" Classes="judge-value"/>
-            </Grid>
-        </DataTemplate>
-    </UserControl.DataTemplates>
-
     <UserControl.Styles>
         <!-- DataGrid全体のスタイル -->
         <Style Selector="DataGrid">
@@ -565,10 +531,8 @@
                         </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="osu:Beatmap">
-                                <!-- ToolTip: 最高スコアのプレイの判定内訳 (スコアが無い行は null で非表示) -->
                                 <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,0"
-                                      Background="Transparent"
-                                      ToolTip.Tip="{Binding BestPlay}">
+                                      Background="Transparent">
                                     <!-- グレード -->
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
                                                Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}" 
@@ -795,7 +759,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <!-- スコア (既存スコア列と同じ表示。ToolTip で判定内訳) -->
+                        <!-- スコア (既存スコア列と同じ表示) -->
                         <DataGridTemplateColumn Width="180">
                             <DataGridTemplateColumn.Header>
                                 <TextBlock Text="{translate:Translate 'MapList.BestScore'}" VerticalAlignment="Center"/>
@@ -805,8 +769,7 @@
                                     <Grid ColumnDefinitions="12,12,*" RowDefinitions="Auto,Auto" Margin="4,8"
                                           RowSpacing="4"
                                           VerticalAlignment="Center"
-                                          Background="Transparent"
-                                          ToolTip.Tip="{Binding}">
+                                          Background="Transparent">
                                         <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
                                                    Text="{Binding Grade, Converter={StaticResource EmptyStringConverter}}"
                                                    Classes="grade-value"

@@ -77,14 +77,9 @@ public class LocalRankingScreenshotTests
 
         Save(window, "MapListView_LocalRanking.png");
 
-        // ランキング側スコアセルのツールチップ (判定内訳) を開いて撮影
-        var scoreCell = rankingGrid.GetVisualDescendants()
-            .OfType<Grid>()
-            .First(g => ToolTip.GetTip(g) is LocalRankingEntry);
-        ToolTip.SetIsOpen(scoreCell, true);
-        Render();
-        Save(window, "MapListView_LocalRanking_Tooltip.png");
-        ToolTip.SetIsOpen(scoreCell, false);
+        // スコアセルの判定内訳ツールチップは廃止した（ランキング側・一覧側とも出さない）
+        Assert.DoesNotContain(rankingGrid.GetVisualDescendants().OfType<Grid>(), g => ToolTip.GetTip(g) is LocalRankingEntry);
+        Assert.DoesNotContain(grid.GetVisualDescendants().OfType<Grid>(), g => ToolTip.GetTip(g) is LocalRankingEntry);
 
         // Mod 切替でページ再投影され選択が外れても、対象譜面のランキングは追従する
         vm.SelectedModCategory = ModCategory.DoubleTime;

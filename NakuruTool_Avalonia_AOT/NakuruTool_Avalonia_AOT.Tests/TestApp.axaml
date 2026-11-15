@@ -15,8 +15,16 @@
             <Setter Property="Height" Value="16" />
         </Style>
         <Style Selector="Window">
-            <Setter Property="FontFamily" 
+            <Setter Property="FontFamily"
                     Value="Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif" />
+        </Style>
+        <!-- App.axaml と同じ ComboBox スタイル（ドロップダウン幅を固定するため非仮想化の StackPanel を使用） -->
+        <Style Selector="ComboBox">
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </Setter>
         </Style>
     </Application.Styles>
 </Application>

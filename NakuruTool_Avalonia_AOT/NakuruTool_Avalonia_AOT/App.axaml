@@ -18,7 +18,9 @@
             <Setter Property="Width" Value="16" />
             <Setter Property="Height" Value="16" />
         </Style>
-        <Style Selector="Window">
+        <!-- ToolTip やドロップダウン等のポップアップは Window とは別の TopLevel(PopupRoot) に描画され、
+             Window の FontFamily が継承されない(またはテーマ側の既定フォントになる)ため同じフォントを明示する。 -->
+        <Style Selector="Window, PopupRoot, ToolTip">
             <Setter Property="FontFamily"
                     Value="Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif" />
         </Style>

@@ -415,6 +415,9 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 3. フィルタ結果が1件以上 かつ `CollectionName` が非空の場合、`IGenerateCollectionService.GenerateCollection()` を呼び出し
 4. 進捗を `BatchGenerationProgress` / `BatchGenerationStatusMessage` で随時更新
 
+起動時の自動一括生成では `ExecuteBatchGenerateCoreAsync(presetFilter:)` で 7K 解析の条件を含むプリセットを除いて生成し、
+含むプリセットは 7K 解析の完了後に `GenerateAnalyze7kPresetsAsync()` で生成する（手動の一括生成と同じ進捗表示を使う）。
+
 #### R3による条件変更監視
 
 | 発行元 | トリガー | アクション |

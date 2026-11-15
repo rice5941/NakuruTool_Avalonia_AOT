@@ -49,11 +49,26 @@ public interface IAnalyze7kService : IDisposable
     /// <summary>DB 読み込み完了時に呼ぶ（UI スレッド）。キャッシュを反映して解析を始める。</summary>
     void OnDatabaseLoaded();
 
+}
+
+public static class Analyze7kServiceExtensions
+{
+    /// <summary>解析がもう進まない状態か（完了・無効・エンジンなし）</summary>
+    public static bool IsFinished(this Analyze7kState state)
+        => state is Analyze7kState.Completed or Analyze7kState.Disabled or Analyze7kState.EngineUnavailable;
+
     /// <summary>
-    /// キャッシュ済みの結果が Beatmap に反映されるまで待つ。無効・エンジンなしの場合はすぐ終わる。
-    /// 起動時のプリセット一括生成が 7K 解析の条件を使う場合に、反映前に絞り込まないようにする。
+    /// 解析が終わる（完了・無効・エンジンなし）まで待つ。UI スレッドで呼ぶ。
+    /// 完了の通知は最後の結果を Beatmap に反映した後に届くので、戻った時点で全譜面の結果が使える。
+    /// 起動時のプリセット一括生成が 7K 解析の条件を使う場合に、解析前の譜面を取りこぼさないようにする。
     /// </summary>
-    Task WhenCachedResultsAppliedAsync();
+    public static async Task WhenAnalysisFinishedAsync(this IAnalyze7kService service, CancellationToken cancellationToken)
+    {
+        // Progress と ProgressChanged はどちらも UI スレッドで更新されるので、確認と購読の間に通知を取りこぼさない
+        if (service.Progress.State.IsFinished())
+            return;
+        await service.ProgressChanged.FirstAsync(static p => p.State.IsFinished(), cancellationToken);
+    }
 }
 
 /// <summary>
@@ -78,7 +93,6 @@ public sealed class Analyze7kService : IAnalyze7kService
 
     private Analyze7kCache? _cache;
     private CancellationTokenSource? _jobCts;
-    private TaskCompletionSource _cachedResultsApplied = CreateCompletedSource();
     private bool _databaseLoaded;
     private int _processed;
     private int _failed;
@@ -112,25 +126,13 @@ public sealed class Analyze7kService : IAnalyze7kService
             Restart();
     }
 
-    private static TaskCompletionSource CreateCompletedSource()
-    {
-        var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        source.SetResult();
-        return source;
-    }
-
-    public Task WhenCachedResultsAppliedAsync() => _cachedResultsApplied.Task;
-
     private void Restart()
     {
         CancellationTokenSource cts;
-        TaskCompletionSource applied;
         lock (_jobGate)
         {
             _jobCts?.Cancel();
             _jobCts = cts = new CancellationTokenSource();
-            _cachedResultsApplied.TrySetResult();
-            _cachedResultsApplied = applied = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         if (!_settingsService.SettingsData.Analyze7kEnabled)
@@ -139,19 +141,17 @@ public sealed class Analyze7kService : IAnalyze7kService
             if (cleared.Count > 0)
                 _chartAnalysesChanged.OnNext(cleared);
             SetProgress(new Analyze7kProgress(Analyze7kState.Disabled, 0, 0, 0));
-            applied.TrySetResult();
             return;
         }
 
         if (!Analyze7kNative.IsAvailable)
         {
             SetProgress(new Analyze7kProgress(Analyze7kState.EngineUnavailable, 0, 0, 0));
-            applied.TrySetResult();
             return;
         }
 
         var snapshot = new JobSnapshot(_database.Beatmaps, _settingsService.SettingsData.OsuFolderPath, ResolveParallelism());
-        _ = Task.Run(() => RunJobAsync(snapshot, cts.Token, applied));
+        _ = Task.Run(() => RunJobAsync(snapshot, cts.Token));
     }
 
     private int ResolveParallelism() => ResolveParallelism(_settingsService.SettingsData.Analyze7kParallelism, Environment.ProcessorCount);
@@ -167,7 +167,7 @@ public sealed class Analyze7kService : IAnalyze7kService
     /// <param name="AlternatePath">フォルダ名の末尾の空白・ピリオドを除いたパス（<see cref="Analyze7kRules.AlternateChartPath"/>）</param>
     private sealed record WorkItem(string Md5, string Path, string? AlternatePath, double Difficulty);
 
-    private async Task RunJobAsync(JobSnapshot snapshot, CancellationToken ct, TaskCompletionSource cachedResultsApplied)
+    private async Task RunJobAsync(JobSnapshot snapshot, CancellationToken ct)
     {
         // 前回までに解析した件数（進捗の解析済み・失敗に足す）
         var previous = new PlanCounts(0, 0);
@@ -181,7 +181,6 @@ public sealed class Analyze7kService : IAnalyze7kService
 
             SetProgressFromWorker(Analyze7kState.Running, 0, 0, 0);
             await PublishAsync(snapshot, ct);
-            cachedResultsApplied.TrySetResult();
 
             var plan = BuildPlan(snapshot, cache, out previous);
             Interlocked.Exchange(ref _processed, 0);
@@ -229,10 +228,6 @@ public sealed class Analyze7kService : IAnalyze7kService
             Debug.WriteLine($"Analyze7k job failed: {ex}");
             if (!ct.IsCancellationRequested)
                 ReportFinished(previous, total);
-        }
-        finally
-        {
-            cachedResultsApplied.TrySetResult();
         }
     }
 

@@ -2,6 +2,7 @@ using NakuruTool_Avalonia_AOT.Features.Analyze7k;
 using NakuruTool_Avalonia_AOT.Features.AudioPlayer;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
@@ -57,8 +58,9 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         AudioPlayerViewModel audioPlayerViewModel,
         AudioPlayerPanelViewModel audioPlayerPanelViewModel,
         ISettingsService settingsService,
-        IAnalyze7kService? analyze7kService = null)
-        : base(settingsService, databaseService)
+        IAnalyze7kService? analyze7kService = null,
+        IBeatmapThumbnailService? thumbnailService = null)
+        : base(settingsService, databaseService, thumbnailService)
     {
         _databaseService = databaseService;
         _filterViewModel = filterViewModel;
@@ -66,6 +68,14 @@ public partial class MapListViewModel : BeatmapListViewModelBase, IMapListViewMo
         AudioPlayerPanel = audioPlayerPanelViewModel;
 
         AudioPlayerPanel.SetNavigateCallback(NavigateToFilteredIndex);
+
+        // 音楽プレイヤーモード中は一覧が画面に出ないので、曲送りでページが切り替わってもサムネイルを読み込まない。
+        // モードを抜けたら、その時点の表示ページを読み込む。
+        SetThumbnailLoadingPaused(AudioPlayerPanel.IsMusicPlayerMode);
+        AudioPlayerPanel.ObservePropertyAndSubscribe(
+            nameof(AudioPlayerPanelViewModel.IsMusicPlayerMode),
+            () => SetThumbnailLoadingPaused(AudioPlayerPanel.IsMusicPlayerMode),
+            Disposables);
 
         _filterViewModel.FilterChanged
             .Subscribe(_ => ApplyFilter())

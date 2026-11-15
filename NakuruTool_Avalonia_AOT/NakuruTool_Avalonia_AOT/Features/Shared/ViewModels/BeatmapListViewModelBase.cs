@@ -12,6 +12,7 @@ using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
+using NakuruTool_Avalonia_AOT.Features.Shared.Thumbnails;
 using R3;
 
 namespace NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
@@ -35,6 +36,10 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
     /// <summary>SetSourceBeatmaps で受け取った未ソートの基準配列。ApplyCurrentSort はここからコピーして再ソートする。</summary>
     private Beatmap[] _unsortedBeatmaps = Array.Empty<Beatmap>();
     private Beatmap? _contextMenuBeatmap;
+    /// <summary>背景サムネイルの表示ページ登録先。null の場合はサムネイルを出さない。</summary>
+    private readonly IBeatmapThumbnailSession? _thumbnailSession;
+    /// <summary>UpdateShowBeatmaps でページ分のサムネイルを受け取る再利用バッファ。</summary>
+    private BeatmapThumbnail?[] _thumbnailBuffer = Array.Empty<BeatmapThumbnail?>();
 
     [ObservableProperty]
     public partial IAvaloniaReadOnlyList<Beatmap> ShowBeatmaps { get; set; } = new AvaloniaList<Beatmap>();
@@ -98,10 +103,20 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
 
     /// <param name="settingsService">設定サービス</param>
     /// <param name="databaseService">ローカルスコア参照用。null の場合は BestPlay / ローカルランキングを生成しない。</param>
-    protected BeatmapListViewModelBase(ISettingsService settingsService, IDatabaseService? databaseService = null)
+    /// <param name="thumbnailService">背景サムネイルの読み込み用。null の場合はサムネイルを出さない（空表示のまま）。</param>
+    protected BeatmapListViewModelBase(
+        ISettingsService settingsService,
+        IDatabaseService? databaseService = null,
+        IBeatmapThumbnailService? thumbnailService = null)
     {
         SortViewModel = new MapListSortViewModel();
         Disposables.Add(SortViewModel);
+
+        if (thumbnailService is not null)
+        {
+            _thumbnailSession = thumbnailService.CreateSession();
+            Disposables.Add(_thumbnailSession);
+        }
 
         _settingsService = settingsService;
         _databaseService = databaseService;
@@ -127,6 +142,12 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
             _settingsService.SaveSettings(settings);
         }
     }
+
+    /// <summary>
+    /// 背景サムネイルの読み込みを一時停止・再開する（一覧が画面に出ていない間の無駄な読み込みを止める）。
+    /// 停止中もページの切り替えは通常どおり行われ、再開時にその時点の表示ページを読み込む。
+    /// </summary>
+    protected void SetThumbnailLoadingPaused(bool paused) => _thumbnailSession?.SetPaused(paused);
 
     /// <summary>派生から参照可能な現在のソース配列。</summary>
     protected Beatmap[] SourceBeatmapsRaw => _sourceBeatmaps;
@@ -261,6 +282,17 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         var skip = (CurrentPage - 1) * size;
         var remaining = Math.Max(0, _sourceBeatmaps.Length - skip);
         var take = Math.Min(size, remaining);
+        var span = take > 0 ? _sourceBeatmaps.AsSpan(skip, take) : Span<Beatmap>.Empty;
+
+        // 表示ページのサムネイルを取得し、未読込のものを非同期読み込みのキューに積む（前ページの読み込み待ちは捨てられる）
+        Span<BeatmapThumbnail?> thumbnails = default;
+        if (_thumbnailSession is not null)
+        {
+            if (_thumbnailBuffer.Length < take)
+                _thumbnailBuffer = new BeatmapThumbnail?[Math.Max(take, size)];
+            thumbnails = _thumbnailBuffer.AsSpan(0, take);
+            _thumbnailSession.SetPage(span, thumbnails);
+        }
 
         _showBeatmapsList.Clear();
 
@@ -268,9 +300,9 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         {
             var mod = SelectedModCategory;
             var scoreSystem = SelectedScoreSystemCategory;
-            var span = _sourceBeatmaps.AsSpan(skip, take);
-            foreach (var beatmap in span)
+            for (int i = 0; i < span.Length; i++)
             {
+                var beatmap = span[i];
                 var displayed = beatmap with
                 {
                     BestScore = beatmap.GetBestScore(scoreSystem, mod),
@@ -278,11 +310,15 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
                     Grade = beatmap.GetGrade(scoreSystem, mod),
                     BestPlay = _databaseService is null
                         ? null
-                        : FindBestPlay(_databaseService.GetLocalScores(beatmap.MD5Hash), scoreSystem, mod)
+                        : FindBestPlay(_databaseService.GetLocalScores(beatmap.MD5Hash), scoreSystem, mod),
+                    Thumbnail = thumbnails.IsEmpty ? null : thumbnails[i]
                 };
                 _showBeatmapsList.Add(displayed);
             }
         }
+
+        // 行が参照を持つので、バッファには残さない
+        thumbnails.Clear();
     }
 
     /// <summary>

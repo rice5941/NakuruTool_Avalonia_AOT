@@ -146,6 +146,23 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
+        <!-- 難易度値列: 背景サムネイル枠（オーディオパネルの空表示と同じ背景色） -->
+        <Style Selector="Border.difficulty-thumbnail">
+            <Setter Property="Width" Value="96"/>
+            <Setter Property="Height" Value="54"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource SemiGrey2}"/>
+        </Style>
+
+        <!-- 難易度値列: nK ★xx.xx -->
+        <Style Selector="TextBlock.difficulty-value">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey9}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
         <!-- 7K 解析列: 小さな見出し（Reg / LN） -->
         <Style Selector="TextBlock.a7k-caption">
             <Setter Property="FontSize" Value="10"/>
@@ -451,18 +468,35 @@
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                 
-                    <!-- 難易度値 -->
-                    <DataGridTemplateColumn Width="95">
+                    <!-- 譜面（背景サムネイル + キー数・★） -->
+                    <DataGridTemplateColumn Width="120">
                         <DataGridTemplateColumn.Header>
-                            <TextBlock Text="{translate:Translate 'MapList.Difficulty'}" />
+                            <TextBlock Text="{translate:Translate 'MapList.Beatmap'}" />
                         </DataGridTemplateColumn.Header>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="osu:Beatmap">
-                                <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
-                                        <TextBlock Text="{translate:Translate 'MapList.Star'}" Classes="numeric-value"/>
-                                        <TextBlock Text="{Binding Difficulty, StringFormat={}{0:F2}}" Classes="numeric-value"/>
+                                <!-- 上: 背景サムネイル（非同期読み込み。未読込・画像なしはオーディオパネルと同じ空表示） / 下: nK ★xx.xx -->
+                                <StackPanel Spacing="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border Classes="difficulty-thumbnail">
+                                        <Panel>
+                                            <Image Stretch="UniformToFill"
+                                                   RenderOptions.BitmapInterpolationMode="MediumQuality"
+                                                   Source="{Binding Thumbnail.Image, FallbackValue={x:Null}}"
+                                                   IsVisible="{Binding Thumbnail.Image, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"/>
+                                            <mi:MaterialIcon Kind="MusicBoxMultiple"
+                                                             Width="22" Height="22"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             Opacity="0.25"
+                                                             IsVisible="{Binding Thumbnail.Image, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=True}"/>
+                                        </Panel>
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding KeyCount, StringFormat={}{0}K}" Classes="difficulty-value" FontWeight="SemiBold"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="1">
+                                            <TextBlock Text="{translate:Translate 'MapList.Star'}" Classes="difficulty-value"/>
+                                            <TextBlock Text="{Binding Difficulty, StringFormat={}{0:F2}}" Classes="difficulty-value"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                             </DataTemplate>

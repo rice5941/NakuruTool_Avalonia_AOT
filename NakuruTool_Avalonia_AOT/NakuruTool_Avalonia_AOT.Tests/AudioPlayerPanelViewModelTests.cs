@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NakuruTool_Avalonia_AOT.Tests;
 
-public class AudioPlayerPanelViewModelTests
+public partial class AudioPlayerPanelViewModelTests
 {
     [Fact]
     public void ToggleMusicPlayerModeCommand_TogglesIsMusicPlayerMode()

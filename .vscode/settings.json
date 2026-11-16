@@ -1,4 +1,7 @@
 {
+    "markdown.copyFiles.destination": {
+        "*": "./images/"
+    },
     "chat.tools.terminal.autoApprove": {
         "Set-Content": true,
         "ConvertTo-Json": true,

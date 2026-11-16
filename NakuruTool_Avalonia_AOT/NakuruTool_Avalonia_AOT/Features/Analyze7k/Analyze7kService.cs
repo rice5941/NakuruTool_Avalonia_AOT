@@ -314,37 +314,40 @@ public sealed class Analyze7kService : IAnalyze7kService
             return false;
         }
 
-        if (!string.Equals(Convert.ToHexStringLower(MD5.HashData(bytes)), item.Md5, StringComparison.OrdinalIgnoreCase))
-        {
-            cache.AddFailure(item.Md5, Analyze7kFailure.Md5Mismatch);
-            return false;
-        }
+        // 中身が osu!.db の MD5 と違う .osu（譜面の更新後に osu! が読み直していない）も、osu! が遊ぶときに読むのは
+        // このファイルなので、その中身を解析して osu!.db の譜面の結果にする。解析できなければ、osu! が読み直すかファイルが
+        // 直れば解析できるかもしれないので、再試行する理由（md5_mismatch）で記録する。
+        var stale = !string.Equals(Convert.ToHexStringLower(MD5.HashData(bytes)), item.Md5, StringComparison.OrdinalIgnoreCase);
 
-        if (!Analyze7kRules.TryReadChartHeader(bytes, out var od, out var headerReason))
+        var reason = TryAnalyze(bytes, out var analysis);
+        if (reason is null)
         {
-            cache.AddFailure(item.Md5, headerReason!);
-            return false;
+            cache.Add(item.Md5, analysis!);
+            return true;
         }
+        cache.AddFailure(item.Md5, stale ? Analyze7kFailure.Md5Mismatch : reason);
+        return false;
+    }
+
+    /// <summary>.osu の中身を解析する。解析できなければその理由を返す。</summary>
+    private static string? TryAnalyze(byte[] bytes, out ManiaChartAnalysis? analysis)
+    {
+        analysis = null;
+        if (!Analyze7kRules.TryReadChartHeader(bytes, out var od, out var headerReason))
+            return headerReason!;
 
         try
         {
-            var response = Analyze7kNative.Analyze(bytes, od);
-            cache.Add(item.Md5, Analyze7kNative.ToAnalysis(response));
-            return true;
+            analysis = Analyze7kNative.ToAnalysis(Analyze7kNative.Analyze(bytes, od));
+            return null;
         }
         catch (Analyze7kEngineException ex)
         {
-            var reason = ex.Message.Contains("only 7K", StringComparison.OrdinalIgnoreCase) ||
-                         ex.Message.Contains("unsupported", StringComparison.OrdinalIgnoreCase)
-                ? Analyze7kFailure.NotSevenKey
-                : Analyze7kFailure.EngineError;
-            cache.AddFailure(item.Md5, reason);
-            return false;
+            return Analyze7kFailure.FromEngineMessage(ex.Message);
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
         {
-            cache.AddFailure(item.Md5, Analyze7kFailure.EngineError);
-            return false;
+            return Analyze7kFailure.EngineError;
         }
     }
 

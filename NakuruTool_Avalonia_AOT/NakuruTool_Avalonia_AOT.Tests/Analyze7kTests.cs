@@ -230,6 +230,41 @@ public class Analyze7kTests
         Assert.Equal(Analyze7kFailure.InvalidFile, reason);
     }
 
+    [Theory]
+    [InlineData("7", true)]
+    [InlineData("7.021", true)] // 実データ: Camellia - Hello (BPM) 2021 [20.21]
+    [InlineData("7.49", true)]  // 実データ: M2U - Myosotis
+    [InlineData("6.5", false)]  // 偶数丸めで 6（解析エンジンと同じ）
+    [InlineData("7.5", false)]  // 偶数丸めで 8
+    [InlineData("NaN", false)]
+    public void ChartHeader_RoundsCircleSizeLikeTheEngine(string cs, bool sevenKey)
+    {
+        Assert.Equal(sevenKey, Analyze7kRules.TryReadChartHeader(Encoding.UTF8.GetBytes(SevenKeyChart(cs: cs)), out _, out var reason));
+        if (!sevenKey)
+            Assert.Equal(Analyze7kFailure.NotSevenKey, reason);
+    }
+
+    [Theory]
+    [InlineData("no dan estimate for this chart", Analyze7kFailure.NoDanEstimate)]
+    [InlineData("only 7K supported", Analyze7kFailure.NotSevenKey)]
+    [InlineData("unsupported chart", Analyze7kFailure.NotSevenKey)]
+    [InlineData("NaN column or note time", Analyze7kFailure.EngineError)]
+    [InlineData("panic in analysis", Analyze7kFailure.EngineError)]
+    public void Failure_FromEngineMessage(string message, string expected)
+        => Assert.Equal(expected, Analyze7kFailure.FromEngineMessage(message));
+
+    [Fact]
+    public void Failure_RetriesAllButInvalidFilesAndChartsWithoutDanEstimate()
+    {
+        Assert.True(Analyze7kFailure.IsRetryable(Analyze7kFailure.FileMissing));
+        Assert.True(Analyze7kFailure.IsRetryable(Analyze7kFailure.Md5Mismatch));
+        Assert.True(Analyze7kFailure.IsRetryable(Analyze7kFailure.EngineError));
+        // 以前の版で空の難易度・CS 7.021 などに付けた not_7k は解析し直す
+        Assert.True(Analyze7kFailure.IsRetryable(Analyze7kFailure.NotSevenKey));
+        Assert.False(Analyze7kFailure.IsRetryable(Analyze7kFailure.NoDanEstimate));
+        Assert.False(Analyze7kFailure.IsRetryable(Analyze7kFailure.InvalidFile));
+    }
+
     [Fact]
     public void ChartHeader_SkipsLeadingBlankLines()
     {
@@ -293,7 +328,7 @@ public class Analyze7kTests
                 cache.Load();
                 cache.Add("md5", saved);
                 cache.AddFailure("missing", Analyze7kFailure.FileMissing);
-                cache.AddFailure("other", Analyze7kFailure.NotSevenKey);
+                cache.AddFailure("other", Analyze7kFailure.NoDanEstimate);
             }
             File.AppendAllText(Path.Combine(dir, "results-v1.jsonl"), "{\"md5\":\"broken"); // 書きかけの行
 
@@ -305,7 +340,7 @@ public class Analyze7kTests
             Assert.Equal(Analyze7kFailure.FileMissing, reloaded.GetFailure("missing"));
             reloaded.ForgetRetryableFailures();
             Assert.Null(reloaded.GetFailure("missing"));
-            Assert.Equal(Analyze7kFailure.NotSevenKey, reloaded.GetFailure("other"));
+            Assert.Equal(Analyze7kFailure.NoDanEstimate, reloaded.GetFailure("other"));
 
             // 書きかけの行の後でも、次の結果は別の行として読める
             reloaded.Add("after-broken", saved);
@@ -700,6 +735,34 @@ public class Analyze7kTests
         Assert.Contains("only 7K", fourKey.Message);
         Assert.Throws<Analyze7kEngineException>(() => Analyze7kNative.Analyze(Encoding.UTF8.GetBytes(SevenKeyChart()), 11));
         Assert.Throws<Analyze7kEngineException>(() => Analyze7kNative.Analyze([0xFF, 0xFE], 8));
+
+        // ノーツのない空の難易度は「段位推定なし」（7K 以外とは分ける）
+        var empty = Assert.Throws<Analyze7kEngineException>(
+            () => Analyze7kNative.Analyze(Encoding.UTF8.GetBytes(SevenKeyChart(notes: 0)), 8));
+        Assert.Equal(Analyze7kFailure.NoDanEstimate, Analyze7kFailure.FromEngineMessage(empty.Message));
+    }
+
+    [Fact]
+    public void Native_IgnoresNotesWithoutTime()
+    {
+        // 時刻が NaN のノーツ（実データ: remu - generic future funk remix [pop]）があっても、それを除いた譜面として解析する
+        Assert.SkipUnless(Analyze7kNative.IsAvailable, "analyze_7k.dll not built");
+        var chart = SevenKeyChart();
+        var withNaN = chart + "109,192,NaN,128,0,116219:0:0:0:0:\n256,192,NaN,128,0,116218:0:0:0:0:\n";
+
+        Analyze7kResponse expected;
+        try
+        {
+            expected = Analyze7kNative.Analyze(Encoding.UTF8.GetBytes(chart), 8);
+        }
+        catch (Analyze7kEngineException)
+        {
+            Assert.Skip("synthetic chart has no dan estimate");
+            return;
+        }
+
+        var actual = Analyze7kNative.Analyze(Encoding.UTF8.GetBytes(withNaN), 8);
+        Assert.Equal(Analyze7kNative.ToAnalysis(expected), Analyze7kNative.ToAnalysis(actual));
     }
 }
 

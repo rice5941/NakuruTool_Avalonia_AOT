@@ -30,6 +30,11 @@ mania-hub の `leoblack-ett` は MinaCalc（Etterna）を WebAssembly として�
 - `PrismPrepared::new` を直接作って `analyze_prism` と同じ値を出し、同じ準備データからジャンル傾向を計算する。
 - 出力は段位推定の数値（`raw_dan`）・主分類・対象判定・縦連打判定・段位ジャンルの判定材料（`bucketFeatures`）だけ。
   ラベル・信頼度・パターンの説明文などは出力しない。
+- ノーツの時刻が数値でない（`NaN` など）`[HitObjects]` の行は、解析の前に取り除く（`without_timeless_hit_objects`）。
+  Prism のパーサーは元から読み飛ばす（`parse_mania_beatmap`）が、LeoBlack の推定器は譜面全体をエラーにする
+  （"NaN column or note time"）ため。そうした行のない譜面は渡された内容のまま使うので、値は変わらない。
+- 段位推定が推定を返さない 7K 譜面（`supported = false`、実データではノーツ 0〜9 個の空の難易度）は、
+  7K 以外（"only 7K supported"）と分けて "no dan estimate for this chart" を返す。
 
 ## 速度のための工夫（値は変えない）
 

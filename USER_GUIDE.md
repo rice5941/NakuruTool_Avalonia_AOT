@@ -27,7 +27,7 @@
 3. 選択時自動再生 と Unicode表示を優先 を好みに合わせて切り替えます。
 4. 読み込みが終わったら beatmap一覧 に戻って操作を始めます。
 
-<img width="1119" height="150" alt="image" src="https://github.com/user-attachments/assets/1fe0a51a-b1d4-49d6-b6bf-d3d788e9e482" />
+![alt text](images/image.png)
 
 ## 画面構成
 
@@ -39,24 +39,20 @@
 6. 起動直後は、osu!.db、collection.db、scores.db の読み込みが完了するまで待ってから操作してください。
 ## beatmap一覧の見方
 
-1. 一覧上部の map数 で読み込んだ総数、絞込後 で現在の対象件数を確認します。
-2. 難易度値 列では、キー数と ★ の難易度を確認します。
-3. 曲名 列では、曲名、難易度、アーティスト、作成者をまとめて確認します。
-4. BPM と LN率 を見て、譜面傾向を把握します。
-5. スコア、履歴、プレイ済み を見て、過去のプレイ状況を確認します。
-6. 必要に応じて v1(default) と v2、通常 と HT と DT/NC を切り替えてスコア表示を切り替えることができます。
-7. 一覧下部の左右ボタン、ページ番号、件数切替でページを移動します。
-8. 一覧右上の 並べ替え（ソート）ボタンを押すとソートパネルが開きます。詳しくは [並べ替え（ソート）](#並べ替えソート) を参照してください。
+1. 一覧下部の左右ボタン、ページ番号、件数切替でページを移動します。
+2. 一覧右上の 並べ替え（ソート）ボタンを押すとソートパネルが開きます。詳しくは [並べ替え（ソート）](#並べ替えソート) を参照してください。
+3. 一覧右上の ローカルランキングボタンを押すと選択行beatmapのローカルランキングを表示します。
+4. 一覧右上の Prism・段位推定ボタンを押すと7K譜面解析の表示を行います。詳しくは [7K譜面解析](#7K譜面解析) を参照してください。
+5. 必要に応じて v1(default) と v2、通常 と HT と DT/NC を切り替えてスコア表示を切り替えることができます。
 
-譜面を選ぶと、選択時自動再生 がオンのときは音声プレビューが始まります。
+beatmap行を選ぶと、選択時自動再生 がオンのときは音声プレビューが始まります。
 
-<img width="1906" height="1016" alt="image" src="https://github.com/user-attachments/assets/37914352-882b-41d8-afab-dcdf2f6feb88" />
+![alt text](images/image-1.png)
 
-譜面の行を右クリックすると、ダウンロードURLをコピー、フォルダをエクスプローラーで開く、beatmap生成...の3つのメニューを使えます。  
-ダウンロードURLは設定の譜面ダウンロードミラーを基準に組み立てられ、クリップボードへコピーされます。  
+譜面の行を右クリックすると、公式mapページを表示、フォルダをエクスプローラーで開く、beatmap生成...の3つのメニューを使えます。  
 beatmap生成...を選ぶと、レート違いを作るオーバーレイが開きます。
 
-<img width="1330" height="217" alt="image" src="https://github.com/user-attachments/assets/5ce1c7c0-6a24-4d22-80e9-c2da80c45d82" />
+![alt text](images/image-2.png)
 
 ## オーディオパネルの使い方
 
@@ -67,10 +63,12 @@ beatmap生成...を選ぶと、レート違いを作るオーバーレイが開�
 5. シャッフル をオンにすると、絞り込み結果の中からランダムに再生できます。
 6. リピート は 押すたびに なし → 全体リピート → 1曲リピート の順に切り替わります。
 7. シークバーを動かすと再生位置を調整でき、右側のスライダーで音量を変更できます。
+8. 右上の縮小ボタンを押すとオーディオプレイヤーモードとなり、オーディオパネル以外の表示が最小化されます。
 
 前の曲 は、3秒以上再生している場合は前の譜面へ移動せず、現在の曲の先頭に戻ります。
 
-<img width="1306" height="258" alt="image" src="https://github.com/user-attachments/assets/5bba2dbe-c58e-4dc2-9c83-5fa819271d1f" />
+![alt text](images/image-3.png)
+![alt text](images/image-4.png)
 
 ## フィルタの使い方
 
@@ -78,12 +76,12 @@ beatmap生成...を選ぶと、レート違いを作るオーバーレイが開�
 2. 条件を追加 を押し、対象 と 比較条件 を選びます。
 3. 値、最小値、最大値、日付、コレクションなど、表示された入力欄に条件を入れます。
 4. 条件を増やしたいときは、もう一度 条件を追加 を押します。
-5. 各条件の左側にある NOT チェックボックスをオンにすると、その条件のマッチ結果を反転できます。例えば「コレクション = A」に NOT を付けると「コレクション A に含まれない譜面」が対象になります。
+5. 各条件の左側にある NOT チェックボックスをオンにすると、その条件のマッチ結果を反転できます。例えば「プレイ回数 0回 ～ 5回 」に NOT を付けると「プレイ回数 0回 ～ 5回 に含まれないbeatmap」が対象になります。
 6. 複数の条件はすべて AND 条件で組み合わされます。
 7. 不要な条件は各条件の削除ボタンで外し、全部消したいときは すべてクリア を使います。
 8. 保存済み条件を使うときは プリセット を選び、解除したいときは (なし) を選びます。
 
-<img width="331" height="783" alt="image" src="https://github.com/user-attachments/assets/e8e2fce0-76c4-497d-9d48-08836b9a2818" />
+![alt text](images/image-5.png)
 
 ## プリセットの使い方
 
@@ -96,9 +94,9 @@ beatmap生成...を選ぶと、レート違いを作るオーバーレイが開�
 
 保存したプリセットは、アプリ本体と同じ場所の presets フォルダに保存されます。
 
-<img width="465" height="493" alt="image" src="https://github.com/user-attachments/assets/d59bf6e0-524e-42e2-af5e-3da1276e488d" />
+![alt text](images/image-6.png)
 
-<img width="1306" height="925" alt="image" src="https://github.com/user-attachments/assets/ee6b8936-0f8a-418f-9462-b9fb2a70682a" />
+![alt text](images/image-7.png)
 
 ## 並べ替え（ソート）
 
@@ -113,7 +111,7 @@ beatmap一覧 と beatmap生成 のbeatmapリストは、最大 3 段までの�
 
 どのキーも「なし」のときは、osu!.db の元の並び順で表示されます。
 
-<img width="1318" height="920" alt="image" src="https://github.com/user-attachments/assets/fec20bac-30c1-40a9-bb3d-50cc79f7c2cb" />
+![alt text](images/image-8.png)
 
 ## コレクション生成
 
@@ -125,6 +123,9 @@ beatmap一覧 と beatmap生成 のbeatmapリストは、最大 3 段までの�
 6. 生成中と生成後は、下に表示されるステータスメッセージと進捗バーで状況を確認します。
 
 同名コレクションを生成すると、既存の同名コレクションが上書きされます。残したいコレクションがある場合は別の名前を使ってください。
+
+![alt text](images/image-9.png)
+![alt text](images/image-10.png)
 
 ## beatmap生成（レート生成）
 
@@ -141,7 +142,7 @@ beatmap生成では、譜面のレート違いを`.osz`として作成し、osu!
 7. 中止するときは キャンセルを押します。
 8. 完了後、osu! を起動中の場合は F5 を押して再読込します。
 
-<img width="1906" height="880" alt="image" src="https://github.com/user-attachments/assets/0a30c24a-4b8f-4d04-b20e-8cb0024947f0" />
+![alt text](images/image-11.png)
 
 ### 単体生成
 
@@ -151,7 +152,7 @@ beatmap生成では、譜面のレート違いを`.osz`として作成し、osu!
 4. 生成を押します。
 5. 閉じるで閉じます。
 
-<img width="1906" height="1016" alt="image" src="https://github.com/user-attachments/assets/380d995a-2506-4572-82ce-c397e77d1633" />
+![alt text](images/image-12.png)
 
 ### 生成オプション
 
@@ -175,11 +176,12 @@ beatmap生成では、譜面のレート違いを`.osz`として作成し、osu!
 一括レート生成の完了後、生成した譜面をまとめてインポートするための JSON ファイルが出力されます。  
 osu!でoszファイルを取り込んでからインポートを行ってください。
 
-<img width="833" height="466" alt="image" src="https://github.com/user-attachments/assets/cf6c0899-1fc8-48dd-872f-17cd00dc037e" />
+
+![alt text](images/image-13.png)
 
 ## インポート/エクスポート
 
-<img width="1634" height="923" alt="image" src="https://github.com/user-attachments/assets/f02e357c-735d-4639-90eb-cc61ae278c57" />
+![alt text](images/image-14.png)
 
 ### エクスポート
 
@@ -189,7 +191,7 @@ osu!でoszファイルを取り込んでからインポートを行ってくだ�
 4. エクスポート実行 を押します。
 5. 完了したファイルは exports フォルダに保存されます。
 
-<img width="820" height="463" alt="image" src="https://github.com/user-attachments/assets/7d30fba7-459d-4a65-a468-dca340ce774e" />
+![alt text](images/image-15.png)
 
 ### インポート
 
@@ -207,6 +209,8 @@ osu!でoszファイルを取り込んでからインポートを行ってくだ�
 
 インポート用ファイルはアプリ本体と同じ場所の imports フォルダ、エクスポート結果はアプリ本体と同じ場所の exports フォルダを使います。
 
+![alt text](images/image-16.png)
+
 ### 譜面ダウンロード
 
 インポートやエクスポートのプレビュー一覧で、ローカルに存在しない譜面をミラーサーバーからダウンロードできます。
@@ -219,9 +223,7 @@ osu!でoszファイルを取り込んでからインポートを行ってくだ�
 
 ダウンロード先のミラーサーバーは 設定 画面の 譜面ダウンロードミラー で変更できます。
 
-<img width="814" height="866" alt="image" src="https://github.com/user-attachments/assets/2d2f70b7-4fb6-48a3-a15f-bac1cf7fcf7a" />
-
-<img width="821" height="460" alt="image" src="https://github.com/user-attachments/assets/9458988f-8386-47cb-8d7d-a8c51b86fe81" />
+![alt text](images/image-17.png)
 
 ## 7K譜面解析
 
@@ -241,12 +243,14 @@ Mania Tracker（Prism / 段位推定エンジン）の計算で、すべての 7
    - 「7K Prism 最大ジャンル」は、基準スキル値の6本（5ジャンルと LN）のうち最も大きいものが、選んだジャンルの譜面を残します。
    - 「（ジャンル別）」の2つは、「比較対象」でジャンルを選び、最小値・最大値で範囲を指定します（例: 比較対象 Jack、ジャンル濃度 40 以上）。基準スキル値では比較対象に LN も選べます。並べ替えには基準Overall（Reg / LN）と推定段位（Reg / LN）を使えます。
 
+![alt text](images/image-18.png)
+![alt text](images/image-19.png)
+
 注意点:
 
-- 対象は native 7K の譜面です。
-- .osu ファイルが osu!.db の内容と違う（編集済み・更新済み）場合は解析しません。
+- 対象は 7K の譜面です。
 - 縦連打（vibro）や段位推定の対象外と判定された譜面には ⚠ が付きます。
-- 解析結果はアプリと同じ場所の `cache/analyze-7k/` に保存されます。消しても再解析されるだけです。
+- 解析結果はアプリと同じ場所の `cache/analyze-7k/` に保存されます。削除すると再度解析を行います。
 
 ## 設定
 

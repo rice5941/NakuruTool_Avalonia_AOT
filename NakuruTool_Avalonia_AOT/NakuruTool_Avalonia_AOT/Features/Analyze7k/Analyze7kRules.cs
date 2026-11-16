@@ -83,9 +83,10 @@ public static class Analyze7kRules
             else if (key.SequenceEqual("OverallDifficulty")) overall = value;
         }
 
+        // キー数は CircleSize を偶数丸めした値（解析エンジンの Prism と同じ。osu! も CS 7.021・7.49 などを 7K として遊ぶ）
         if (mode != "3" ||
             !double.TryParse(circleSize ?? "0", NumberStyles.Float, CultureInfo.InvariantCulture, out var cs) ||
-            cs != 7)
+            Math.Round(cs, MidpointRounding.ToEven) != 7)
         {
             reason = Analyze7kFailure.NotSevenKey;
             return false;
@@ -108,12 +109,42 @@ public static class Analyze7kRules
 public static class Analyze7kFailure
 {
     public const string FileMissing = "file_missing";
+
+    /// <summary>
+    /// .osu の中身が osu!.db の MD5 と違い（譜面の更新後に osu! が読み直していない）、その中身も解析できなかった。
+    /// 中身が違っても解析できれば、その結果を使う（osu! が遊ぶときに読むのはこのファイル）。
+    /// </summary>
     public const string Md5Mismatch = "md5_mismatch";
+
     public const string InvalidFile = "invalid_file";
+
+    /// <summary>
+    /// osu!.db では 7K の譜面の .osu が 7K でない。
+    /// 版 chart-1 までは段位推定のない空の難易度（<see cref="NoDanEstimate"/>）もこの理由だった。
+    /// </summary>
     public const string NotSevenKey = "not_7k";
+
+    /// <summary>段位エンジンが推定を返さない譜面（ほぼすべてノーツ 0〜9 個の空の難易度）</summary>
+    public const string NoDanEstimate = "no_dan_estimate";
+
     public const string EngineError = "engine_error";
 
-    /// <summary>解析を始めるたびに再試行する理由（ファイルの補完・修正で解消し得るもの）</summary>
+    /// <summary>
+    /// 解析を始めるたびに再試行する理由（ファイルの補完・修正・osu!.db の更新、エンジンの更新で解消し得るもの）。
+    /// not_7k は、以前の版が空の難易度や CircleSize が 7 ちょうどでない 7K 譜面（7.021 など）にも付けていたため、
+    /// 再試行して解析し直す（空の難易度は no_dan_estimate に記録し直されて、次からは再試行しない）。
+    /// </summary>
     public static bool IsRetryable(string reason)
-        => reason is FileMissing or Md5Mismatch or EngineError;
+        => reason is FileMissing or Md5Mismatch or NotSevenKey or EngineError;
+
+    /// <summary>解析エンジンのエラーメッセージから理由を決める</summary>
+    public static string FromEngineMessage(string message)
+    {
+        if (message.Contains("no dan estimate", StringComparison.OrdinalIgnoreCase))
+            return NoDanEstimate;
+        if (message.Contains("only 7K", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("unsupported", StringComparison.OrdinalIgnoreCase))
+            return NotSevenKey;
+        return EngineError;
+    }
 }

@@ -2,6 +2,8 @@
 //! base goal and the chart dan estimate. The calculation crates are used unchanged;
 //! the only formula added here is the genre tendency (see `tendencies`).
 
+use std::borrow::Cow;
+
 use dan_calc::chart_pipeline::classifier::{analyze_chart, ClassifyInput};
 use dan_calc::{estimate, Dan, Options, PlayedOd};
 use dan_core::ManiaBeatmap;
@@ -15,7 +17,12 @@ use serde_json::{json, Map, Value};
 
 pub const UPSTREAM_COMMIT: &str = "1339369851234d6ed928aa1bd8149a4b558378e6";
 /// Bump when this adapter changes the values it returns (cached results are keyed by it).
+/// Changes that only let a chart that used to fail be analyzed (its failure is retried by
+/// NakuruTool) do not need a bump.
 pub const ADAPTER_VERSION: u32 = 3;
+/// Error for a 7K chart the dan estimate gives no verdict for (`supported` is false). In real
+/// data these are nearly empty difficulties (0-9 notes: mappack placeholders, title cards).
+pub const NO_DAN_ESTIMATE: &str = "no dan estimate for this chart";
 /// Charts are analyzed at their own speed only.
 pub const RATE: f64 = 1.0;
 /// Prism's base goal: a chart's reference difficulty is the rating needed for 96.5%.
@@ -80,6 +87,8 @@ pub fn analyze(osu: &str, request: &Value) -> Result<Value, String> {
     if !od.is_finite() || !(0.0..=10.0).contains(&od) {
         return Err("invalid OD".into());
     }
+    let osu = without_timeless_hit_objects(osu);
+    let osu = osu.as_ref();
     let map = dan_core::parse_mania_beatmap(osu);
     if map.key_count != 7 {
         return Err("only 7K supported".into());
@@ -88,6 +97,46 @@ pub fn analyze(osu: &str, request: &Value) -> Result<Value, String> {
     let prism = prism_chart(&map, &notes, od)?;
     let dan = dan_verdict(&map, osu, od)?;
     Ok(json!({ "prism": prism, "dan": dan }))
+}
+
+/// The chart without the hit objects whose time is not a number (e.g. `NaN`, left by
+/// editor tricks). Prism's parser already skips them (a note needs a real time, see
+/// `parse_mania_beatmap`) and osu!lazer drops such lines too, but LeoBlack's estimators
+/// reject the whole chart ("NaN column or note time"), so the dan estimate never ran.
+/// Lines are judged as Prism reads them (`parseInt` of the third field, five fields or
+/// more). A chart without such lines is returned as is, so its results do not change.
+pub fn without_timeless_hit_objects(osu: &str) -> Cow<'_, str> {
+    let mut kept: Option<String> = None;
+    let mut section = "";
+    let mut offset = 0;
+    for line in osu.split_inclusive('\n') {
+        let start = offset;
+        offset += line.len();
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            section = trimmed;
+        } else if section == "[HitObjects]" && is_timeless_hit_object(trimmed) {
+            kept.get_or_insert_with(|| osu[..start].to_string());
+            continue;
+        }
+        if let Some(text) = kept.as_mut() {
+            text.push_str(line);
+        }
+    }
+    kept.map_or(Cow::Borrowed(osu), Cow::Owned)
+}
+
+/// A hit object line (five fields or more) whose time has no leading integer (JavaScript
+/// `parseInt` gives NaN: no digit after optional spaces and one sign).
+fn is_timeless_hit_object(line: &str) -> bool {
+    let mut fields = line.split(',');
+    let time = fields.nth(2);
+    let Some(time) = time.filter(|_| fields.nth(1).is_some()) else {
+        return false;
+    };
+    let time = time.trim_start();
+    let digits = time.strip_prefix(['+', '-']).unwrap_or(time);
+    !digits.starts_with(|c: char| c.is_ascii_digit())
 }
 
 /// Prism at 1.0x and the base goal: Overall, the five genre values (as Mania Tracker
@@ -208,8 +257,11 @@ fn dan_verdict(map: &ManiaBeatmap, osu: &str, od: f64) -> Result<Value, String> 
         &Options { rate: RATE, od: Some(PlayedOd::Value(od)), star_rating: Some(star), ..Default::default() },
     )
     .map_err(|e| e.to_string())?;
-    if result.key_count != 7 || !result.supported {
+    if result.key_count != 7 {
         return Err("only 7K supported".into());
+    }
+    if !result.supported {
+        return Err(NO_DAN_ESTIMATE.into());
     }
     // One chart analysis without the played OD serves both the genre tiles (which read the
     // native chart) and the eligible / vibro flags: those come from the notes and the rate
@@ -377,6 +429,62 @@ mod tests {
             assert!((0.0..=100.0).contains(&c), "{name}: {c}");
         }
         assert!(prism["overall"].as_f64().unwrap() > 0.0);
+    }
+
+    /// `roll_chart` with hit objects whose time is NaN (as left by editor tricks) between its notes.
+    fn roll_chart_with_timeless_notes() -> String {
+        let text = roll_chart();
+        let (head, notes) = text.split_once("[HitObjects]\n").unwrap();
+        let mut out = format!("{head}[HitObjects]\n");
+        for (i, line) in notes.lines().enumerate() {
+            out.push_str(line);
+            out.push('\n');
+            if i % 300 == 0 {
+                out.push_str("109,192,NaN,128,0,116219:0:0:0:0:\n");
+                out.push_str("256,192, NaN,1,0,0:0:0:0:\n");
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn keeps_charts_without_timeless_hit_objects() {
+        let text = roll_chart();
+        assert!(matches!(without_timeless_hit_objects(&text), Cow::Borrowed(_)));
+        // Lines outside [HitObjects], short lines and negative or signed times are not touched.
+        let other = "[General]\nMode: 3\n[TimingPoints]\nNaN,250,4,2,0,100,1,0\n[HitObjects]\n1,2,NaN,1\n64,192,-20,1,0,0:0:0:0:\n64,192,+5,1,0,0:0:0:0:\n";
+        assert!(matches!(without_timeless_hit_objects(other), Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn drops_timeless_hit_objects_only() {
+        let text = roll_chart_with_timeless_notes().replace('\n', "\r\n");
+        let cleaned = without_timeless_hit_objects(&text);
+        assert!(!cleaned.contains("NaN"));
+        assert_eq!(cleaned, roll_chart().replace('\n', "\r\n"));
+        // Prism reads the same notes with or without them.
+        let with = dan_core::parse_mania_beatmap(&text);
+        let without = dan_core::parse_mania_beatmap(&cleaned);
+        assert_eq!(chart_notes(&with), chart_notes(&without));
+    }
+
+    #[test]
+    fn analyzes_chart_with_timeless_hit_objects() {
+        // The dan estimate used to reject the chart ("NaN column or note time").
+        let request = json!({ "od": 8.0 });
+        let expected = analyze(&roll_chart(), &request);
+        assert!(expected.is_ok(), "{expected:?}");
+        assert_eq!(analyze(&roll_chart_with_timeless_notes(), &request), expected);
+    }
+
+    #[test]
+    fn empty_chart_has_no_dan_estimate() {
+        let text = roll_chart();
+        let (head, _) = text.split_once("[HitObjects]\n").unwrap();
+        for notes in ["", "36,192,20288,5,0,0:0:0:0:\n"] {
+            let chart = format!("{head}[HitObjects]\n{notes}");
+            assert_eq!(analyze(&chart, &json!({ "od": 8.0 })), Err(NO_DAN_ESTIMATE.to_string()));
+        }
     }
 
     #[test]

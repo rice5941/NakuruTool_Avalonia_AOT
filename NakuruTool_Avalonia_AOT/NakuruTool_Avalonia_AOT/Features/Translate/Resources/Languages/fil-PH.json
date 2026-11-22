@@ -24,7 +24,9 @@
     "BeatmapMirror": "Mirror ng pag-download ng beatmap",
     "AutoBatchGenerateOnStartup": "Batch Generate ng mga Koleksyon mula sa Presets sa Startup",
     "AppVersion": "Bersyon",
-    "Analyze7kEnabled": "I-analyze ang 7K beatmap (Prism / tantiyang Dan)"
+    "Analyze7kEnabled": "I-analyze ang 7K beatmap (Prism / tantiyang Dan)",
+    "UiScale": "Laki ng Display",
+    "UiScaleAuto": "Awtomatiko"
   },
   "Licenses": {
     "Title": "Mga lisensyang open source",

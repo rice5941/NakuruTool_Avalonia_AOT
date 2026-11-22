@@ -24,7 +24,9 @@
     "BeatmapMirror": "Mirror tải beatmap",
     "AutoBatchGenerateOnStartup": "Tạo hàng loạt Collection từ Preset khi khởi động",
     "AppVersion": "Phiên bản",
-    "Analyze7kEnabled": "Phân tích beatmap 7K (Prism / ước tính Dan)"
+    "Analyze7kEnabled": "Phân tích beatmap 7K (Prism / ước tính Dan)",
+    "UiScale": "Tỷ lệ hiển thị",
+    "UiScaleAuto": "Tự động"
   },
   "Licenses": {
     "Title": "Giấy phép mã nguồn mở",

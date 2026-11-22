@@ -24,7 +24,9 @@
     "BeatmapMirror": "Mirror unduh beatmap",
     "AutoBatchGenerateOnStartup": "Batch Generate Koleksi dari Preset saat Startup",
     "AppVersion": "Versi",
-    "Analyze7kEnabled": "Analisis beatmap 7K (Prism / estimasi Dan)"
+    "Analyze7kEnabled": "Analisis beatmap 7K (Prism / estimasi Dan)",
+    "UiScale": "Skala Tampilan",
+    "UiScaleAuto": "Otomatis"
   },
   "Licenses": {
     "Title": "Lisensi open source",

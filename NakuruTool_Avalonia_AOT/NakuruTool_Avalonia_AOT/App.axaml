@@ -24,6 +24,11 @@
             <Setter Property="FontFamily"
                     Value="Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif" />
         </Style>
+        <!-- UI 表示倍率（UiScaleHost）はウィンドウ内にしか効かないため、別の TopLevel に描画されるポップアップ
+             （ドロップダウン・コンテキストメニュー・ツールチップ・Flyout）は配置元の拡大・縮小を引き継ぐ -->
+        <Style Selector="Popup">
+            <Setter Property="InheritsTransform" Value="True" />
+        </Style>
         <!-- ComboBox 既定の VirtualizingStackPanel だとスクロールで長い項目が実体化されるたびに
              ドロップダウン幅が広がるため、全項目を一度に計測する StackPanel を使用して幅を固定する。
              ローカル値(ItemsPanel 指定)はこの Style より優先されるので個別指定には影響しない。 -->

@@ -18,6 +18,10 @@
             <Setter Property="FontFamily"
                     Value="Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif" />
         </Style>
+        <!-- App.axaml と同じ Popup スタイル（ポップアップが UI 表示倍率を引き継ぐ） -->
+        <Style Selector="Popup">
+            <Setter Property="InheritsTransform" Value="True" />
+        </Style>
         <!-- App.axaml と同じ ComboBox スタイル（ドロップダウン幅を固定するため非仮想化の StackPanel を使用） -->
         <Style Selector="ComboBox">
             <Setter Property="ItemsPanel">

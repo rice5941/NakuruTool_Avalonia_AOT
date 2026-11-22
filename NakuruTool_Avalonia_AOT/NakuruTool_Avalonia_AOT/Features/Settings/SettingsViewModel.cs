@@ -4,6 +4,7 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
+using NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using Semi.Avalonia;
@@ -26,6 +27,8 @@ public interface ISettingsViewModel : IDisposable
     string SelectedMirrorUrl { get; set; }
     bool AutoBatchGenerateOnStartup { get; set; }
     bool Analyze7kEnabled { get; set; }
+    IAvaloniaReadOnlyList<int> UiScaleOptions { get; }
+    int SelectedUiScalePercent { get; set; }
     string AppVersion { get; }
 }
 
@@ -127,6 +130,22 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         }
     }
 
+    /// <summary>UI 表示倍率の選択肢（%）。0 は自動。100% が FHD、125% が開発時（WQHD）の大きさ。</summary>
+    public IAvaloniaReadOnlyList<int> UiScaleOptions { get; } = new AvaloniaList<int>(UiScaleService.PercentOptions);
+
+    /// <summary>UI 表示倍率の設定値（%）。0 は自動。</summary>
+    [ObservableProperty]
+    public partial int SelectedUiScalePercent { get; set; }
+
+    partial void OnSelectedUiScalePercentChanged(int value)
+    {
+        if (_isInitialized)
+        {
+            UiScaleService.Instance.SetConfiguredPercent(value);
+            UpdateSettingData();
+        }
+    }
+
     private readonly ISettingsService _settingsService;
     private bool _isInitialized = false;
 
@@ -142,6 +161,8 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
         SelectedMirrorUrl = BeatmapMirrors.Normalize(settingsData.BeatmapMirrorUrl);
         AutoBatchGenerateOnStartup = settingsData.AutoBatchGenerateOnStartup;
         Analyze7kEnabled = settingsData.Analyze7kEnabled;
+
+        SelectedUiScalePercent = settingsData.UiScalePercent;
 
         UpdateOsuPathErrorMessage();
 
@@ -166,6 +187,7 @@ public partial class SettingsViewModel : ViewModelBase, ISettingsViewModel
             // 並列数（設定ファイル）と Prism 列の表示モード（譜面一覧のトグル）は現在値を引き継ぐ
             Analyze7kParallelism = _settingsService.SettingsData.Analyze7kParallelism,
             Analyze7kShowConcentration = _settingsService.SettingsData.Analyze7kShowConcentration,
+            UiScalePercent = SelectedUiScalePercent,
         };
 
         _settingsService.SaveSettings(settingData);

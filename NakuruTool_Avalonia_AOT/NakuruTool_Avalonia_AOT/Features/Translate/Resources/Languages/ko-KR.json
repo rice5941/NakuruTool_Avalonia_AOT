@@ -24,7 +24,9 @@
     "BeatmapMirror": "비트맵 다운로드 미러",
     "AutoBatchGenerateOnStartup": "시작 시 프리셋에서 컬렉션 일괄 생성",
     "AppVersion": "버전",
-    "Analyze7kEnabled": "7K 비트맵 분석 (Prism / 단위 추정)"
+    "Analyze7kEnabled": "7K 비트맵 분석 (Prism / 단위 추정)",
+    "UiScale": "표시 배율",
+    "UiScaleAuto": "자동"
   },
   "Licenses": {
     "Title": "오픈 소스 라이선스",

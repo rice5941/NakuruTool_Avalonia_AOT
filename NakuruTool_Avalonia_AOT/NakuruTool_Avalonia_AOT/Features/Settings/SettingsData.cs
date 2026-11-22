@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
@@ -16,6 +17,7 @@ public interface ISettingsData : INotifyPropertyChanged
     bool Analyze7kEnabled { get; set; }
     int Analyze7kParallelism { get; set; }
     bool Analyze7kShowConcentration { get; set; }
+    int UiScalePercent { get; set; }
 }
 
 public partial class SettingsData : ObservableObject, ISettingsData
@@ -32,6 +34,7 @@ public partial class SettingsData : ObservableObject, ISettingsData
     private bool _analyze7kEnabled = true;
     private int _analyze7kParallelism;
     private bool _analyze7kShowConcentration;
+    private int _uiScalePercent = UiScaleService.AutoPercent;
 
     public string OsuFolderPath
     {
@@ -102,6 +105,16 @@ public partial class SettingsData : ObservableObject, ISettingsData
         set => SetProperty(ref _analyze7kShowConcentration, value);
     }
 
+    /// <summary>
+    /// UI 表示倍率（%）。0 は自動（モニターの論理解像度から計算）。
+    /// FHD にちょうど良い大きさが 100%、開発時の大きさ（WQHD）が 125%。
+    /// </summary>
+    public int UiScalePercent
+    {
+        get => _uiScalePercent;
+        set => SetProperty(ref _uiScalePercent, value);
+    }
+
     public void Update(SettingsData newData)
     {
         OsuFolderPath = newData.OsuFolderPath;
@@ -115,6 +128,7 @@ public partial class SettingsData : ObservableObject, ISettingsData
         Analyze7kEnabled = newData.Analyze7kEnabled;
         Analyze7kParallelism = newData.Analyze7kParallelism;
         Analyze7kShowConcentration = newData.Analyze7kShowConcentration;
+        UiScalePercent = newData.UiScalePercent;
     }
 }
 

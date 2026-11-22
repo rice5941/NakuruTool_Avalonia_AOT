@@ -24,7 +24,9 @@
     "BeatmapMirror": "譜面ダウンロードミラー",
     "AutoBatchGenerateOnStartup": "起動時にプリセットからコレクションを一括生成",
     "AppVersion": "バージョン",
-    "Analyze7kEnabled": "7K譜面を解析（Prism・段位推定）"
+    "Analyze7kEnabled": "7K譜面を解析（Prism・段位推定）",
+    "UiScale": "表示倍率",
+    "UiScaleAuto": "自動"
   },
   "Licenses": {
     "Title": "オープンソースライセンス",

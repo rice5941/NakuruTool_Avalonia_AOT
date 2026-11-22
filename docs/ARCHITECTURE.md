@@ -21,6 +21,7 @@ osu!mania の beatmap を管理し、各種データベースファイルを読�
 - **7K 譜面解析**: Mania Tracker の計算で、全 7K 譜面（等速）の Prism 基準Overall（Reg / LN、精度 96.5%）・5ジャンルのジャンル濃度と基準スキル値・段位推定（Reg / LN とジャンル）を求め、beatmap一覧の Prism 列・段位推定列・フィルタ・ソートに使う（仕様: [ANALYZE_7K_SPEC.md](ANALYZE_7K_SPEC.md)）
 - **多言語対応**: 日本語/英語の動的切り替え
 - **テーマ切替**: ダーク/ライトテーマ
+- **表示倍率**: WQHD で開発した画面を、モニターの論理解像度に合わせて自動で縮小（FHD = 100%、開発時の大きさ = 125%、下限 95%）。設定画面で固定倍率（75 / 100 / 125 / 150%）にも変更可能
 
 ---
 
@@ -272,6 +273,7 @@ graph TD
 | フォントファミリー | `Meiryo, Yu Gothic UI, Hiragino Sans, Noto Sans CJK JP, sans-serif` |
 | デフォルトロケール | `ja-JP` |
 | テーマバリアント | `Default`（システム追従）、`Dark` / `Light` 切替可能 |
+| UI 表示倍率 | WQHD（2560×1440・拡大率 100%）で開発し、各 .axaml に数値を直接記述。倍率の表記は FHD = 100%、開発時の大きさ = 125%。各ウィンドウのルートの `UiScaleHost`（`LayoutTransformControl`）で一括拡大・縮小し、ポップアップは `Popup.InheritsTransform` で倍率を引き継ぐ（詳細: [MODULES.md](MODULES.md) の Shared / Scaling） |
 
 ---
 

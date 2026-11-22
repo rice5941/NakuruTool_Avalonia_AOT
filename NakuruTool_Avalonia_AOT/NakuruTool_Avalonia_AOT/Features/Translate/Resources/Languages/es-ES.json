@@ -24,7 +24,9 @@
     "BeatmapMirror": "Mirror de descarga de beatmaps",
     "AutoBatchGenerateOnStartup": "Generar colecciones en lote desde presets al iniciar",
     "AppVersion": "Versión",
-    "Analyze7kEnabled": "Analizar beatmaps 7K (Prism / dan estimado)"
+    "Analyze7kEnabled": "Analizar beatmaps 7K (Prism / dan estimado)",
+    "UiScale": "Escala de la interfaz",
+    "UiScaleAuto": "Automática"
   },
   "Licenses": {
     "Title": "Licencias de código abierto",

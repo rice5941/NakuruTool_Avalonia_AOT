@@ -24,7 +24,9 @@
     "BeatmapMirror": "谱面下载镜像",
     "AutoBatchGenerateOnStartup": "启动时从预设批量生成合集",
     "AppVersion": "版本",
-    "Analyze7kEnabled": "分析 7K 谱面（Prism / 段位推测）"
+    "Analyze7kEnabled": "分析 7K 谱面（Prism / 段位推测）",
+    "UiScale": "显示缩放",
+    "UiScaleAuto": "自动"
   },
   "Licenses": {
     "Title": "开源许可",

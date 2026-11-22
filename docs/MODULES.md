@@ -37,12 +37,14 @@
 - **左サイドバー** — Avalonia 12 の `DrawerPage`（`DrawerLayoutBehavior="Split"`）。`Drawer` にカテゴリラベル（メイン/システム）と `ListBox`（`MainMenu` / `SystemsMenu`）を配置し、各 `ListBoxItem.Tag` に `MainPageKind` を持たせる。Semi テーマの `PART_TopBar`（標準ハンバーガーボタン）は非表示
 - **コンテンツ領域** — `DrawerPage.Content` の `NavigationPage`（`MainNav`）。ルートのホストページ（ナビゲーションバー非表示）の中に、`ContentPage` の各ページ View を重ねて配置
 - **オーバーレイ** — 半透明背景の `Border` + 中央配置のカード内に `DatabaseLoadingView` を表示
+- **UI 表示倍率** — 上記すべてをルートの `UiScaleHost TracksScreen="True"`（Shared/Scaling）で包み、表示倍率で一括拡大・縮小する。自動倍率の基準モニターはこのウィンドウのモニター
 
 ### 主要挙動
 
 1. **起動時読み込み** — `Window.Opened` → `StartLoadingAsync()` → `DatabaseLoadingViewModel.InitialLoadAsync()` → `MapListPageViewModel.Initialize()` → オーバーレイ非表示
 2. **エラー時の設定ページ遷移** — `DatabaseLoadingViewModel.HasError` が `true` の場合は `SelectedPage = MainPageKind.Settings`、それ以外は `MainPageKind.MapList` に切り替え
 3. **フォルダパス変更監視** — `ISettingsData.OsuFolderPath` をR3の `ObserveProperty` で監視し、変更時に `ReloadDatabaseAsync()` を実行
+4. **表示倍率への追従** — XAML の `MinWidth` / `MinHeight`（800×500）と音楽プレイヤーモードの幅（`MusicPlayerModeWidth` = 1050）は開発時の大きさ（表示倍率 125%、`Scale` 1.0）の値で、実際にはこれに `UiScaleService.Scale` を掛ける。`ScaleChanged` で最小サイズを更新し、音楽プレイヤーモード中は幅を比例させて高さの固定をやり直す
 
 ### ページ切り替え
 
@@ -891,7 +893,7 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 
 ### 概要
 
-- アプリケーション設定（osu!フォルダパス、言語、テーマ）の管理と永続化を担うモジュール
+- アプリケーション設定（osu!フォルダパス、言語、テーマ、表示倍率など）の管理と永続化を担うモジュール
 - 設定データをJSON形式で保存・読み込みし、NativeAOT対応のSource Generatorを使用
 - 設定変更をR3で監視し、言語切替やデータベース再読み込みなどの副作用を自動的にトリガー
 
@@ -932,6 +934,7 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 | `LanguageKey` | `string` | `"ja-JP"` | 言語コード |
 | `PreferUnicode` | `bool` | `false` | Unicode表示優先フラグ |
 | `IsAudioPanelMode` | `bool` | `false` | オーディオパネルモードの永続化フラグ |
+| `UiScalePercent` | `int` | `0` | UI 表示倍率（%）。FHD にちょうど良い大きさが 100%、開発時の大きさ（WQHD）が 125%。`0` は自動（モニターの論理解像度から計算）。項目のない既存の設定ファイルも自動になる |
 
 - JSON Source Generatorとの互換性のため、`[ObservableProperty]` ではなく手動の `SetProperty` パターンを使用
 - `Update(SettingsData)` メソッドで既存インスタンスのプロパティを一括更新
@@ -951,6 +954,8 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`SettingsData` の�
 | `HasOsuPathError` | `bool` | パスエラー有無 |
 | `AutoPlayOnSelect` | `bool` | 選択時自動再生 |
 | `PreferUnicode` | `bool` | Unicode表示優先設定 |
+| `UiScaleOptions` | `IAvaloniaReadOnlyList<int>` | 表示倍率の選択肢（`UiScaleService.PercentOptions`） |
+| `SelectedUiScalePercent` | `int` | 選択中の表示倍率（%、`0` は自動）。変更時に `UiScaleService.SetConfiguredPercent()` で即時反映して保存 |
 
 - 言語・フォルダパスの変更時に `UpdateSettingData()` で設定を保存
 - `ToggleThemeCommand` — ダーク/ライトテーマの切替（`Semi.Avalonia` の `UnregisterFollowSystemTheme` を使用）
@@ -1041,6 +1046,9 @@ XAML内で `{translate:Translate 'Key.Name'}` として使用。
 | `OsuFileBasicMetadata.cs` | `.osu` の `[Metadata]` / `[Difficulty]` から抽出した基本項目（Title / Artist / Version / Creator / CircleSize / BeatmapSetID）を保持する readonly ストラクト |
 | `OsuFileMetadataReader.cs` | `.osu` ファイルから `BeatmapSetID` ・基本メタを `Try*` パターンで読む AOT 安全な internal static ヘルパー。`Span<char>` ベース、セクションヘッダ検出で早期打ち切り、リフレクション・動的コード生成不使用 |
 | `Converters/` | XAML用の値コンバーター（16クラス） |
+| `Scaling/UiScaleCalculator.cs` | モニターの論理解像度から自動倍率（%）を求める純粋関数と、倍率（%）⇔ `Scale` の変換（static） |
+| `Scaling/UiScaleService.cs` | UI 表示倍率の状態管理（static シングルトン `Instance`）。設定値と報告されたモニターから `Scale` を決め、`ScaleChanged` を発火 |
+| `Scaling/UiScaleHost.cs` | 中身を `Scale` 倍に拡大・縮小する `LayoutTransformControl` 派生。各ウィンドウのルートに置く |
 
 ### 概要
 
@@ -1113,6 +1121,45 @@ R3関連のカスタム拡張メソッド。NativeAOT対応のため、リフレ
 
 ---
 
+### Scaling（UI 表示倍率）
+
+画面は WQHD（2560×1440・Windows の拡大率 100%）で開発しており、サイズ・フォント・余白は各 .axaml に直接数値で書かれている。これを FHD・HD でも収まるよう、各ウィンドウのルートで中身全体を一括で拡大・縮小する。
+
+Windows の拡大率（DPI）は Avalonia が `RenderScaling` として処理するため、ここでの倍率はそれとは別に掛かるアプリ独自の倍率。Avalonia 12 には DPI をアプリ側で上書きする公式手段がない（`Win32PlatformOptions` は `DpiAwareness` のみ）ため、`LayoutTransformControl` で実現している。
+
+#### 倍率の表記
+
+設定画面などで扱う倍率（%）は、Windows の拡大率の慣習に合わせて **FHD にちょうど良い大きさを 100%** とし、**開発時の大きさ（WQHD）を 125%**（`UiScaleCalculator.DesignPercent`）とする。レイアウトに掛ける倍率は `Scale = 倍率(%) ÷ 125`（`PercentToScale`）。
+
+| 倍率（表記） | `Scale` | 目安 |
+|------------|---------|------|
+| 125% | 1.0 | 開発時の大きさ（WQHD・拡大率 100%） |
+| 100% | 0.8 | FHD・拡大率 100% |
+| 95% | 0.76 | 自動の下限（HD・FHD 拡大率 125%） |
+
+```
+SettingsData.UiScalePercent（0=自動, 75 / 100 / 125 / 150）
+   │ App 起動時（ウィンドウ表示前）/ 設定画面で変更時
+   ▼
+UiScaleService.Instance ◀── ReportScreen(論理サイズ) ◀── メインウィンドウの UiScaleHost(TracksScreen=True)
+   EffectivePercent, Scale(=%÷125), ScaleChanged           （表示時 / PositionChanged / ScalingChanged / Screens.Changed）
+   │
+   ▼
+UiScaleHost（各 Window のルート）→ LayoutTransform = ScaleTransform(s, s)（Scale 1.0 のときは null）
+   └─ Popup スタイル（InheritsTransform=True）→ ドロップダウン・ContextMenu・ToolTip・Flyout も配置元の倍率で表示
+```
+
+| 項目 | 仕様 |
+|------|------|
+| 自動倍率 | `clamp(floor(100 × min(論理幅/1920, 論理高/1080) / 5) × 5, 95, 125)`（%）。論理解像度は `Screen.Bounds ÷ Screen.Scaling`（タスクバーで揺れないよう作業領域ではなく画面全体）。例: WQHD・UWQHD・4K@100〜150% → 125%（上限 = 開発時の大きさ）、WQHD@125% → 105%、FHD・4K@200% → 100%、FHD@125% / 1366×768 / 1280×720 → 95%（下限） |
+| 手動倍率 | 設定画面で 75 / 100 / 125 / 150% を選べる。設定ファイルの値は `NormalizePercent` で 50〜250% に収める |
+| 未初期化時 | `ConfiguredPercent = 125`（開発時の大きさ、`Scale` 1.0）。App が設定値を渡すまでは変換なしのため、App を通らないヘッドレステストは常に開発時の大きさ |
+| ポップアップ | 別の TopLevel（実機では `PopupRoot`、ヘッドレスではオーバーレイ層）に描画されるため、App.axaml の `Popup` スタイルで `InheritsTransform=True` にして配置元の倍率を引き継ぐ。Semi の `PopupRoot` テンプレートはルートが `LayoutTransformControl` で `PopupRoot.Transform` を反映する |
+| 別ウィンドウ | `LicenseTextWindow` もルートを `UiScaleHost`（`TracksScreen` なし）で包み、初期サイズ・最小サイズに倍率を掛ける。ウィンドウを追加するときは同じようにする |
+| 注意点 | 1px の境界線は縮小時に 1 物理 px 未満になり淡く見えることがある。ビットマップのデコード幅（サムネイル 192px・背景 800px）は倍率に連動させていない（縮小方向では問題ない） |
+
+---
+
 ### Converters
 
 XAML用の値コンバーター一覧（全16クラス、14ファイル）。
@@ -1138,6 +1185,7 @@ XAML用の値コンバーター一覧（全16クラス、14ファイル）。
 | `UnicodeDisplayConverter` | `UnicodeDisplayConverter.cs` | `PreferUnicode`設定に基づいて`Beatmap`/`ImportExportBeatmapItem`のTitle/ArtistのUnicode版/ASCII版を切り替え。`SettingsService.Current`から設定値を参照。Unicodeが空の場合はASCII版にフォールバック |
 | `RepeatModeToIconConverter` | `RepeatModeToIconConverter.cs` | `AudioPlayerPanelViewModel.RepeatMode` を `MaterialIconKind` に変換。None→RepeatOff、All→Repeat、One→RepeatOnce |
 | `DownloadStateConverters` | `DownloadStateConverters.cs` | `BeatmapDownloadState` をUI要素の可視性（`IsVisible`）に変換するコンバーター群 |
+| `UiScalePercentToLabelConverter` | `UiScalePercentToLabelConverter.cs` | 表示倍率の設定値（%）を表示用文字列に変換。`0` は翻訳された「自動」、それ以外は `"n%"`。`TranslatingConverterBase` 派生で、MultiBinding に `CurrentLanguage` を渡すと言語切替に追従 |
 
 #### RepeatModeToIconConverter
 

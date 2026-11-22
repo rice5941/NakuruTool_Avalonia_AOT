@@ -24,7 +24,9 @@
     "BeatmapMirror": "Mirror muat turun beatmap",
     "AutoBatchGenerateOnStartup": "Jana Koleksi Kelompok dari Praset pada Permulaan",
     "AppVersion": "Versi",
-    "Analyze7kEnabled": "Analisis beatmap 7K (Prism / anggaran Dan)"
+    "Analyze7kEnabled": "Analisis beatmap 7K (Prism / anggaran Dan)",
+    "UiScale": "Skala Paparan",
+    "UiScaleAuto": "Automatik"
   },
   "Licenses": {
     "Title": "Lesen sumber terbuka",

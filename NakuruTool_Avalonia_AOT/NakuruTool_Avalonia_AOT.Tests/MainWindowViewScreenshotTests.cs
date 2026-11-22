@@ -20,7 +20,9 @@ using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.MapList.Models;
 using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 using NakuruTool_Avalonia_AOT.Features.Shared.ViewModels;
+using Avalonia.Media;
 using R3;
 using System;
 using System.ComponentModel;
@@ -513,6 +515,90 @@ public class MainWindowViewScreenshotTests
     }
 
     /// <summary>
+    /// UI 表示倍率 95%（HD・FHD 125% の自動倍率。Scale = 95/125 = 0.76）で、ウィンドウの中身全体が縮小され、
+    /// 1280×720 のウィンドウに開発時の大きさ換算で約 1684×947 の領域が確保されることを確認する。
+    /// 最小サイズと音楽プレイヤーモードの幅も倍率に合わせて縮小される。
+    /// </summary>
+    [AvaloniaFact]
+    public void UiScale95_ScalesWholeWindowContent()
+    {
+        const double scale = 0.76;
+        UiScaleService.Instance.SetConfiguredPercent(95);
+        try
+        {
+            var mockMapListViewModel = new MockMapListViewModel();
+            mockMapListViewModel.SetTestData(CreateTestBeatmaps());
+            var mockSettingsService = new MockSettingsService();
+            var mockDatabaseService = new MockDatabaseService();
+            var mainWindowViewModel = new MainWindowViewModel(
+                new MockSettingsViewModel(),
+                new MockDatabaseLoadingViewModel(),
+                mockMapListViewModel,
+                new MockMapListPageViewModel(),
+                new ImportExportPageViewModel(mockDatabaseService, new MockImportExportService(), mockSettingsService, new NullBeatmapDownloadService()),
+                new BeatmapGenerationPageViewModel(mockDatabaseService, new MockBeatmapRateGenerator(), mockSettingsService, new MockRateGenerationCollectionJsonWriter()),
+                new MockLicensesViewModel(),
+                mockSettingsService);
+            mainWindowViewModel.IsLoadingOverlayVisible = false;
+
+            var mainWindowView = new MainWindowView
+            {
+                Width = 1280,
+                Height = 720,
+                DataContext = mainWindowViewModel
+            };
+            mainWindowView.Show();
+            PumpUi();
+
+            mainWindowViewModel.SelectedPage = MainPageKind.MapList;
+            PumpUi();
+            SetupMapListDataGrid(mainWindowView, mockMapListViewModel);
+
+            // ルートのホストが 0.76 倍の変換を持ち、中身は 1280/0.76 × 720/0.76 でレイアウトされる
+            var host = mainWindowView.FindDescendantOfType<UiScaleHost>()!;
+            var transform = Assert.IsType<ScaleTransform>(host.LayoutTransform);
+            Assert.Equal(scale, transform.ScaleX, 6);
+            Assert.Equal(scale, transform.ScaleY, 6);
+            // レイアウトの丸め（UseLayoutRounding）で 1px 未満ずれるため誤差を許容する
+            Assert.InRange(host.Child!.Bounds.Width, 1280 / scale - 1, 1280 / scale + 1);
+            Assert.InRange(host.Child!.Bounds.Height, 720 / scale - 1, 720 / scale + 1);
+
+            // 最小サイズも倍率に合わせて縮小される（XAML の指定は 800×500）
+            Assert.Equal(800 * scale, mainWindowView.MinWidth, 6);
+            Assert.Equal(500 * scale, mainWindowView.MinHeight, 6);
+
+            var frame = mainWindowView.CaptureRenderedFrame();
+            Directory.CreateDirectory(ScreenshotsDirectory);
+            var filePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_UiScale95_1280x720.png");
+            frame?.Save(filePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+            Assert.True(File.Exists(filePath), $"Screenshot was saved to: {filePath}");
+
+            // 音楽プレイヤーモードの幅も倍率に合わせる
+            mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+            PumpUi();
+            // ウィンドウサイズは整数ピクセルに丸められるため誤差を許容する
+            Assert.InRange(mainWindowView.ClientSize.Width,
+                MainWindowView.MusicPlayerModeWidth * scale - 1, MainWindowView.MusicPlayerModeWidth * scale + 1);
+
+            var musicFrame = mainWindowView.CaptureRenderedFrame();
+            var musicFilePath = Path.Combine(ScreenshotsDirectory, "MainWindowView_UiScale95_MusicPlayerMode.png");
+            musicFrame?.Save(musicFilePath, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+
+            mainWindowViewModel.AudioPlayerPanelViewModel.ToggleMusicPlayerModeCommand.Execute(null);
+            PumpUi();
+            Assert.Equal(1280, mainWindowView.ClientSize.Width);
+            Assert.Equal(500 * scale, mainWindowView.MinHeight, 6);
+
+            mainWindowView.Close();
+        }
+        finally
+        {
+            // 静的な倍率を他のテストに持ち越さない
+            UiScaleService.Instance.SetConfiguredPercent(UiScaleService.DefaultPercent);
+        }
+    }
+
+    /// <summary>
     /// beatmap一覧 → 他ページ → beatmap一覧 と遷移しても、選択中の譜面が再選択されない
     /// （再選択されると AudioPlayerPanel.PlayBeatmap が呼ばれ、再生中の曲が先頭から始まってしまう）ことを確認
     /// </summary>
@@ -790,6 +876,8 @@ public class MockSettingsViewModel : ISettingsViewModel
     public string SelectedMirrorUrl { get; set; } = "https://mirror.hinamizawa.ai/api/v1/hinai/d/";
     public bool AutoBatchGenerateOnStartup { get; set; } = false;
     public bool Analyze7kEnabled { get; set; } = true;
+    public IAvaloniaReadOnlyList<int> UiScaleOptions { get; } = new AvaloniaList<int>([0, 100, 125]);
+    public int SelectedUiScalePercent { get; set; } = 0;
     public string AppVersion { get; } = "1.0.0";
 
     public void Dispose() { }
@@ -1077,6 +1165,7 @@ public class MockSettingsData : ObservableObject, ISettingsData
     public bool Analyze7kEnabled { get; set; } = true;
     public int Analyze7kParallelism { get; set; }
     public bool Analyze7kShowConcentration { get; set; }
+    public int UiScalePercent { get; set; }
 }
 
 /// <summary>

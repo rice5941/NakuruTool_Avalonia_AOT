@@ -24,7 +24,9 @@
     "BeatmapMirror": "Зеркало загрузки карт",
     "AutoBatchGenerateOnStartup": "Пакетная генерация коллекций из пресетов при запуске",
     "AppVersion": "Версия",
-    "Analyze7kEnabled": "Анализировать 7K-карты (Prism / оценка дана)"
+    "Analyze7kEnabled": "Анализировать 7K-карты (Prism / оценка дана)",
+    "UiScale": "Масштаб интерфейса",
+    "UiScaleAuto": "Авто"
   },
   "Licenses": {
     "Title": "Лицензии open source",

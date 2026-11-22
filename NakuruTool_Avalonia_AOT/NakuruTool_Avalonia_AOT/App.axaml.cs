@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NakuruTool_Avalonia_AOT.Features.Translate;
 using NakuruTool_Avalonia_AOT.Features.Settings;
+using NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 
 namespace NakuruTool_Avalonia_AOT
 {
@@ -77,7 +78,13 @@ namespace NakuruTool_Avalonia_AOT
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = composition.MainWindow;
+                var mainWindow = composition.MainWindow;
+
+                // 設定から UI 表示倍率を復元する（MainWindow の解決で SettingsService が生成され Current が設定される）。
+                // ウィンドウ表示前に設定しておき、自動倍率は表示時にメインウィンドウのモニターから計算される。
+                UiScaleService.Instance.SetConfiguredPercent(SettingsService.Current?.UiScalePercent ?? UiScaleService.AutoPercent);
+
+                desktop.MainWindow = mainWindow;
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {

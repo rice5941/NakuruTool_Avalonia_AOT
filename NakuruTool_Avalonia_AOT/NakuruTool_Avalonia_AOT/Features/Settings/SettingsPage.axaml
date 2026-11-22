@@ -67,6 +67,26 @@
 
         <HeaderedContentControl
             Theme="{StaticResource GroupBox}"
+            Header="{translate:Translate 'Settings.UiScale'}">
+            <ComboBox MinWidth="120" ItemsSource="{Binding UiScaleOptions}" SelectedItem="{Binding SelectedUiScalePercent}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <!-- CurrentLanguage を併せてバインドし、言語切替時に「自動」の表示を再評価させる -->
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{x:Static converters:UiScalePercentToLabelConverter.Instance}">
+                                    <Binding/>
+                                    <Binding Path="CurrentLanguage" Source="{x:Static translate:LanguageService.Instance}"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl
+            Theme="{StaticResource GroupBox}"
             Header="{translate:Translate 'Settings.AutoPlayOnSelect'}">
             <ToggleSwitch IsChecked="{Binding AutoPlayOnSelect}" />
         </HeaderedContentControl>

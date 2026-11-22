@@ -24,7 +24,9 @@
     "BeatmapMirror": "มิเรอร์ดาวน์โหลดบีทแมป",
     "AutoBatchGenerateOnStartup": "สร้าง Collection เป็นชุดจาก Preset เมื่อเริ่มต้น",
     "AppVersion": "เวอร์ชัน",
-    "Analyze7kEnabled": "วิเคราะห์บีทแมป 7K (Prism / ประเมิน Dan)"
+    "Analyze7kEnabled": "วิเคราะห์บีทแมป 7K (Prism / ประเมิน Dan)",
+    "UiScale": "ขนาดการแสดงผล",
+    "UiScaleAuto": "อัตโนมัติ"
   },
   "Licenses": {
     "Title": "ใบอนุญาตโอเพนซอร์ส",

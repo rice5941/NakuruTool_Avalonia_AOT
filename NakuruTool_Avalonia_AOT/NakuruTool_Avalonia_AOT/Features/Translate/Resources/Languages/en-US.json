@@ -24,7 +24,9 @@
     "BeatmapMirror": "Beatmap Download Mirror",
     "AutoBatchGenerateOnStartup": "Batch Generate Collections from Presets on Startup",
     "AppVersion": "Version",
-    "Analyze7kEnabled": "Analyze 7K charts (Prism / dan estimate)"
+    "Analyze7kEnabled": "Analyze 7K charts (Prism / dan estimate)",
+    "UiScale": "Display Scale",
+    "UiScaleAuto": "Auto"
   },
   "Licenses": {
     "Title": "Open Source Licenses",

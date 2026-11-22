@@ -24,7 +24,9 @@
     "BeatmapMirror": "Beatmap-Download-Mirror",
     "AutoBatchGenerateOnStartup": "Sammlungen aus Vorlagen beim Start stapelweise generieren",
     "AppVersion": "Version",
-    "Analyze7kEnabled": "7K-Beatmaps analysieren (Prism / Dan-Schätzung)"
+    "Analyze7kEnabled": "7K-Beatmaps analysieren (Prism / Dan-Schätzung)",
+    "UiScale": "Anzeigeskalierung",
+    "UiScaleAuto": "Automatisch"
   },
   "Licenses": {
     "Title": "Open-Source-Lizenzen",

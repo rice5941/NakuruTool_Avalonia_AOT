@@ -9,6 +9,7 @@ using NakuruTool_Avalonia_AOT.Features.Licenses;
 using NakuruTool_Avalonia_AOT.Features.MapList;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using NakuruTool_Avalonia_AOT.Features.Shared.Extensions;
+using NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 using R3;
 using System;
 using System.Collections.Generic;
@@ -45,13 +46,21 @@ public partial class MainWindowView : Window
     internal ContentPage? CurrentContentPage { get; private set; }
 
     /// <summary>
-    /// 音楽プレイヤーモードへ切り替えたときのウィンドウ幅。
+    /// 音楽プレイヤーモードへ切り替えたときのウィンドウ幅（開発時の大きさ = UI 表示倍率 125%、Scale 1.0 のとき）。
     /// オーディオパネルの音量スライダーまで切れずに収まる幅（約1030）を切りのいい値に丸めたもの。
+    /// 実際の幅はこれに <see cref="UiScaleService.Scale"/> を掛けた値になる。
     /// </summary>
     public const double MusicPlayerModeWidth = 1050;
 
     /// <summary>ウィンドウに音楽プレイヤーモードのサイズ設定を適用済みか</summary>
     private bool _isMusicPlayerModeApplied;
+
+    /// <summary>音楽プレイヤーモードのウィンドウサイズを決めたときの UI 表示倍率</summary>
+    private double _musicPlayerModeScale = 1.0;
+
+    // XAML で指定した最小サイズ（開発時の大きさ = Scale 1.0 のときの値）。実際の最小サイズはこれに Scale を掛けた値になる
+    private readonly double _baseMinWidth;
+    private readonly double _baseMinHeight;
 
     // 音楽プレイヤーモードへ切り替える直前のウィンドウ状態（通常モードへ戻すときに復元する）
     private WindowState _savedWindowState = WindowState.Normal;
@@ -75,6 +84,56 @@ public partial class MainWindowView : Window
         InitializeComponent();
         Loaded += OnLoaded;
         Resized += OnWindowResized;
+
+        _baseMinWidth = MinWidth;
+        _baseMinHeight = MinHeight;
+        ApplyScaledMinSize();
+        UiScaleService.Instance.ScaleChanged += OnUiScaleChanged;
+    }
+
+    /// <summary>
+    /// 最小サイズを UI 表示倍率に合わせる（縮小表示なら、同じ中身が収まる分だけウィンドウも小さくできる）。
+    /// 音楽プレイヤーモード中は高さを固定しているため、解除時に戻す最小の高さだけを更新する。
+    /// </summary>
+    private void ApplyScaledMinSize()
+    {
+        var scale = UiScaleService.Instance.Scale;
+        MinWidth = _baseMinWidth * scale;
+        if (_isMusicPlayerModeApplied)
+        {
+            _savedMinHeight = _baseMinHeight * scale;
+        }
+        else
+        {
+            MinHeight = _baseMinHeight * scale;
+        }
+    }
+
+    /// <summary>
+    /// UI 表示倍率が変わったとき、最小サイズを合わせ直し、音楽プレイヤーモード中ならウィンドウサイズも新しい倍率に合わせ直す。
+    /// （自動倍率でモニター間を移動した場合など。通常モードはレイアウトが追従するのでウィンドウサイズは変えない）
+    /// </summary>
+    private void OnUiScaleChanged(object? sender, EventArgs e)
+    {
+        ApplyScaledMinSize();
+
+        if (!_isMusicPlayerModeApplied)
+        {
+            return;
+        }
+
+        var scale = UiScaleService.Instance.Scale;
+        var width = ClientSize.Width > 0
+            ? ClientSize.Width * scale / _musicPlayerModeScale
+            : MusicPlayerModeWidth * scale;
+        _musicPlayerModeScale = scale;
+
+        // 高さの固定を外して中身に合わせ直し、レイアウト確定後に再び固定する
+        Width = width;
+        MinHeight = 0;
+        MaxHeight = double.PositiveInfinity;
+        SizeToContent = SizeToContent.Height;
+        Dispatcher.UIThread.Post(LockMusicPlayerHeight, DispatcherPriority.Loaded);
     }
 
     /// <summary>
@@ -207,8 +266,9 @@ public partial class MainWindowView : Window
             // 最大化ボタンを非活性にする
             CanMaximize = false;
 
-            // 幅はプレイヤーモード用の既定値にする（モード中はユーザーが変更可能）
-            Width = MusicPlayerModeWidth;
+            // 幅はプレイヤーモード用の既定値（を UI 表示倍率に合わせた値）にする（モード中はユーザーが変更可能）
+            _musicPlayerModeScale = UiScaleService.Instance.Scale;
+            Width = MusicPlayerModeWidth * _musicPlayerModeScale;
 
             MinHeight = 0;
             MaxHeight = double.PositiveInfinity;
@@ -264,6 +324,7 @@ public partial class MainWindowView : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        UiScaleService.Instance.ScaleChanged -= OnUiScaleChanged;
         _subscriptions.Dispose();
         base.OnClosed(e);
     }

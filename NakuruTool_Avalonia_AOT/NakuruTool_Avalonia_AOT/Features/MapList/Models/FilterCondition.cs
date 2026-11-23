@@ -536,6 +536,42 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     public bool IsNonCollectionEqual => !IsCollectionType && !IsRangeComparison;
 
+    /// <summary>
+    /// 一致と範囲を切り替えられるかどうか（両方に対応する対象だけ切替を表示する）
+    /// </summary>
+    public bool CanSwitchComparison => SupportsEquals && SupportsRange && !IsCollectionType;
+
+    private static readonly Func<string, bool> s_canParseInt = static s => int.TryParse(s, out _);
+    private static readonly Func<string, bool> s_canParseDouble = static s => double.TryParse(s, out _);
+    private static readonly Func<string, bool> s_canParseDate = static s => DateTime.TryParse(s, out _);
+    private static readonly Func<string, bool> s_canParseDuration = static s => DrainTimeConverter.TryParseToSeconds(s, out _);
+
+    /// <summary>
+    /// 判定に使う値が入力されているか。未入力の条件は判定から外す
+    /// （OR の組で未入力の条件が全件一致にならないようにするため）。
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsActive => Target switch
+    {
+        FilterTarget.Collection => !string.IsNullOrEmpty(CollectionValue),
+        FilterTarget.Status or FilterTarget.IsPlayed => true,
+        FilterTarget.ManiaPrismTopGenre => !string.IsNullOrEmpty(ChoiceValue),
+        FilterTarget.ManiaDanRegularGenre => Enum.TryParse<RegularDanGenre>(ChoiceValue, out var regular) && regular != RegularDanGenre.None,
+        FilterTarget.ManiaDanLnGenre => Enum.TryParse<LnDanGenre>(ChoiceValue, out var ln) && ln != LnDanGenre.None,
+        FilterTarget.KeyCount or FilterTarget.BestScore or FilterTarget.PlayCount => HasInput(s_canParseInt),
+        _ when FilterTargetInfo.IsStringType(Target) => !string.IsNullOrEmpty(Value),
+        _ when FilterTargetInfo.IsDateType(Target) => HasInput(s_canParseDate),
+        _ when FilterTargetInfo.IsDurationType(Target) => HasInput(s_canParseDuration),
+        _ when FilterTargetInfo.IsNumericType(Target) => HasInput(s_canParseDouble),
+        _ => true
+    };
+
+    /// <summary>一致なら値、範囲なら最小値か最大値のどちらかが解釈できるか</summary>
+    private bool HasInput(Func<string, bool> canParse) =>
+        ComparisonType == ComparisonType.Equals
+            ? canParse(Value)
+            : canParse(Value) || canParse(ValueMax);
+
     partial void OnTargetChanged(FilterTarget value)
     {
         OnPropertyChanged(nameof(SupportsRange));
@@ -553,6 +589,7 @@ public partial class FilterCondition : ObservableObject
         OnPropertyChanged(nameof(IsDurationType));
         OnPropertyChanged(nameof(IsNonCollectionEqual));
         OnPropertyChanged(nameof(IsScoreOrAccTarget));
+        OnPropertyChanged(nameof(CanSwitchComparison));
 
         // SupportsEqualsがfalseでSupportsRangeがtrueの場合は範囲比較に強制
         if (!SupportsEquals && SupportsRange)
@@ -600,8 +637,8 @@ public partial class FilterCondition : ObservableObject
     }
 
     /// <summary>
-    /// Beatmapがこの条件に一致するかどうかを判定
-    /// CollectionフィルタはMapFilterViewModelのMatchesCollectionで処理するため、ここではtrueを返す
+    /// Beatmapがこの条件に一致するかどうかを判定（NOT は呼び出し側で反転する）。
+    /// 未入力の条件は true を返す。CollectionフィルタはFilterConditionExtensionsで処理するため、ここではtrueを返す
     /// </summary>
     public bool Matches(Beatmap beatmap)
     {
@@ -645,7 +682,7 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     private bool MatchesNullableDouble(double? value)
     {
-        if (string.IsNullOrEmpty(Value)) return true;
+        if (!HasInput(s_canParseDouble)) return true;
         return value is { } v && MatchesDouble(v);
     }
 
@@ -676,44 +713,28 @@ public partial class FilterCondition : ObservableObject
 
     private bool MatchesNumeric(int value)
     {
-        if (string.IsNullOrEmpty(Value)) return true;
-        if (!int.TryParse(Value, out var min)) return true;
-
         if (ComparisonType == ComparisonType.Equals)
         {
-            return value == min;
+            if (!int.TryParse(Value, out var target)) return true;
+            return value == target;
         }
-        else
-        {
-            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
-            if (string.IsNullOrEmpty(ValueMax) || !int.TryParse(ValueMax, out var max))
-            {
-                return minOk;
-            }
-            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
-            return minOk && maxOk;
-        }
+
+        var hasMin = int.TryParse(Value, out var min);
+        var hasMax = int.TryParse(ValueMax, out var max);
+        return MatchesRange(value, hasMin, min, hasMax, max);
     }
 
     private bool MatchesDouble(double value)
     {
-        if (string.IsNullOrEmpty(Value)) return true;
-        if (!double.TryParse(Value, out var min)) return true;
-
         if (ComparisonType == ComparisonType.Equals)
         {
-            return Math.Abs(value - min) < 0.001;
+            if (!double.TryParse(Value, out var target)) return true;
+            return Math.Abs(value - target) < 0.001;
         }
-        else
-        {
-            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
-            if (string.IsNullOrEmpty(ValueMax) || !double.TryParse(ValueMax, out var max))
-            {
-                return minOk;
-            }
-            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
-            return minOk && maxOk;
-        }
+
+        var hasMin = double.TryParse(Value, out var min);
+        var hasMax = double.TryParse(ValueMax, out var max);
+        return MatchesRange(value, hasMin, min, hasMax, max);
     }
 
     /// <summary>
@@ -721,57 +742,35 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     private bool MatchesLongNoteRate(double value)
     {
-        if (string.IsNullOrEmpty(Value)) return true;
-        if (!double.TryParse(Value, out var inputMin)) return true;
-
-        var min = inputMin / 100.0;
-
         if (ComparisonType == ComparisonType.Equals)
         {
-            return Math.Abs(value - min) < 0.001;
+            if (!double.TryParse(Value, out var target)) return true;
+            return Math.Abs(value - target / 100.0) < 0.001;
         }
-        else
-        {
-            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min;
-            if (string.IsNullOrEmpty(ValueMax) || !double.TryParse(ValueMax, out var inputMax))
-            {
-                return minOk;
-            }
-            
-            var max = inputMax / 100.0;
-            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max;
-            return minOk && maxOk;
-        }
+
+        var hasMin = double.TryParse(Value, out var min);
+        var hasMax = double.TryParse(ValueMax, out var max);
+        return MatchesRange(value, hasMin, min / 100.0, hasMax, max / 100.0);
     }
 
     private bool MatchesDateTime(DateTime? value)
     {
-        if (!value.HasValue) return false;
-        if (string.IsNullOrWhiteSpace(Value)) return true;
-        
-        // 日付のみをパース（時間部分は無視）
-        if (!DateTime.TryParse(Value, out var min)) return true;
-
+        // 日付のみで比較する（時間部分は無視）
         if (ComparisonType == ComparisonType.Equals)
         {
-            return value.Value.Date == min.Date;
+            if (!DateTime.TryParse(Value, out var target)) return true;
+            return value.HasValue && value.Value.Date == target.Date;
         }
-        else
-        {
-            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? value.Value.Date >= min.Date : value.Value.Date > min.Date;
-            if (string.IsNullOrWhiteSpace(ValueMax))
-            {
-                return minOk;
-            }
-            
-            if (!DateTime.TryParse(ValueMax, out var max))
-            {
-                return minOk;
-            }
-            
-            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? value.Value.Date <= max.Date : value.Value.Date < max.Date;
-            return minOk && maxOk;
-        }
+
+        var hasMin = DateTime.TryParse(Value, out var min);
+        var hasMax = DateTime.TryParse(ValueMax, out var max);
+        if (!hasMin && !hasMax) return true;
+        if (!value.HasValue) return false;
+
+        var date = value.Value.Date;
+        if (hasMin && !(MinBoundaryType == RangeBoundaryType.Inclusive ? date >= min.Date : date > min.Date)) return false;
+        if (hasMax && !(MaxBoundaryType == RangeBoundaryType.Inclusive ? date <= max.Date : date < max.Date)) return false;
+        return true;
     }
 
     /// <summary>
@@ -779,22 +778,24 @@ public partial class FilterCondition : ObservableObject
     /// </summary>
     private bool MatchesDuration(int valueSeconds)
     {
-        if (string.IsNullOrEmpty(Value)) return true;
-        if (!DrainTimeConverter.TryParseToSeconds(Value, out var min)) return true;
-
         if (ComparisonType == ComparisonType.Equals)
         {
-            return valueSeconds == min;
+            if (!DrainTimeConverter.TryParseToSeconds(Value, out var target)) return true;
+            return valueSeconds == target;
         }
-        else
-        {
-            var minOk = MinBoundaryType == RangeBoundaryType.Inclusive ? valueSeconds >= min : valueSeconds > min;
-            if (string.IsNullOrEmpty(ValueMax) || !DrainTimeConverter.TryParseToSeconds(ValueMax, out var max))
-            {
-                return minOk;
-            }
-            var maxOk = MaxBoundaryType == RangeBoundaryType.Inclusive ? valueSeconds <= max : valueSeconds < max;
-            return minOk && maxOk;
-        }
+
+        var hasMin = DrainTimeConverter.TryParseToSeconds(Value, out var min);
+        var hasMax = DrainTimeConverter.TryParseToSeconds(ValueMax, out var max);
+        return MatchesRange(valueSeconds, hasMin, min, hasMax, max);
+    }
+
+    /// <summary>
+    /// 範囲比較。最小値・最大値は片方だけでもよく、入力のない側は制限しない。
+    /// </summary>
+    private bool MatchesRange(double value, bool hasMin, double min, bool hasMax, double max)
+    {
+        if (hasMin && !(MinBoundaryType == RangeBoundaryType.Inclusive ? value >= min : value > min)) return false;
+        if (hasMax && !(MaxBoundaryType == RangeBoundaryType.Inclusive ? value <= max : value < max)) return false;
+        return true;
     }
 }

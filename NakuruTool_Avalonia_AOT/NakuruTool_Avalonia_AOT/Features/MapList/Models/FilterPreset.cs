@@ -21,16 +21,62 @@ public class FilterPreset
     public string CollectionName { get; set; } = string.Empty;
 
     /// <summary>
-    /// フィルタ条件のリスト
+    /// フィルタ条件のリスト（条件の組が 1 つのとき。v3.1 以前と同じ形式）
     /// </summary>
     public List<FilterConditionData> Conditions { get; set; } = new();
+
+    /// <summary>
+    /// 条件の組のリスト（条件の組が 2 つ以上のとき。このとき <see cref="Conditions"/> は空）。
+    /// 古いバージョンでは条件なしとして読まれ、誤った条件でコレクションが作られることはない。
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<FilterConditionGroupData>? Groups { get; set; }
+
+    /// <summary>
+    /// 条件の組を返す。<see cref="Groups"/> がなければ <see cref="Conditions"/> を 1 つの組として扱う。
+    /// </summary>
+    public List<List<FilterConditionData>> GetGroups()
+    {
+        if (Groups is { Count: > 0 })
+            return Groups.ConvertAll(g => g.Conditions ?? new List<FilterConditionData>());
+        return new List<List<FilterConditionData>> { Conditions ?? new List<FilterConditionData>() };
+    }
+
+    /// <summary>
+    /// 条件の組からプリセットを作る。空の組は除き、組が 1 つ以下なら <see cref="Conditions"/>、
+    /// 2 つ以上なら <see cref="Groups"/> に入れる。
+    /// </summary>
+    public static FilterPreset Create(string name, string collectionName, IEnumerable<List<FilterConditionData>> groups)
+    {
+        var nonEmpty = new List<List<FilterConditionData>>();
+        foreach (var group in groups)
+        {
+            if (group.Count > 0) nonEmpty.Add(group);
+        }
+
+        var preset = new FilterPreset { Name = name, CollectionName = collectionName };
+        if (nonEmpty.Count > 1)
+            preset.Groups = nonEmpty.ConvertAll(g => new FilterConditionGroupData { Conditions = g });
+        else if (nonEmpty.Count == 1)
+            preset.Conditions = nonEmpty[0];
+        return preset;
+    }
 
     /// <summary>
     /// 7K 解析の値（Prism・段位推定）を使う条件を含むか。
     /// 起動時の自動一括生成では、このプリセットは解析が終わってから生成する。
     /// </summary>
     public bool UsesAnalyze7k() =>
-        Conditions.Exists(c => Enum.TryParse<FilterTarget>(c.Target, out var target) && FilterTargetInfo.IsAnalyze7k(target));
+        GetGroups().Exists(group =>
+            group.Exists(c => Enum.TryParse<FilterTarget>(c.Target, out var target) && FilterTargetInfo.IsAnalyze7k(target)));
+}
+
+/// <summary>
+/// シリアライズ可能な条件の組
+/// </summary>
+public class FilterConditionGroupData
+{
+    public List<FilterConditionData> Conditions { get; set; } = new();
 }
 
 /// <summary>
@@ -169,6 +215,7 @@ public class FilterConditionData
 [JsonSerializable(typeof(FilterPreset))]
 [JsonSerializable(typeof(List<FilterPreset>))]
 [JsonSerializable(typeof(FilterConditionData))]
+[JsonSerializable(typeof(FilterConditionGroupData))]
 public partial class FilterPresetJsonContext : JsonSerializerContext
 {
 }

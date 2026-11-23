@@ -202,14 +202,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    U["ユーザー操作"] -->|条件追加/変更/削除| FC["FilterCondition<br/>(ObservableObject)"]
-    FC -->|PropertyChanged| OEP["Conditions.ObserveElementPropertyChanged()"]
-    FC -->|Add/Remove| OCC["Conditions.ObserveCollectionChanged()"]
+    U["ユーザー操作"] -->|条件・組の追加/変更/削除| FC["FilterConditionGroup / FilterCondition<br/>(ObservableObject)"]
+    FC -->|PropertyChanged| OEP["group.Conditions.ObserveElementPropertyChanged()"]
+    FC -->|Add/Remove| OCC["Groups / group.Conditions.ObserveCollectionChanged()"]
 
-    OEP --> NFC["NotifyFilterChanged()"]
+    OEP --> NFC["FilterGroupsEditorViewModel.OnChanged()<br/>(判定用の組を作り直す)"]
     OCC --> NFC
 
-    NFC -->|OnNext| FCS["_filterChangedSubject<br/>(Subject&lt;Unit&gt;)"]
+    NFC -->|OnNext| FCS["Editor.Changed<br/>(= MapFilterViewModel.FilterChanged)"]
     FCS -->|Subscribe| AF["MapListViewModel.ApplyFilter()"]
 
     AF --> UF["UpdateFilteredBeatmapsArray()"]
@@ -225,10 +225,10 @@ flowchart TD
 
 ### フィルタリングの流れ
 
-1. **条件変更検知**: `AvaloniaList<FilterCondition>` の `ObserveCollectionChanged()` と `ObserveElementPropertyChanged()` で変更を検知
-2. **変更通知**: `_filterChangedSubject.OnNext(Unit.Default)` でフィルタ変更を通知
+1. **条件変更検知**: `FilterGroupsEditorViewModel` が `Groups` と各組の `Conditions` の `ObserveCollectionChanged()`、条件の `ObserveElementPropertyChanged()` で変更を検知（組の追加/削除のたびに組ごとの購読を作り直す）
+2. **変更通知**: 値の入った条件だけの組の配列（`BuildActiveGroups()`）を作り直してから `Changed` に通知する。`MapFilterViewModel.FilterChanged` はこれをそのまま公開する
 3. **フィルタ実行**: `MapListViewModel` が `FilterChanged` を購読し `ApplyFilter()` を呼び出し
-4. **ZLinqフィルタ**: `_databaseService.Beatmaps.AsValueEnumerable().Where(x => _filterViewModel.Matches(x))` でフィルタ実行
+4. **ZLinqフィルタ**: `_databaseService.Beatmaps.AsValueEnumerable().Where(x => _filterViewModel.Matches(x))` でフィルタ実行（いずれかの組のすべての条件に一致すれば一致。値の入った条件がなければ全件）
    - フィルタ対象フィールド: `Title`, `Artist`, `BPM`, `Difficulty`, `OD`, `HP`, `DrainTime`, `KeyCount`, `LongNoteRate`, `Status` など（詳細は [MODULES.md](MODULES.md) 参照）
 5. **ページリセット**: `FilteredPages` 更新時に `CurrentPage = 1` にリセット
 6. **表示更新**: `Span<Beatmap>` の `skip/take` でページ分のデータを `ShowBeatmaps`（`AvaloniaList`）にセット
@@ -449,7 +449,7 @@ sequenceDiagram
 | `DatabaseService` | `_osuDbProgress` | `Subject<DatabaseLoadProgress>` | osu!.db読み込み進捗 |
 | `DatabaseService` | `_scoresDbProgress` | `Subject<DatabaseLoadProgress>` | scores.db読み込み進捗 |
 | `GenerateCollectionService` | `_generationProgress` | `Subject<GenerationProgress>` | コレクション生成進捗 |
-| `MapFilterViewModel` | `_filterChangedSubject` | `Subject<Unit>` | フィルタ条件変更通知 |
+| `FilterGroupsEditorViewModel` | `_changedSubject` | `Subject<Unit>` | 組・条件の変更通知（`MapFilterViewModel.FilterChanged` として公開） |
 | `AudioPlayerService` | `_stateSubject` | `Subject<AudioPlayerState>` | オーディオ再生状態変更通知 |
 | `AudioPlayerService` | `_playbackCompletedSubject` | `Subject<Unit>` | 再生完了の通知（自然終了時のみ） |
 | `ImportExportService` | `_progress` | `Subject<ImportExportProgress>` | エクスポート/インポート進捗通知 |
@@ -468,17 +468,17 @@ sequenceDiagram
 | 2 | `DatabaseService._osuDbProgress` | `DatabaseLoadingViewModel` | osu!.db進捗変更 | `OsuDbMessage` / `OsuDbProgress` 更新 | `AddTo(Disposables)` |
 | 3 | `DatabaseService._scoresDbProgress` | `DatabaseLoadingViewModel` | scores.db進捗変更 | `ScoresDbMessage` / `ScoresDbProgress` 更新 | `AddTo(Disposables)` |
 | 4 | `SettingsData.OsuFolderPath` | `MainWindowViewModel` | `OsuFolderPath` PropertyChanged | `OnFolderPathChanged()` → `ReloadDatabaseAsync()` | `AddTo(Disposables)` |
-| 5 | `MapFilterViewModel._filterChangedSubject` | `MapListViewModel` | フィルタ条件変更 | `ApplyFilter()` | `AddTo(Disposables)` |
+| 5 | `MapFilterViewModel.FilterChanged`（`Editor.Changed`） | `MapListViewModel` | フィルタ条件変更 | `ApplyFilter()` | `AddTo(Disposables)` |
 | 6 | `MapListViewModel.SelectedBeatmap` | `MapListViewModel` | 譜面選択変更 | `AudioPlayer.PlayBeatmapAudio()` | `AddTo(Disposables)` |
 | 7 | `GenerateCollectionService._generationProgress` | `MapListPageViewModel` | コレクション生成進捗 | `GenerationStatusMessage` / `GenerationProgressValue` 更新 | `AddTo(Disposables)` |
 | 8 | `MapFilterViewModel.SelectedPreset` | `MapListPageViewModel` | プリセット選択変更 | `CollectionName` をプリセットのコレクション名に更新 | `AddTo(Disposables)` |
 | 9 | `FilterPresetService.Presets` (AvaloniaList) | `MapFilterViewModel` | プリセットリスト変更 | `UpdatePresetsWithNone()` | `AddTo(Disposables)` |
-| 10 | `MapFilterViewModel.Conditions` (AvaloniaList) | `MapFilterViewModel` | 条件の追加/削除 | `NotifyFilterChanged()` + コマンド状態更新 | `AddTo(Disposables)` |
-| 11 | `MapFilterViewModel.Conditions` 要素 | `MapFilterViewModel` | 条件プロパティ変更 | `NotifyFilterChanged()` | `AddTo(Disposables)` |
+| 10 | `FilterGroupsEditorViewModel.Groups` / 各組の `Conditions` (AvaloniaList) | `FilterGroupsEditorViewModel` | 組・条件の追加/削除 | 組ごとの購読の作り直し + `OnChanged()`（判定用の組・コマンド状態更新 → `Changed`） | `AddTo(Disposables)` / 組ごとの購読は `_groupSubscriptions` |
+| 11 | 各組の `Conditions` 要素 | `FilterGroupsEditorViewModel` | 条件プロパティ変更 | `OnChanged()` | `_groupSubscriptions` |
 | 12 | `AudioPlayerService._stateSubject` | `AudioPlayerViewModel` | 再生状態変更 | `IsPlaying` 更新 | `AddTo(Disposables)` |
 | 13 | `SettingsData.LanguageKey` | `SettingsService` | 言語キー変更 | `LanguageService.ChangeLanguage()` | `AddTo(_disposables)` |
 | 14 | `ImportExportService._progress` | `ImportExportPageViewModel` | エクスポート/インポート進捗変更 | `StatusMessage` / `ProgressValue` 更新 | `AddTo(Disposables)` |
-| 15 | `PresetEditorViewModel.EditingConditions` (AvaloniaList) | `PresetEditorViewModel` | 編集条件の追加/削除 | `AddConditionCommand` / `SavePresetCommand` のCanExecute更新 | `AddTo(Disposables)` |
+| 15 | `PresetEditorViewModel.Editor.Changed` | `PresetEditorViewModel` | 編集中の組・条件の変更 | `SavePresetCommand` のCanExecute更新 | `AddTo(Disposables)` |
 | 16 | `FilterPresetService.Presets` (AvaloniaList) | `PresetEditorViewModel` | プリセットリスト変更 | `BatchGenerateCollectionsCommand` のCanExecute更新 | `AddTo(Disposables)` |
 | IE-2 | `ExportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Export選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, false)` | `AddTo(Disposables)` |
 | IE-3 | `ImportViewModel._previewRequestedSubject` | `ImportExportPageViewModel` | Import選択変更（null時は空配列） | `BeatmapListVM.SetPreviewRows(rows, true)` | `AddTo(Disposables)` |
@@ -497,7 +497,7 @@ sequenceDiagram
 | SORT-1 | `MapListSortViewModel._sortChangedSubject` | `BeatmapListViewModelBase`（派生毎に独立） | ソート規則変更 | `ApplyCurrentSort()`で `_unsortedBeatmaps`→`_sourceBeatmaps` に再充填 + in-place `Array.Sort` → `UpdateShowBeatmaps()` | `AddTo(Disposables)` |
 | SORT-2 | `Observable.Merge(SortChanged, SelectedModCategoryChanged, SelectedScoreSystemCategoryChanged, PreferUnicodeChanged)` | `BeatmapListViewModelBase` | ソート関連のいずれかが変わったとき | `ApplyCurrentSort()`（上記を一本で起動） | `AddTo(Disposables)` |
 | SORT-3 | 上記と同等の Merge | `MapListViewModel` | ソート関連のいずれかが変わったとき | `AudioPlayerPanelViewModel.RefreshNavigationContextPreservingCurrent(SourceBeatmapsRaw)` を呼び、再生中曲の next/previous index を MD5 で再解決 | `AddTo(Disposables)` |
-| SORT-4 | `MapFilterViewModel._filterChangedSubject` | `MapListViewModel` | フィルタ条件変更 | `ApplyFilter()`（MapList 固有。フィルタは BeatmapGenerator には存在しないため基底へ上げず「MapList 固有」として維持） | `AddTo(Disposables)` |
+| SORT-4 | `MapFilterViewModel.FilterChanged`（`Editor.Changed`） | `MapListViewModel` | フィルタ条件変更 | `ApplyFilter()`（MapList 固有。フィルタは BeatmapGenerator には存在しないため基底へ上げず「MapList 固有」として維持） | `AddTo(Disposables)` |
 
 ### 6.3 ライフサイクル管理
 
@@ -525,7 +525,7 @@ flowchart TD
 - **ViewModelBase**: `CompositeDisposable Disposables` を保持。`Dispose()` で全購読を一括解除
 - **SettingsService**: 独自の `CompositeDisposable _disposables` で言語監視のライフサイクルを管理
 - **Subject発行元のService**: `Dispose()` 時に各Subjectを明示的に `Dispose()`
-- **MapFilterViewModel**: `_filterChangedSubject` 自体も `AddTo(Disposables)` で管理
+- **FilterGroupsEditorViewModel**: `_changedSubject` と組ごとの購読（`_groupSubscriptions`）も `AddTo(Disposables)` で管理。`MapFilterViewModel` / `PresetEditorViewModel` は `Editor` を `AddTo(Disposables)` で管理
 
 ---
 

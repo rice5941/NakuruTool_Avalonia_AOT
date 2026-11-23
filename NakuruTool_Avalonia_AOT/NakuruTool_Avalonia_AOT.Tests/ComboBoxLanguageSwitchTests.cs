@@ -33,9 +33,9 @@ public sealed class ComboBoxLanguageSwitchTests
         languageService.ChangeLanguage("ja-JP");
 
         var vm = new MapFilterViewModel(new MockFilterPresetService(), new MockDatabaseService());
-        vm.Conditions.Clear();
+        vm.Editor.Clear();
         var condition = new FilterCondition { Target = FilterTarget.BestScore, ScoreModCategory = ModCategory.NoMod };
-        vm.Conditions.Add(condition);
+        vm.Editor.Groups[0].Conditions.Add(condition);
 
         var view = new MapFilterView { DataContext = vm };
         var window = new Window { Width = 420, Height = 900, Content = view };

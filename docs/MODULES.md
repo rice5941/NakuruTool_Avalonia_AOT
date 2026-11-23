@@ -181,9 +181,9 @@
 
 #### 責務
 
-- フィルタ条件のCRUD管理（追加・削除・クリア）
-- 条件変更時の通知（R3 `Subject<Unit>`）
-- 譜面に対するフィルタマッチング判定
+- 条件の組の編集は共有部品 `FilterGroupsEditorViewModel`（`Editor`）に任せる
+- 条件変更時の通知（`Editor.Changed` を `FilterChanged` として公開）
+- 譜面に対するフィルタマッチング判定（`Editor.Matches` に委譲）
 - プリセットの読み込み・保存
 - コレクション名一覧の管理（`CollectionNames`）
 
@@ -191,8 +191,8 @@
 
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
-| `Conditions` | `AvaloniaList<FilterCondition>` | 現在のフィルタ条件リスト |
-| `FilterChanged` | `Observable<Unit>` | フィルタ条件変更通知 |
+| `Editor` | `FilterGroupsEditorViewModel` | 条件の組の編集（プリセット編集画面と共有） |
+| `FilterChanged` | `Observable<Unit>` | フィルタ条件変更通知（`Editor.Changed`） |
 | `SelectedPreset` | `FilterPreset?` | 選択中のプリセット |
 | `PresetsWithNone` | `AvaloniaList<FilterPreset?>` | プリセット一覧（先頭にnull=「なし」を含む） |
 | `CollectionNames` | `ObservableCollection<string>` | 利用可能なコレクション名一覧（Collectionフィルタ用） |
@@ -202,20 +202,33 @@
 - **OsuDatabase** — `IFilterPresetService` を通じてプリセットを管理、`IDatabaseService.OsuCollections` を参照してコレクション名一覧・Collectionフィルタマッチングに使用
 - **Shared** — `ViewModelBase` を継承
 
-#### 最大条件数
-
-- **8** 条件まで追加可能（`MaxConditions = 8`）
-
 #### R3による条件変更監視チェーン
 
-1. `Conditions.ObserveCollectionChanged()` → 条件の追加/削除を検知 → `NotifyFilterChanged()`
-2. `Conditions.ObserveElementPropertyChanged()` → 各条件のプロパティ変更を検知 → `NotifyFilterChanged()`
-3. `_presetService.Presets.ObserveCollectionChanged()` → プリセット一覧の変更を検知 → `UpdatePresetsWithNone()`
+1. `Editor.Changed` → 組・条件の追加/削除、条件のプロパティ変更 → `FilterChanged`（`MapListViewModel.ApplyFilter()`）
+2. `_presetService.Presets.ObserveCollectionChanged()` → プリセット一覧の変更を検知 → `UpdatePresetsWithNone()`
+
+### 2.3a FilterGroupsEditorViewModel（条件の組の編集）
+
+| ファイル | 種別 |
+|---------|------|
+| `FilterGroupsEditorViewModel.cs` | ViewModel（`MapFilterViewModel` と `PresetEditorViewModel` が 1 つずつ持つ） |
+| `FilterGroupsEditorView.axaml` | View（フィルタ画面とプリセット編集画面で共有） |
+
+- `Groups`（`AvaloniaList<FilterConditionGroup>`）は常に 1 つ以上。組の中の条件は AND、組どうしは OR
+- 全組の条件の合計は **16** まで（`MaxConditions = 16`）。組の数の上限はない
+- コマンド: `AddCondition(group)` / `RemoveCondition(condition)`（組が空になり、ほかに組があれば組も削除）/ `AddGroup`（条件のない組しかなければその組に条件を追加）/ `DuplicateGroup(group)` / `RemoveGroup(group)` / `Clear`
+- `Changed` は組の追加/削除、各組の条件の追加/削除、条件のプロパティ変更で発火する（組の変更時に組ごとの購読を作り直す）。`Load` は 1 回だけ発火する
+- 発火の前に、組の番号（`Number`）・未入力の組の表示（`IsIgnored`）・判定用の組の配列・コマンドの CanExecute を更新する
+- 組が 1 つでも View で組の枠と見出しを出す。組の削除ボタンは組が 2 つ以上のときだけ出す（`HasMultipleGroups`）
+- 条件行は「除外・対象・削除」を 1 行にまとめ、一致/範囲の切替は両方に対応する対象のときだけ出す（`CanSwitchComparison`）
+- 条件のない組は複製できず、`IsIgnored`（未入力のため無視）にもならない
 
 #### マッチング
 
-- `Matches(Beatmap)` — 全条件がAND結合。条件が0件の場合は全譜面にマッチ
-- 各 `FilterCondition.Matches(Beatmap)` に委譲
+- `Matches(Beatmap)` — 条件が変わるたびに `FilterConditionExtensions.BuildActiveGroups()` で値の入った条件だけの組の配列を作ってキャッシュし、`MatchesAnyGroup()` で判定する
+- いずれかの組のすべての条件に一致すれば一致。値の入った条件がある組が 1 つもなければ全譜面にマッチ
+- 値が未入力の条件（`FilterCondition.IsActive == false`）は判定に使わない（OR の組で全件一致にならないようにするため）
+- 各条件は `FilterCondition.Matches(Beatmap)` に委譲し、NOT（UI 上の表記は「除外」）は呼び出し側で反転する
 
 ---
 
@@ -302,6 +315,12 @@
 - `MatchesLongNoteRate` — 入力値を100で割って内部値と比較
 - `MatchesDateTime` — 日付部分のみで一致または範囲判定
 - `MatchesNullableDouble` — 7K 解析の値の範囲判定（値のない譜面は、条件が入力されていれば一致しない）
+- 範囲は最小値・最大値のどちらか片方だけでもよい（入力のない側は制限しない）
+- `IsActive` — 判定に使う値が入力されているか（ステータス・Bool は常に true、選択式は有効な値、文字列は空でない、数値・日付・時間長は一致なら値・範囲なら最小値か最大値が解釈できる）
+
+#### FilterConditionGroup
+
+条件の組。`Conditions`（`AvaloniaList<FilterCondition>`）、表示用の `Number`、値の入った条件がないことを示す `IsIgnored` を持つ。
 
 #### FilterPreset
 
@@ -311,7 +330,11 @@
 |-----------|---|------|
 | `Name` | `string` | プリセット名（ファイル名としても使用） |
 | `CollectionName` | `string` | コレクション名 |
-| `Conditions` | `List<FilterConditionData>` | フィルタ条件のシリアライズ用データリスト |
+| `Conditions` | `List<FilterConditionData>` | 条件の組が 1 つのときの条件（v3.1 以前と同じ形式） |
+| `Groups` | `List<FilterConditionGroupData>?` | 条件の組が 2 つ以上のときの組（このとき `Conditions` は空。null のときは書き出さない） |
+
+- `GetGroups()` — `Groups` があればそれを、なければ `Conditions` を 1 つの組として返す
+- `Create(name, collectionName, groups)` — 空の組を除き、組が 1 つなら `Conditions`、2 つ以上なら `Groups` に入れる。組が 1 つのプリセットは古いバージョンでもそのまま読め、2 つ以上のプリセットは古いバージョンでは条件なし（コレクションを作らない）として読まれる
 
 #### FilterConditionData
 
@@ -322,7 +345,7 @@
 
 #### FilterPresetJsonContext
 
-NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `List<FilterPreset>`, `FilterConditionData` のシリアライズに対応。
+NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `List<FilterPreset>`, `FilterConditionData`, `FilterConditionGroupData` のシリアライズに対応。
 
 ---
 
@@ -375,7 +398,7 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 #### 責務
 
 - プリセット一覧の表示・選択
-- 選択プリセットのフィルタ条件読み込みと編集（`EditingConditions`）
+- 選択プリセットのフィルタ条件読み込みと編集（`Editor`。フィルタ画面と同じ `FilterGroupsEditorViewModel`）
 - 編集内容の保存（名前変更時は重複チェック付き `RenamePreset` 経由）
 - プリセット削除
 - 全プリセットに対する一括コレクション生成（`BatchGenerateCollectionsAsync`）
@@ -387,10 +410,10 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 | プロパティ | 型 | 概要 |
 |-----------|---|------|
 | `Presets` | `AvaloniaList<FilterPreset>` | `FilterPresetService.Presets` への参照 |
-| `SelectedPreset` | `FilterPreset?` | 選択中プリセット。変更時に `EditingConditions` を自動更新 |
+| `SelectedPreset` | `FilterPreset?` | 選択中プリセット。変更時に `Editor.Load()` で条件を読み込む |
 | `EditingPresetName` | `string` | 編集中のプリセット名 |
 | `EditingCollectionName` | `string` | 編集中のコレクション名 |
-| `EditingConditions` | `AvaloniaList<FilterCondition>` | 編集中のフィルタ条件一覧（`MapFilterViewModel` とは独立） |
+| `Editor` | `FilterGroupsEditorViewModel` | 編集中の条件の組（`MapFilterViewModel` とは独立したインスタンス） |
 | `IsBatchGenerating` | `bool` | 一括生成中フラグ |
 | `BatchGenerationProgress` | `int` | 一括生成進捗値（0–100） |
 | `BatchGenerationStatusMessage` | `string` | 一括生成進捗/結果メッセージ |
@@ -403,9 +426,6 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 |---------|-----------|------|
 | `SavePresetCommand` | `SelectedPreset != null` かつ名前・コレクション名・条件が1件以上 | 現在の編集内容でプリセットを保存。名前変更時は `RenamePreset` 経由 |
 | `DeletePresetCommand` | `SelectedPreset != null` | 選択プリセットを削除し `SelectedPreset = null` |
-| `AddConditionCommand` | `EditingConditions.Count < 8` | `EditingConditions` に新規条件を追加 |
-| `RemoveConditionCommand` | 常時 | 指定条件を `EditingConditions` から削除 |
-| `ClearConditionsCommand` | 常時 | `EditingConditions` を全消去 |
 | `BatchGenerateCollectionsCommand` | `!IsBatchGenerating && Presets.Count > 0` | 全プリセットのコレクションを順次生成 |
 
 #### 一括生成フロー
@@ -413,7 +433,7 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 `BatchGenerateCollectionsAsync()` は以下の手順で全プリセットを処理:
 
 1. `_presetService.Presets` をループ
-2. 各プリセットの条件で `_databaseService.Beatmaps` をZLinqでフィルタ（`FilterBeatmapsByPreset()`）
+2. 各プリセットの条件の組（`GetGroups()`）で `_databaseService.Beatmaps` をZLinqでフィルタ（`FilterBeatmapsByPreset()`。判定は `MatchesAnyGroup()`）
 3. フィルタ結果が1件以上 かつ `CollectionName` が非空の場合、`IGenerateCollectionService.GenerateCollection()` を呼び出し
 4. 進捗を `BatchGenerationProgress` / `BatchGenerationStatusMessage` で随時更新
 
@@ -424,7 +444,7 @@ NativeAOT対応のJSON Source Generatorコンテキスト。`FilterPreset`, `Lis
 
 | 発行元 | トリガー | アクション |
 |-------|---------|----------|
-| `EditingConditions.ObserveCollectionChanged()` | 条件の追加/削除 | `AddConditionCommand` / `SavePresetCommand` のCanExecute更新 |
+| `Editor.Changed` | 組・条件の変更 | `SavePresetCommand` のCanExecute更新 |
 | `_presetService.Presets.ObserveCollectionChanged()` | プリセットリスト変更 | `BatchGenerateCollectionsCommand` のCanExecute更新 |
 
 #### Sort 連携

@@ -209,7 +209,7 @@ public class Analyze7kScreenshotTests
     public void CaptureGenreFilters()
     {
         var vm = new MapFilterViewModel(new MockFilterPresetService(), new MockDatabaseService());
-        vm.Conditions.Clear();
+        vm.Editor.Clear();
         var skill = new FilterCondition { Target = FilterTarget.ManiaPrismGenreSkill };
         skill.CompareValue = "LN";
         skill.Value = "30";
@@ -219,9 +219,9 @@ public class Analyze7kScreenshotTests
         concentration.Value = "40";
         var top = new FilterCondition { Target = FilterTarget.ManiaPrismTopGenre };
         top.ChoiceValue = "LN";
-        vm.Conditions.Add(skill);
-        vm.Conditions.Add(concentration);
-        vm.Conditions.Add(top);
+        vm.Editor.Groups[0].Conditions.Add(skill);
+        vm.Editor.Groups[0].Conditions.Add(concentration);
+        vm.Editor.Groups[0].Conditions.Add(top);
 
         var view = new MapFilterView { DataContext = vm };
         var window = new Window { Width = 420, Height = 900, Content = view };

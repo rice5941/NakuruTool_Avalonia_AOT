@@ -15,15 +15,49 @@ public static class FilterConditionExtensions
     public static void ClearCollectionCache() => s_collectionMd5Cache.Clear();
 
     /// <summary>
-    /// Beatmapがすべての条件に一致するかを判定する（NOT反転・Collectionフィルタ対応）
+    /// 条件の組から、値の入った条件だけを残した組の配列を作る（値の入った条件がない組は除く）。
+    /// 絞り込みは全譜面に対して回るため、条件が変わったときに一度だけ作って <see cref="MatchesAnyGroup"/> に渡す。
     /// </summary>
-    /// <param name="conditions">評価する条件リスト</param>
+    public static FilterCondition[][] BuildActiveGroups(this IEnumerable<IEnumerable<FilterCondition>> groups)
+    {
+        var result = new List<FilterCondition[]>();
+        foreach (var group in groups)
+        {
+            var active = new List<FilterCondition>();
+            foreach (var condition in group)
+            {
+                if (condition.IsActive) active.Add(condition);
+            }
+            if (active.Count > 0) result.Add(active.ToArray());
+        }
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// Beatmapがいずれかの組のすべての条件に一致するかを判定する（NOT反転・Collectionフィルタ対応）。
+    /// 組が 1 つもなければ（条件がない・すべて未入力）すべての譜面が一致する。
+    /// </summary>
+    /// <param name="activeGroups"><see cref="BuildActiveGroups"/> で作った組</param>
     /// <param name="beatmap">評価対象のBeatmap</param>
     /// <param name="databaseService">DB参照用</param>
-    public static bool MatchesAll(
-        this IEnumerable<FilterCondition> conditions,
+    public static bool MatchesAnyGroup(
+        this FilterCondition[][] activeGroups,
         Beatmap beatmap,
         IDatabaseService databaseService)
+    {
+        if (activeGroups.Length == 0) return true;
+
+        foreach (var group in activeGroups)
+        {
+            if (MatchesAll(group, beatmap, databaseService)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Beatmapが組のすべての条件に一致するかを判定する
+    /// </summary>
+    private static bool MatchesAll(FilterCondition[] conditions, Beatmap beatmap, IDatabaseService databaseService)
     {
         foreach (var condition in conditions)
         {

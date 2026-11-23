@@ -18,12 +18,10 @@ namespace NakuruTool_Avalonia_AOT.Features.MapList;
 /// </summary>
 public partial class MapFilterViewModel : ViewModelBase
 {
-    private const int MaxConditions = 8;
-
-    [ObservableProperty]
-    public partial AvaloniaList<FilterCondition> Conditions { get; set; } = new();
-
-    private bool CanAddCondition => Conditions.Count < MaxConditions;
+    /// <summary>
+    /// 条件の組の編集（プリセット編集画面と共有の部品）
+    /// </summary>
+    public FilterGroupsEditorViewModel Editor { get; }
 
     public static FilterTarget[] FilterTargets => Enum.GetValues<FilterTarget>();
 
@@ -31,12 +29,10 @@ public partial class MapFilterViewModel : ViewModelBase
 
     public static BeatmapStatus[] StatusOptions => Enum.GetValues<BeatmapStatus>();
 
-    private readonly Subject<Unit> _filterChangedSubject = new();
-
     /// <summary>
     /// フィルタ条件が変更されたときに発火するObservable
     /// </summary>
-    public Observable<Unit> FilterChanged => _filterChangedSubject;
+    public Observable<Unit> FilterChanged => Editor.Changed;
 
     private readonly IFilterPresetService _presetService;
     private readonly IDatabaseService _databaseService;
@@ -52,15 +48,8 @@ public partial class MapFilterViewModel : ViewModelBase
 
     partial void OnSelectedPresetChanged(FilterPreset? value)
     {
-        if (value != null)
-        {
-            LoadPreset(value);
-        }
-        else
-        {
-            // 「なし」を選択した場合は条件をクリア
-            Conditions.Clear();
-        }
+        // 「なし」を選択した場合は条件をクリア
+        Editor.Load(value);
     }
 
     /// <summary>
@@ -79,66 +68,16 @@ public partial class MapFilterViewModel : ViewModelBase
             .Subscribe(_ => UpdatePresetsWithNone())
             .AddTo(Disposables);
 
-        // コレクション変更を監視
-        Conditions.ObserveCollectionChanged()
-            .Subscribe(_ =>
-            {
-                AddConditionCommand.NotifyCanExecuteChanged();
-                NotifyFilterChanged();
-            })
-            .AddTo(Disposables);
-
-        // 要素のPropertyChangedを監視
-        Conditions.ObserveElementPropertyChanged()
-            .Subscribe(_ => NotifyFilterChanged())
-            .AddTo(Disposables);
-
-        _filterChangedSubject.AddTo(Disposables);
-    }
-
-    [RelayCommand(CanExecute = nameof(CanAddCondition))]
-    private void AddCondition()
-    {
-        var condition = new FilterCondition();
-        Conditions.Add(condition);
-    }
-
-    [RelayCommand]
-    private void RemoveCondition(FilterCondition condition)
-    {
-        Conditions.Remove(condition);
-        AddConditionCommand.NotifyCanExecuteChanged();
-    }
-
-    [RelayCommand]
-    private void ClearConditions()
-    {
-        Conditions.Clear();
-        AddConditionCommand.NotifyCanExecuteChanged();
+        Editor = new FilterGroupsEditorViewModel(databaseService).AddTo(Disposables);
     }
 
     /// <summary>
-    /// Beatmapがすべてのフィルタ条件に一致するかどうかを判定
+    /// Beatmapがフィルタ条件に一致するかどうかを判定
     /// </summary>
-    public bool Matches(Beatmap beatmap)
-    {
-        if (Conditions.Count == 0) return true;
-        return Conditions.MatchesAll(beatmap, _databaseService);
-    }
+    public bool Matches(Beatmap beatmap) => Editor.Matches(beatmap);
 
     /// <summary>7K 解析の値を使う条件があるか</summary>
-    public bool UsesAnalyze7k
-    {
-        get
-        {
-            foreach (var condition in Conditions)
-            {
-                if (FilterTargetInfo.IsAnalyze7k(condition.Target))
-                    return true;
-            }
-            return false;
-        }
-    }
+    public bool UsesAnalyze7k => Editor.UsesAnalyze7k;
 
     /// <summary>
     /// コレクション名リストを更新
@@ -154,41 +93,11 @@ public partial class MapFilterViewModel : ViewModelBase
         }
     }
 
-    private void NotifyFilterChanged()
-    {
-        _filterChangedSubject.OnNext(Unit.Default);
-    }
-
-    /// <summary>
-    /// プリセットから条件を読み込み
-    /// </summary>
-    private void LoadPreset(FilterPreset preset)
-    {
-        Conditions.Clear();
-
-        foreach (var conditionData in preset.Conditions)
-        {
-            var condition = conditionData.ToFilterCondition();
-            Conditions.Add(condition);
-        }
-    }
-
     /// <summary>
     /// 現在の絞り込み条件からFilterPresetを作成
     /// </summary>
-    public FilterPreset CreatePreset(string presetName, string collectionName)
-    {
-        var conditionDataList = Conditions
-            .Select(FilterConditionData.FromFilterCondition)
-            .ToList();
-
-        return new FilterPreset
-        {
-            Name = presetName,
-            CollectionName = collectionName,
-            Conditions = conditionDataList
-        };
-    }
+    public FilterPreset CreatePreset(string presetName, string collectionName) =>
+        Editor.ToPreset(presetName, collectionName);
 
     /// <summary>
     /// プリセットを保存

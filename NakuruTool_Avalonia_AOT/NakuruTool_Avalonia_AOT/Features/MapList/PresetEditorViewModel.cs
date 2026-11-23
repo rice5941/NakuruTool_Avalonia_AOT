@@ -21,8 +21,6 @@ namespace NakuruTool_Avalonia_AOT.Features.MapList;
 /// </summary>
 public partial class PresetEditorViewModel : ViewModelBase
 {
-    private const int MaxConditions = 8;
-
     private readonly IFilterPresetService _presetService;
     private readonly IDatabaseService _databaseService;
     private readonly IGenerateCollectionService _generateCollectionService;
@@ -46,9 +44,9 @@ public partial class PresetEditorViewModel : ViewModelBase
     public partial string EditorStatusMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// 編集中のフィルタ条件リスト
+    /// 編集中の条件の組（フィルタ画面と共有の部品）
     /// </summary>
-    public AvaloniaList<FilterCondition> EditingConditions { get; } = new();
+    public FilterGroupsEditorViewModel Editor { get; }
 
     /// <summary>
     /// プリセット一覧（_presetService.Presetsへの参照）
@@ -79,13 +77,10 @@ public partial class PresetEditorViewModel : ViewModelBase
         // Presetsはpresetサービスの同一インスタンス参照
         Presets = presetService.Presets;
 
-        // EditingConditions変更時のコマンド更新
-        EditingConditions.ObserveCollectionChanged()
-            .Subscribe(_ =>
-            {
-                AddConditionCommand.NotifyCanExecuteChanged();
-                SavePresetCommand.NotifyCanExecuteChanged();
-            })
+        // 条件変更時の保存コマンド更新
+        Editor = new FilterGroupsEditorViewModel(databaseService).AddTo(Disposables);
+        Editor.Changed
+            .Subscribe(_ => SavePresetCommand.NotifyCanExecuteChanged())
             .AddTo(Disposables);
 
         // Presets変更時の一括生成コマンド更新
@@ -96,16 +91,8 @@ public partial class PresetEditorViewModel : ViewModelBase
 
     partial void OnSelectedPresetChanged(FilterPreset? value)
     {
-        if (value != null)
-        {
-            EditingPresetName = value.Name;
-            LoadConditions(value);
-        }
-        else
-        {
-            EditingPresetName = string.Empty;
-            EditingConditions.Clear();
-        }
+        EditingPresetName = value?.Name ?? string.Empty;
+        Editor.Load(value);
 
         // 操作結果メッセージをクリア（次の操作開始時クリア方針）
         EditorStatusMessage = string.Empty;
@@ -128,9 +115,7 @@ public partial class PresetEditorViewModel : ViewModelBase
     private bool CanSavePreset() =>
         SelectedPreset != null
         && !string.IsNullOrWhiteSpace(EditingPresetName)
-        && EditingConditions.Count > 0;
-
-    private bool CanAddCondition => EditingConditions.Count < MaxConditions;
+        && Editor.HasConditions;
 
     private bool CanBatchGenerate() =>
         !IsBatchGenerating
@@ -151,16 +136,8 @@ public partial class PresetEditorViewModel : ViewModelBase
         var oldName = SelectedPreset.Name;
         var newName = EditingPresetName.Trim();
 
-        var conditionDataList = EditingConditions
-            .Select(FilterConditionData.FromFilterCondition)
-            .ToList();
-
-        var preset = new FilterPreset
-        {
-            Name = newName,
-            CollectionName = newName,  // プリセット名 = コレクション名
-            Conditions = conditionDataList
-        };
+        // プリセット名 = コレクション名
+        var preset = Editor.ToPreset(newName, newName);
 
         bool success;
 
@@ -254,35 +231,6 @@ public partial class PresetEditorViewModel : ViewModelBase
         {
             EditorStatusMessage = LangServiceInstance.GetString("Preset.Status.DeleteFailed");
         }
-    }
-
-    /// <summary>
-    /// EditingConditionsに新規FilterConditionを追加
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanAddCondition))]
-    private void AddCondition()
-    {
-        EditingConditions.Add(new FilterCondition());
-    }
-
-    /// <summary>
-    /// 指定条件をEditingConditionsから削除
-    /// </summary>
-    [RelayCommand]
-    private void RemoveCondition(FilterCondition condition)
-    {
-        EditingConditions.Remove(condition);
-        AddConditionCommand.NotifyCanExecuteChanged();
-    }
-
-    /// <summary>
-    /// EditingConditions.Clear()
-    /// </summary>
-    [RelayCommand]
-    private void ClearConditions()
-    {
-        EditingConditions.Clear();
-        AddConditionCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -383,32 +331,21 @@ public partial class PresetEditorViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// プリセットのConditionsをEditingConditionsに読み込む
-    /// </summary>
-    private void LoadConditions(FilterPreset preset)
-    {
-        EditingConditions.Clear();
-        foreach (var conditionData in preset.Conditions)
-        {
-            var condition = conditionData.ToFilterCondition();
-            EditingConditions.Add(condition);
-        }
-    }
-
-    /// <summary>
     /// プリセットの条件でbeatmapをフィルタして返す（一括生成用）
     /// </summary>
     private Beatmap[] FilterBeatmapsByPreset(FilterPreset preset)
     {
-        var conditions = preset.Conditions
-            .Select(cd => cd.ToFilterCondition())
+        var groups = preset.GetGroups()
+            .Select(g => g.Select(cd => cd.ToFilterCondition()).ToArray())
+            .Where(g => g.Length > 0)
             .ToArray();
 
-        if (conditions.Length == 0)
+        if (groups.Length == 0)
             return Array.Empty<Beatmap>();
 
+        var activeGroups = groups.BuildActiveGroups();
         return _databaseService.Beatmaps.AsValueEnumerable()
-            .Where(beatmap => conditions.MatchesAll(beatmap, _databaseService))
+            .Where(beatmap => activeGroups.MatchesAnyGroup(beatmap, _databaseService))
             .ToArray();
     }
 

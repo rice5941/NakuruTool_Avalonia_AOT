@@ -267,7 +267,7 @@ public partial class MapListPageViewModel : ViewModelBase, IDisposable
     private void SavePresetIfNeeded()
     {
         // コレクション名が指定されていて、絞り込み条件がある場合のみ保存
-        if (!string.IsNullOrWhiteSpace(CollectionName) && FilterViewModel.Conditions.Count > 0)
+        if (!string.IsNullOrWhiteSpace(CollectionName) && FilterViewModel.Editor.HasConditions)
         {
             // プリセット名 = コレクション名
             var preset = FilterViewModel.CreatePreset(CollectionName, CollectionName);

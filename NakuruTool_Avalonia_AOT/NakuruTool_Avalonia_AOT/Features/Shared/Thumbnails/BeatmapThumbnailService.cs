@@ -236,7 +236,7 @@ public sealed class BeatmapThumbnailService : IBeatmapThumbnailService
         string osuFilePath;
         try
         {
-            songDirectory = Path.Combine(osuFolderPath, "Songs", beatmap.FolderName);
+            songDirectory = Path.Combine(OsuSongsFolder.Resolve(osuFolderPath), beatmap.FolderName);
             osuFilePath = Path.Combine(songDirectory, beatmap.OsuFileName);
         }
         catch (ArgumentException)

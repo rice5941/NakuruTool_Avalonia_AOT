@@ -87,6 +87,9 @@ public class DatabaseService: IDatabaseService
         var osuDbPath = Path.Combine(osuFolderPath, "osu!.db");
         var scoresDbPath = Path.Combine(osuFolderPath, "scores.db");
 
+        // osu! で Songs フォルダの場所（BeatmapDirectory）を変えた後でも合うよう、読み込みのたびに設定を読み直す
+        OsuSongsFolder.Refresh(osuFolderPath);
+
         // 旧ストアは新しい譜面インデックスと対応しないため先に破棄
         _localScores = LocalScoreStore.Empty;
 

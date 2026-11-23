@@ -83,7 +83,7 @@ public partial class AudioPlayerViewModel : ViewModelBase
         if (string.IsNullOrEmpty(osuFolderPath)) return;
         if (string.IsNullOrEmpty(beatmap.AudioFilename)) return;
 
-        var audioPath = Path.Combine(osuFolderPath, "Songs", beatmap.FolderName, beatmap.AudioFilename);
+        var audioPath = Path.Combine(OsuSongsFolder.Resolve(osuFolderPath), beatmap.FolderName, beatmap.AudioFilename);
         _audioPlayerService.Play(audioPath);
     }
 }

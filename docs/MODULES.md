@@ -484,6 +484,7 @@ osu!のDBファイル（`osu!.db`, `collection.db`, `scores.db`）の読み込�
 | `GenerateCollectionService.cs` | サービス | collection.dbへの書き込み（MapListPageからのコレクション生成） |
 | `CollectionDbWriter.cs` | ユーティリティ | collection.db バイナリ書き込み（GenerateCollectionService・ImportExportServiceから共用） |
 | `BinaryReaderHelper.cs` | ヘルパー | バイナリ読み取り共通処理 |
+| `OsuSongsFolder.cs` | ヘルパー | Songs フォルダの場所（osu! の設定 `BeatmapDirectory`）の解決 |
 | `UnmanagedBuffer.cs` | メモリ管理 | アンマネージドバッファ管理 |
 | `Beatmap.cs` | モデル | 譜面データ（record型） |
 | `OsuCollection.cs` | モデル | コレクションデータ |
@@ -513,7 +514,7 @@ osu!のDBファイル（`osu!.db`, `collection.db`, `scores.db`）の読み込�
 
 #### 3DBファイルの並列読み込みフロー
 
-1. osu!フォルダパスの検証
+1. osu!フォルダパスの検証と、Songs フォルダの場所の読み直し（`OsuSongsFolder.Refresh`。§3.5）
 2. `collection.db` のバックアップ作成（`backups/collection_startup_{timestamp}.db`）
 3. `Task.WhenAll` で3ファイルを並列読み込み:
    - `ReadCollectionDbAsync` → `CollectionDbParser`
@@ -707,6 +708,21 @@ DB読み込み進捗表示専用のViewModel。
 
 ---
 
+### 3.5 OsuSongsFolder（Songs フォルダの場所）
+
+osu!.db の譜面のフォルダ名（`Beatmap.FolderName`）は Songs フォルダからの相対パス。osu! stable は Songs フォルダを設定
+（`osu!.<Windows のユーザー名>.cfg` の `BeatmapDirectory`）で別の場所（別ドライブなど）に移せるため、osu! フォルダ直下の `Songs` とは限らない。
+譜面ファイル・音声・背景を読む機能と `.osz` を書き出す機能（7K 解析、オーディオ、背景・サムネイル、beatmap生成、譜面ダウンロード、
+エクスプローラーで開く、BeatmapSetId の補完）は、すべて `OsuSongsFolder.Resolve(osuFolderPath)` で Songs フォルダを決める。
+
+- 設定ファイルは `osu!.<Environment.UserName>.cfg` を先に、なければ他の `osu!.*.cfg`（`osu!.cfg` は除く）を更新日時の新しい順に見る
+  （別の PC から osu! フォルダを移した場合など、ファイル名のユーザー名が今の Windows のユーザー名と違うことがある）。
+- `BeatmapDirectory` の値が相対パスなら osu! フォルダから、絶対パスならそのまま。そのフォルダがあれば使う。
+- 設定がない・指すフォルダがなければ osu! フォルダ直下の `Songs`（従来どおり）。
+- 結果は osu! フォルダごとに覚え、DB の読み込み（`LoadDatabasesAsync`）のたびに `Refresh` で読み直す。
+
+---
+
 ## 4. AudioPlayer
 
 ### 構成ファイル
@@ -792,7 +808,7 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 | `Volume` | `int` | 音量（変更時にサービスに反映） |
 
 - `IAudioPlayerService.StateChanged` を購読し、`IsPlaying` を更新
-- `PlayBeatmapAudio(Beatmap?)` — osu!フォルダパス + `Songs/{FolderName}/{AudioFilename}` のパスを構築して再生
+- `PlayBeatmapAudio(Beatmap?)` — Songs フォルダ（`OsuSongsFolder.Resolve`）+ `{FolderName}/{AudioFilename}` のパスを構築して再生
 - `TogglePlayPauseCommand`, `StopAudioCommand` コマンドを提供
 
 ### AudioPlayerPanelViewModel

@@ -492,7 +492,7 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         if (string.IsNullOrEmpty(osuFolderPath))
             return;
 
-        var folderPath = Path.Combine(osuFolderPath, "Songs", _contextMenuBeatmap.FolderName);
+        var folderPath = Path.Combine(OsuSongsFolder.Resolve(osuFolderPath), _contextMenuBeatmap.FolderName);
         if (Directory.Exists(folderPath))
         {
             // FolderName にスペース・カンマ・括弧が含まれていても 1 引数として渡るよう ArgumentList を使う。
@@ -574,8 +574,7 @@ public abstract partial class BeatmapListViewModelBase : ViewModelBase, IBeatmap
         }
 
         var osuPath = Path.Combine(
-            osuFolderPath,
-            "Songs",
+            OsuSongsFolder.Resolve(osuFolderPath),
             beatmap.FolderName,
             beatmap.OsuFileName);
 

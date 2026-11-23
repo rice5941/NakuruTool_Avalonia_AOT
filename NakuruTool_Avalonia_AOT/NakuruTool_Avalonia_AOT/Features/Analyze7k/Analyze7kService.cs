@@ -150,7 +150,7 @@ public sealed class Analyze7kService : IAnalyze7kService
             return;
         }
 
-        var snapshot = new JobSnapshot(_database.Beatmaps, _settingsService.SettingsData.OsuFolderPath, ResolveParallelism());
+        var snapshot = new JobSnapshot(_database.Beatmaps, OsuSongsFolder.Resolve(_settingsService.SettingsData.OsuFolderPath), ResolveParallelism());
         _ = Task.Run(() => RunJobAsync(snapshot, cts.Token));
     }
 
@@ -162,7 +162,8 @@ public sealed class Analyze7kService : IAnalyze7kService
     public static int ResolveParallelism(int configured, int processorCount)
         => configured > 0 ? configured : Math.Max(1, processorCount / 2);
 
-    private sealed record JobSnapshot(Beatmap[] Beatmaps, string OsuFolder, int Parallelism);
+    /// <param name="SongsFolder">osu! の Songs フォルダ（<see cref="OsuSongsFolder"/>。osu! の設定で別の場所に移していることがある）</param>
+    private sealed record JobSnapshot(Beatmap[] Beatmaps, string SongsFolder, int Parallelism);
 
     /// <param name="AlternatePath">フォルダ名の末尾の空白・ピリオドを除いたパス（<see cref="Analyze7kRules.AlternateChartPath"/>）</param>
     private sealed record WorkItem(string Md5, string Path, string? AlternatePath, double Difficulty);
@@ -254,6 +255,7 @@ public sealed class Analyze7kService : IAnalyze7kService
     {
         var plan = new List<WorkItem>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
+        var songs = snapshot.SongsFolder;
         int done = 0, failed = 0;
         foreach (var beatmap in snapshot.Beatmaps)
         {
@@ -270,7 +272,6 @@ public sealed class Analyze7kService : IAnalyze7kService
                 failed++;
                 continue;
             }
-            var songs = Path.Combine(snapshot.OsuFolder, "Songs");
             var path = Path.Combine(songs, beatmap.FolderName, beatmap.OsuFileName);
             var alternate = Analyze7kRules.AlternateChartPath(songs, beatmap.FolderName, beatmap.OsuFileName);
             plan.Add(new WorkItem(beatmap.MD5Hash, path, alternate, beatmap.Difficulty));

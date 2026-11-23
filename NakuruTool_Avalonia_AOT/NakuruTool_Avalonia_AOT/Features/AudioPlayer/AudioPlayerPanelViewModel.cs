@@ -474,7 +474,7 @@ public partial class AudioPlayerPanelViewModel : ViewModelBase
         string osuFilePath;
         try
         {
-            songDir = Path.Combine(osuFolderPath, "Songs", beatmap.FolderName);
+            songDir = Path.Combine(OsuSongsFolder.Resolve(osuFolderPath), beatmap.FolderName);
             osuFilePath = Path.Combine(songDir, beatmap.OsuFileName);
         }
         catch (ArgumentException)

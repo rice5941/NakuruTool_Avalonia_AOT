@@ -171,6 +171,10 @@ Prism 列と段位推定列は、ヘッダーの「解析結果を表示」ボ�
 3. 未解析の 7K 譜面を★の高い順に、16MiB スタック・優先度 BelowNormal の専用スレッドで解析する
    （並列数は既定で論理コア数の半分。`Analyze7kParallelism` で変更できる）。
    - .osu を読み、ヘッダー（Mode 3・CircleSize・OD）を確認して `a7k_analyze` を呼ぶ。
+     - .osu のパスは Songs フォルダ＋osu!.db のフォルダ名＋ファイル名。Songs フォルダは osu! の設定（`osu!.<ユーザー名>.cfg` の
+       `BeatmapDirectory`）から決める（`OsuSongsFolder`。設定がなければ osu! フォルダ直下の `Songs`）。
+       以前は osu! フォルダ直下の `Songs` に決め打ちしていたため、Songs を別ドライブに移しているユーザーでは全譜面が `file_missing` になっていた
+       （実データ 79,701 譜面すべて、2026-11-23）。`file_missing` は再試行するので、この対応後の起動で解析し直される。
      - osu!.db のフォルダ名の末尾に空白・ピリオドがあり、そのパスで見つからないときは、末尾を除いたフォルダ名でも探す
        （Windows はフォルダ作成時に末尾の空白・ピリオドを取り除くため。`Analyze7kRules.AlternateChartPath`）。
      - 先頭の `osu file format v` の前の空行・空白は読み飛ばす（osu! 本体と同じ）。

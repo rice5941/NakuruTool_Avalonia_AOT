@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using NakuruTool_Avalonia_AOT.Features.ImportExport.Models;
+using NakuruTool_Avalonia_AOT.Features.OsuDatabase;
 using NakuruTool_Avalonia_AOT.Features.Settings;
 using System;
 using System.Collections.Concurrent;
@@ -190,7 +191,7 @@ public sealed class BeatmapDownloadService : IBeatmapDownloadService
         if (string.IsNullOrEmpty(osuFolderPath))
             return null;
 
-        var songsFolder = Path.Combine(osuFolderPath, "Songs");
+        var songsFolder = OsuSongsFolder.Resolve(osuFolderPath);
         Directory.CreateDirectory(songsFolder);
         return songsFolder;
     }

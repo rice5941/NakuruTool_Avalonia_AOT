@@ -17,7 +17,7 @@ public sealed class UiScaleService
     /// <summary>アプリ全体で共有するインスタンス</summary>
     public static UiScaleService Instance { get; } = new();
 
-    /// <summary>設定値「自動」（モニターの論理解像度から倍率を決める）</summary>
+    /// <summary>設定値「自動」（メインモニターの論理解像度から倍率を決める）</summary>
     public const int AutoPercent = 0;
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class UiScaleService
     }
 
     /// <summary>
-    /// メインウィンドウがあるモニターの論理解像度を報告する。自動モードではこの値から倍率を計算する。
+    /// メインモニター（OS のプライマリディスプレイ）の論理解像度を報告する。自動モードではこの値から倍率を計算する。
     /// </summary>
     public void ReportScreen(double logicalWidth, double logicalHeight)
     {

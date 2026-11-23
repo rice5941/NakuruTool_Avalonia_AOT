@@ -111,7 +111,7 @@ public partial class MainWindowView : Window
 
     /// <summary>
     /// UI 表示倍率が変わったとき、最小サイズを合わせ直し、音楽プレイヤーモード中ならウィンドウサイズも新しい倍率に合わせ直す。
-    /// （自動倍率でモニター間を移動した場合など。通常モードはレイアウトが追従するのでウィンドウサイズは変えない）
+    /// （設定画面で倍率を変えた場合や、自動倍率でメインモニターの解像度・拡大率が変わった場合。通常モードはレイアウトが追従するのでウィンドウサイズは変えない）
     /// </summary>
     private void OnUiScaleChanged(object? sender, EventArgs e)
     {

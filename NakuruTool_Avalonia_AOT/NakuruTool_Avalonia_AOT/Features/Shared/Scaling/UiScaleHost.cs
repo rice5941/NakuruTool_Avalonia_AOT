@@ -14,8 +14,9 @@ namespace NakuruTool_Avalonia_AOT.Features.Shared.Scaling;
 public class UiScaleHost : LayoutTransformControl
 {
     /// <summary>
-    /// 所属するウィンドウのモニターを追跡し、その論理解像度を <see cref="UiScaleService"/> に報告するか。
-    /// 自動倍率の基準にするウィンドウ（メインウィンドウ）だけ true にする。
+    /// メインモニター（OS のプライマリディスプレイ）の論理解像度を追跡し、<see cref="UiScaleService"/> に報告するか。
+    /// 報告は 1 か所で足りるため、メインウィンドウのホストだけ true にする。
+    /// ウィンドウが今あるモニターではなくメインモニターを基準にするので、別のモニターへ移動しても倍率は変わらない。
     /// </summary>
     public static readonly StyledProperty<bool> TracksScreenProperty =
         AvaloniaProperty.Register<UiScaleHost, bool>(nameof(TracksScreen));
@@ -74,10 +75,12 @@ public class UiScaleHost : LayoutTransformControl
         }
 
         _trackedTopLevel = topLevel;
+        // メインモニターの解像度・拡大率の変更は Screens.Changed で拾う。
+        // ScalingChanged は、ウィンドウがメインモニター上にあるときの拡大率変更を確実に拾うための保険
+        // （別モニターへの移動でも発火するが、メインモニターの論理解像度は変わらないので報告されない）
         topLevel.ScalingChanged += OnScreenMayHaveChanged;
         if (topLevel is WindowBase window)
         {
-            window.PositionChanged += OnScreenMayHaveChanged;
             window.Opened += OnScreenMayHaveChanged;
         }
 
@@ -97,7 +100,6 @@ public class UiScaleHost : LayoutTransformControl
             topLevel.ScalingChanged -= OnScreenMayHaveChanged;
             if (topLevel is WindowBase window)
             {
-                window.PositionChanged -= OnScreenMayHaveChanged;
                 window.Opened -= OnScreenMayHaveChanged;
             }
         }
@@ -115,8 +117,7 @@ public class UiScaleHost : LayoutTransformControl
     private void OnScreenMayHaveChanged(object? sender, EventArgs e) => ReportCurrentScreen();
 
     /// <summary>
-    /// ウィンドウが今あるモニターの論理解像度を報告する。
-    /// 移動中は PositionChanged が頻繁に来るため、モニターの論理解像度が変わったときだけ報告する。
+    /// メインモニターの論理解像度を報告する。論理解像度が前回から変わったときだけ報告する。
     /// </summary>
     private void ReportCurrentScreen()
     {
@@ -125,9 +126,11 @@ public class UiScaleHost : LayoutTransformControl
             return;
         }
 
-        var screen = topLevel is WindowBase window
-            ? screens.ScreenFromWindow(window)
-            : screens.ScreenFromTopLevel(topLevel);
+        // メインモニターが取得できない環境では、ウィンドウがあるモニターで代用する
+        var screen = screens.Primary
+            ?? (topLevel is WindowBase window
+                ? screens.ScreenFromWindow(window)
+                : screens.ScreenFromTopLevel(topLevel));
         if (screen is null)
         {
             return;

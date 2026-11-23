@@ -37,7 +37,7 @@
 - **左サイドバー** — Avalonia 12 の `DrawerPage`（`DrawerLayoutBehavior="Split"`）。`Drawer` にカテゴリラベル（メイン/システム）と `ListBox`（`MainMenu` / `SystemsMenu`）を配置し、各 `ListBoxItem.Tag` に `MainPageKind` を持たせる。Semi テーマの `PART_TopBar`（標準ハンバーガーボタン）は非表示
 - **コンテンツ領域** — `DrawerPage.Content` の `NavigationPage`（`MainNav`）。ルートのホストページ（ナビゲーションバー非表示）の中に、`ContentPage` の各ページ View を重ねて配置
 - **オーバーレイ** — 半透明背景の `Border` + 中央配置のカード内に `DatabaseLoadingView` を表示
-- **UI 表示倍率** — 上記すべてをルートの `UiScaleHost TracksScreen="True"`（Shared/Scaling）で包み、表示倍率で一括拡大・縮小する。自動倍率の基準モニターはこのウィンドウのモニター
+- **UI 表示倍率** — 上記すべてをルートの `UiScaleHost TracksScreen="True"`（Shared/Scaling）で包み、表示倍率で一括拡大・縮小する。メインモニターの論理解像度を報告するのはこのホストだけ（ウィンドウを別のモニターへ移動しても倍率は変わらない）
 
 ### 主要挙動
 
@@ -950,7 +950,7 @@ AudioPlayerViewModel → IAudioPlayerService → AudioPlayerService → NativeMe
 | `LanguageKey` | `string` | `"ja-JP"` | 言語コード |
 | `PreferUnicode` | `bool` | `false` | Unicode表示優先フラグ |
 | `IsAudioPanelMode` | `bool` | `false` | オーディオパネルモードの永続化フラグ |
-| `UiScalePercent` | `int` | `0` | UI 表示倍率（%）。FHD にちょうど良い大きさが 100%、開発時の大きさ（WQHD）が 125%。`0` は自動（モニターの論理解像度から計算）。項目のない既存の設定ファイルも自動になる |
+| `UiScalePercent` | `int` | `0` | UI 表示倍率（%）。FHD にちょうど良い大きさが 100%、開発時の大きさ（WQHD）が 125%。`0` は自動（メインモニターの論理解像度から計算）。項目のない既存の設定ファイルも自動になる |
 
 - JSON Source Generatorとの互換性のため、`[ObservableProperty]` ではなく手動の `SetProperty` パターンを使用
 - `Update(SettingsData)` メソッドで既存インスタンスのプロパティを一括更新
@@ -1158,7 +1158,7 @@ SettingsData.UiScalePercent（0=自動, 75 / 100 / 125 / 150）
    │ App 起動時（ウィンドウ表示前）/ 設定画面で変更時
    ▼
 UiScaleService.Instance ◀── ReportScreen(論理サイズ) ◀── メインウィンドウの UiScaleHost(TracksScreen=True)
-   EffectivePercent, Scale(=%÷125), ScaleChanged           （表示時 / PositionChanged / ScalingChanged / Screens.Changed）
+   EffectivePercent, Scale(=%÷125), ScaleChanged           （Screens.Primary を表示時 / Screens.Changed / ScalingChanged で再確認）
    │
    ▼
 UiScaleHost（各 Window のルート）→ LayoutTransform = ScaleTransform(s, s)（Scale 1.0 のときは null）
@@ -1167,7 +1167,7 @@ UiScaleHost（各 Window のルート）→ LayoutTransform = ScaleTransform(s, 
 
 | 項目 | 仕様 |
 |------|------|
-| 自動倍率 | `clamp(floor(100 × min(論理幅/1920, 論理高/1080) / 5) × 5, 95, 125)`（%）。論理解像度は `Screen.Bounds ÷ Screen.Scaling`（タスクバーで揺れないよう作業領域ではなく画面全体）。例: WQHD・UWQHD・4K@100〜150% → 125%（上限 = 開発時の大きさ）、WQHD@125% → 105%、FHD・4K@200% → 100%、FHD@125% / 1366×768 / 1280×720 → 95%（下限） |
+| 自動倍率 | `clamp(floor(100 × min(論理幅/1920, 論理高/1080) / 5) × 5, 95, 125)`（%）。基準は OS のメインモニター（`Screens.Primary`。取得できないときはウィンドウがあるモニター）で、ウィンドウを別のモニターへ移動しても倍率は変わらない。論理解像度は `Screen.Bounds ÷ Screen.Scaling`（タスクバーで揺れないよう作業領域ではなく画面全体）。例: WQHD・UWQHD・4K@100〜150% → 125%（上限 = 開発時の大きさ）、WQHD@125% → 105%、FHD・4K@200% → 100%、FHD@125% / 1366×768 / 1280×720 → 95%（下限） |
 | 手動倍率 | 設定画面で 75 / 100 / 125 / 150% を選べる。設定ファイルの値は `NormalizePercent` で 50〜250% に収める |
 | 未初期化時 | `ConfiguredPercent = 125`（開発時の大きさ、`Scale` 1.0）。App が設定値を渡すまでは変換なしのため、App を通らないヘッドレステストは常に開発時の大きさ |
 | ポップアップ | 別の TopLevel（実機では `PopupRoot`、ヘッドレスではオーバーレイ層）に描画されるため、App.axaml の `Popup` スタイルで `InheritsTransform=True` にして配置元の倍率を引き継ぐ。Semi の `PopupRoot` テンプレートはルートが `LayoutTransformControl` で `PopupRoot.Transform` を反映する |
